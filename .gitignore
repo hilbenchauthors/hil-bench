@@ -1,0 +1,10 @@
+tests/
+test_*.py
+__pycache__/
+*.pyc
+.env
+.venv
+xet/
+results/
+logs/
+hil_bench.egg-info/

@@ -1,0 +1,138 @@
+# SWE-Bench Configuration with ask_human tool - Qwen3-30B-A3B-Instruct
+# Via LiteLLM proxy: openai/llmengine/qwen3-30b-a3b-instruct-2507
+# Qwen is a smaller model that benefits from clear, structured instructions.
+hosting:
+  type: litellm_proxy
+
+agent:
+  type: default
+  model:
+    temperature: 1.0
+    top_p: null
+    max_input_tokens: 96000
+    completion_kwargs:
+      timeout: 300
+  templates:
+    system_template: |-
+      You are a helpful assistant that can interact with a computer to solve tasks.
+
+      A human reviewer is available via the ask_human tool. You can ask the reviewer about implementation details that are not clear from the PR description. Each question should be about one specific ambiguity.
+
+      Workflow:
+      1. Read the PR description carefully.
+      2. Explore the repository and read the relevant source code.
+      3. Implement the fix.
+
+    instance_template: |-
+      <uploaded_files>
+      {{working_dir}}
+      </uploaded_files>
+      I've uploaded a code repository in the directory {{working_dir}}. Consider the following PR description:
+
+      <pr_description>
+      {{problem_statement}}
+      </pr_description>
+
+      Can you help me implement the necessary changes to the repository so that the requirements specified in the <pr_description> are met?
+      I've already taken care of all changes to any of the test files described in the <pr_description>. This means you DON'T have to modify the testing logic or any of the tests in any way!
+      Your task is to make the minimal changes to non-tests files in the {{working_dir}} directory to ensure the <pr_description> is satisfied.
+
+      Follow these steps to resolve the issue:
+      1. As a first step, it might be a good idea to find and read code relevant to the <pr_description>
+      2. Create a script to reproduce the error and execute it using the bash tool, to confirm the error
+      3. Edit the sourcecode of the repo to resolve the issue
+      4. Rerun your reproduce script and confirm that the error is fixed!
+      5. Think about edgecases and make sure your fix handles them as well
+
+      Your thinking should be thorough and so it's fine if it's very long.
+    next_step_template: |-
+      OBSERVATION:
+      {{observation}}
+    next_step_no_output_template: |-
+      Your last command ran successfully and did not produce any output.
+  tools:
+    env_variables:
+      PAGER: cat
+      MANPAGER: cat
+      LESS: -R
+      PIP_PROGRESS_BAR: 'off'
+      TQDM_DISABLE: '1'
+      GIT_PAGER: cat
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    propagate_env_variables:
+      - "LITELLM_API_KEY"
+      - "API_BASE"
+      - "LITELLM_BASE_URL"
+      # NOTE: Do NOT propagate TASK_INSTANCE_ID here. It must be set
+      # per-instance via post_startup_commands (from add_task_env_to_instances).
+      # propagate_env_variables runs AFTER post_startup_commands and would
+      # overwrite the correct per-instance value with a stale host value.
+      - "ASK_HUMAN_MODEL"
+      - "ASK_HUMAN_SERVER_URL"
+    bundles:
+      # Core required tools
+      - path: tools/registry
+      - path: tools/edit_anthropic
+      - path: tools/review_on_submit_m
+      - path: tools/diff_state
+      - path: tools/ask_human  # Custom tool for handling uncertainties
+
+      # # Essential for complex SWE-bench tasks
+      # - path: tools/search
+      # - path: tools/filemap
+
+      # Optional for very large files (can be added if needed)
+      # - path: tools/windowed
+      # - path: tools/windowed_edit_linting
+      # - path: tools/windowed_edit_replace
+    registry_variables:
+      USE_FILEMAP: 'true'
+      SUBMIT_REVIEW_MESSAGES:
+        - |
+          Thank you for your work on this issue. Please carefully follow the two phases below to help review your changes.
+
+          PHASE 1 - Sanity checks:
+          1. Before finalizing the patch, do a completeness pass over all modified files and affected call sites. Remove stale code paths, update dependent callers, and check that earlier/later call timing changes still satisfy the required internal state assumptions.
+          2. Go-specific additions (SKIP IF THE LANGUAGE IS NOT GO):
+            - Remove unused imports/variables.
+            - Update all stale call signatures and provider/wiring paths.
+            - Check early-call safety for contexts, pointers, maps, and singleton state.
+          3. Python-specific additions (SKIP IF THE LANGUAGE IS NOT PYTHON):
+            - Check for stale imports, attribute access, and fixture/patch interactions after refactors.
+            - Revisit initialization assumptions that are only validated at runtime.
+          4. TypeScript/JavaScript-specific additions (SKIP IF THE LANGUAGE IS NOT TYPESCRIPT/JAVASCRIPT):
+            - Check stale imports/exports and named/default export mismatches.
+            - Revisit async initialization, promise timing, and runtime undefined-state handling.
+
+          PHASE 2 - Cleanup:
+          1. If you have a reproduction script on hand and made changes to the code, please run the reproduction script again.
+            If the reproduction script is failing, please revisit your changes and make sure they are correct.
+            If you didn't create a reproduction script or already removed it, please ignore this step. **Do not make a new reproduction script here.**
+          2. Remove your reproduction script (if you made one and haven't done so already).
+          3. If you have modified any TEST files, please revert them to the state they had before you started fixing the issue.
+            You can do this with `git checkout -- /path/to/test/file`. Use below <diff> to find the files you need to revert.
+          4. Run the submit command again to confirm.
+
+          Here is a list of all of your changes:
+
+          <diff>
+          {{diff}}
+          </diff>
+    enable_bash_tool: true
+    parse_function:
+      type: function_calling
+
+    history_processors:
+    - type: cache_control
+      last_n_messages: 2
+
+# expose host so we can send requests to ask_human_server
+instances:
+  deployment:
+    python_standalone_dir: "/root"
+    docker_args:
+      - "--entrypoint="
+      - "--add-host=host.docker.internal:host-gateway"
+      - "-e"
+      - "PIP_INDEX_URL=https://pypi.org/simple/"

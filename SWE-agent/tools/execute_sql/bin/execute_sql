@@ -1,0 +1,50 @@
+import argparse
+import sqlite3
+from pathlib import Path
+import pandas as pd
+
+MAX_ROWS = 200
+
+
+def main(db_path: str, query: str) -> str:
+    p = Path(db_path)
+    if not p.exists() or not p.is_file():
+        return f"Error: database file not found at {p.resolve()}"
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cursor = conn.cursor()
+            cursor.execute(query)
+            if cursor.description is not None:  # SELECT, WITH, or other row-returning query
+                columns = [description[0] for description in cursor.description]
+                data = cursor.fetchall()
+                df = pd.DataFrame(data, columns=columns)
+                if df.empty:
+                    return "Query executed successfully. No results returned."
+                if len(df) > MAX_ROWS:
+                    df = df.head(MAX_ROWS)
+                    return (
+                        f"Query executed successfully. Result truncated to the first {MAX_ROWS} rows:\n"
+                        f"{df.to_csv(index=False)}"
+                    )
+                else:
+                    return f"Query executed successfully:\n{df.to_csv(index=False)}"
+            else:  # INSERT, UPDATE, DELETE, CREATE, etc.
+                conn.commit()
+                return f"Query executed successfully. {cursor.rowcount} rows affected."
+    except Exception as e:
+        return f"Error executing query: {e}"
+
+
+if __name__ == "__main__":
+    import sys
+    parser = argparse.ArgumentParser()
+    parser.add_argument("working_db_path")
+    parser.add_argument("query", nargs="*", default=[])
+    args = parser.parse_args()
+
+    if args.query:
+        query = " ".join(args.query)
+    else:
+        query = sys.stdin.read().strip()
+
+    print(main(args.working_db_path, query))

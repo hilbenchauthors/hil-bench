@@ -1,0 +1,13 @@
+tools:
+  get_table_info:
+    signature: "get_table_info <database_name> <table_name>"
+    docstring: "Retrieves information about a given table in dictionary form. Includes its description and a list of its columns. If the table doesn't exist, returns an error message."
+    arguments:
+      - name: database_name
+        type: string
+        description: "The name of the database containing the table."
+        required: true
+      - name: table_name
+        type: string
+        description: "The name of the table to get information for."
+        required: true

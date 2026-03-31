@@ -1,0 +1,13 @@
+tools:
+  get_business_info:
+    signature: "get_business_info <database_name> <search_string>"
+    docstring: "Retrieves UP TO the top 10 semantically similar results to the search string from a knowledge base containing business logic, rules, definitions, etc. Usage tip: keep the search string granular; do not search for multiple concepts at once."
+    arguments:
+      - name: database_name
+        type: string
+        description: "The name of the current database."
+        required: true
+      - name: search_string
+        type: string
+        description: "The topic, concept, phrase, or question to search for in the business knowledge base."
+        required: true
