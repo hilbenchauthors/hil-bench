@@ -786,6 +786,7 @@ def summarize_rows(
         total_questions = 0.0
         precision_sum = 0.0
         recall_sum = 0.0
+        f1_sum = 0.0
         for valid_passes in attempt_passes:
             num_valid = len(valid_passes)
             for k in range(1, expected_passes + 1):
@@ -802,8 +803,15 @@ def summarize_rows(
                 total_tokens_received += float(row.get("tokens_received") or 0.0)
                 total_questions += float(row.get("num_questions") or 0.0)
                 if mode == "ask_human":
-                    precision_sum += float(row.get("precision") or 0.0)
-                    recall_sum += float(row.get("recall") or 0.0)
+                    pass_precision = float(row.get("precision") or 0.0)
+                    pass_recall = float(row.get("recall") or 0.0)
+                    precision_sum += pass_precision
+                    recall_sum += pass_recall
+                    f1_sum += (
+                        2 * pass_precision * pass_recall / (pass_precision + pass_recall)
+                        if (pass_precision + pass_recall) > 0
+                        else 0.0
+                    )
 
         metrics: dict[str, Any] = {
             "num_included_attempts": len(attempt_passes),
@@ -830,11 +838,7 @@ def summarize_rows(
         if mode == "ask_human":
             ask_precision = precision_sum / total_attempts_and_passes if total_attempts_and_passes > 0 else 0.0
             ask_recall = recall_sum / total_attempts_and_passes if total_attempts_and_passes > 0 else 0.0
-            ask_f1 = (
-                2 * ask_precision * ask_recall / (ask_precision + ask_recall)
-                if (ask_precision + ask_recall) > 0
-                else 0.0
-            )
+            ask_f1 = f1_sum / total_attempts_and_passes if total_attempts_and_passes > 0 else 0.0
             metrics["ask_precision"] = ask_precision
             metrics["ask_recall"] = ask_recall
             metrics["ask_f1"] = ask_f1
