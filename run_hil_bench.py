@@ -941,7 +941,7 @@ def trajectory_has_env_died_obs(trajectory: list[dict[str, str]]) -> bool:
     return isinstance(obs, str) and TRAJECTORY_ENV_DIED_OBS in obs
 
 
-def _trajectory_has_unknown_error(trajectory: Any) -> bool:
+def trajectory_has_unknown_error(trajectory: Any) -> bool:
     """True if any trajectory step observation ended due to an unknown error"""
     if not isinstance(trajectory, list):
         return False
@@ -951,7 +951,7 @@ def _trajectory_has_unknown_error(trajectory: Any) -> bool:
     response = last_step.get("response", "")
     if not isinstance(response, str):
         return False
-    return _TRAJECTORY_UNKNOWN_ERROR in response
+    return TRAJECTORY_UNKNOWN_ERROR in response
 
 
 def trajectory_needs_rerun(trajectory: list[dict[str, str]]) -> bool:
