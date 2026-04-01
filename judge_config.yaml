@@ -1,0 +1,4 @@
+model: casperhansen/llama-3.3-70b-instruct-awq
+hosting:
+  type: self_hosted
+  self_hosted_base_url: http://127.0.0.1:8808

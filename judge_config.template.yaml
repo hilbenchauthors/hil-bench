@@ -1,0 +1,9 @@
+model: casperhansen/llama-3.3-70b-instruct-awq
+
+hosting:
+  type: self_hosted
+  self_hosted_base_url_env: ASK_HUMAN_SELF_HOSTED_BASE_URL
+  # For hosting.type=litellm_proxy, use:
+  # litellm_base_url_env: LITELLM_BASE_URL
+  # Optional for self_hosted:
+  # self_hosted_api_key_env: ASK_HUMAN_VLLM_API_KEY

@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+"""
+SWE-agent ask_human tool (Client) - Sends questions to the host server.
+"""
+
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+
+SERVER_URL = os.getenv("ASK_HUMAN_SERVER_URL", "http://host.docker.internal:9521/ask")
+CANT_ANSWER = "can't answer (perhaps transient hiccup)"
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: ask_human <question>", file=sys.stderr)
+        print("Example: ask_human 'How should I handle password security?'", file=sys.stderr)
+        sys.exit(1)
+
+    # Join all arguments as the question (allows multi-word questions)
+    question = " ".join(sys.argv[1:])
+
+    # Remove surrounding quotes if present
+    if question.startswith('"') and question.endswith('"'):
+        question = question[1:-1]
+    elif question.startswith("'") and question.endswith("'"):
+        question = question[1:-1]
+
+    # Get instance ID from environment
+    # Try TASK_INSTANCE_ID first (set by set_task_env.py), then SWE_INSTANCE_ID (standard SWE-agent)
+    instance_id = os.getenv("TASK_INSTANCE_ID") or os.getenv("SWE_INSTANCE_ID")
+
+    if not instance_id:
+        # Without instance ID, we cannot query the server effectively for a specific task
+        print("ask_human tool failed because TASK_INSTANCE_ID is not set")
+        return
+
+    payload = {"question": question, "instance_id": instance_id}
+
+    req = urllib.request.Request(
+        SERVER_URL,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=120) as response:
+            if response.status != 200:
+                print(CANT_ANSWER)
+                return
+
+            resp_data = json.load(response)
+            if "response" in resp_data:
+                print(resp_data["response"])
+            else:
+                print(CANT_ANSWER)
+    except (TimeoutError, urllib.error.URLError, urllib.error.HTTPError, json.JSONDecodeError):
+        # Tool failures should degrade gracefully so agent runs continue.
+        print(CANT_ANSWER)
+
+
+if __name__ == "__main__":
+    main()

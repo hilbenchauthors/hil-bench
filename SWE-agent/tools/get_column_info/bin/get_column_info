@@ -1,0 +1,41 @@
+import argparse
+import os
+from pathlib import Path
+
+import pandas as pd
+
+
+def main(database_name: str, table_name: str, column_name: str) -> dict | str:
+    table_lowered = table_name.lower()
+    column_lowered = column_name.lower()
+    error_msg = f"Error: column {column_name} in table {table_name} in database {database_name} doesn't exist"
+
+    descriptions_dir = os.environ.get("DATABASE_DESCRIPTIONS_DIR")
+    if descriptions_dir:
+        data_dict_path = Path(descriptions_dir) / f"{table_lowered}.csv"  # always stored as lowered name.csv
+    else:
+        data_dict_path = Path(__file__) / ".." / ".." / ".." / ".." / ".." / "sql_benchmark" / "blocker_sqlite_database" / database_name / "database_description" / f"{table_lowered}.csv"  # always stored as lowered name.csv
+    try:
+        df = pd.read_csv(data_dict_path.resolve())
+    except FileNotFoundError:
+        return error_msg
+    try:
+        df_slice = df[df["original_column_name"] == column_name]
+        if len(df_slice) == 0:
+            df_slice = df[df["original_column_name"] == column_lowered]
+        row = df_slice.iloc[0]  # if it still doesn't exist, it will be caught by the indexerror
+    except IndexError:
+        return error_msg
+    return {
+        "description": row["combined_description"],
+        "data_type": row["data_format"],
+    }
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("database_name")
+    parser.add_argument("table_name")
+    parser.add_argument("column_name")
+    args = parser.parse_args()
+    print(main(args.database_name, args.table_name, args.column_name))

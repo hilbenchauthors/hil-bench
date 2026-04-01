@@ -1,0 +1,15 @@
+sql:
+  baseline:
+    openai/gpt-4.1: configs/sql/sql_config.yaml
+  ask_human:
+    openai/gpt-4.1: configs/sql/ask_sql_config.yaml
+  full_info:
+    openai/gpt-4.1: configs/sql/sql_config.yaml
+
+swe:
+  baseline:
+    openai/gpt-4.1: configs/swe/default.yaml
+  ask_human:
+    openai/gpt-4.1: configs/swe/ask_config.yaml
+  full_info:
+    openai/gpt-4.1: configs/swe/default.yaml

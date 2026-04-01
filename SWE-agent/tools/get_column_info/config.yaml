@@ -1,0 +1,17 @@
+tools:
+  get_column_info:
+    signature: "get_column_info <database_name> <table_name> <column_name>"
+    docstring: "Retrieves information about a given column in dictionary form. Includes its description and data type. If the column doesn't exist, returns an error message."
+    arguments:
+      - name: database_name
+        type: string
+        description: "The name of the database containing the table."
+        required: true
+      - name: table_name
+        type: string
+        description: "The name of the table to get information for."
+        required: true
+      - name: column_name
+        type: string
+        description: "The name of the column to get information for."
+        required: true

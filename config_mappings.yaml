@@ -1,0 +1,49 @@
+sql:
+  baseline:
+    openai/gpt-4.1: configs/sql/default_sql_config.yaml
+    gpt-5.3-codex: configs/sql/default_sql_config.yaml
+    gpt-5.4: configs/sql/default_sql_config.yaml
+    claude-opus-4-6: configs/sql/default_sql_config.yaml
+    gemini-3-1-pro-preview-customtools: configs/sql/default_sql_config.yaml
+    qwen3-30b-a3b-instruct-2507: configs/sql/default_sql_config.yaml
+
+  ask_human:
+    openai/gpt-4.1: configs/sql/ask_sql_config_gpt_5-4.yaml
+    gpt-5.3-codex: configs/sql/ask_sql_config_gpt_5-3_codex.yaml
+    gpt-5.4: configs/sql/ask_sql_config_gpt_5-4.yaml
+    claude-opus-4-6: configs/sql/ask_sql_config_claude_opus_4-6.yaml
+    gemini-3-1-pro-preview-customtools: configs/sql/ask_sql_config_gemini_3-1_pro_preview_customtools.yaml
+    qwen3-30b-a3b-instruct-2507: configs/sql/ask_sql_config_qwen3_30b_a3b_instruct_2507.yaml
+
+  full_info:
+    openai/gpt-4.1: configs/sql/default_sql_config.yaml
+    gpt-5.3-codex: configs/sql/default_sql_config.yaml
+    gpt-5.4: configs/sql/default_sql_config.yaml
+    claude-opus-4-6: configs/sql/default_sql_config.yaml
+    gemini-3-1-pro-preview-customtools: configs/sql/default_sql_config.yaml
+    qwen3-30b-a3b-instruct-2507: configs/sql/default_sql_config.yaml
+
+swe:
+  baseline:
+    openai/gpt-4.1: configs/swe/default_swe_config.yaml
+    gpt-5.3-codex: configs/swe/default_swe_config.yaml
+    gpt-5.4: configs/swe/default_swe_config.yaml
+    claude-opus-4-6: configs/swe/default_swe_config.yaml
+    gemini-3-1-pro-preview-customtools: configs/swe/default_swe_config.yaml
+    qwen3-30b-a3b-instruct-2507: configs/swe/default_swe_config.yaml
+
+  ask_human:
+    openai/gpt-4.1: configs/swe/ask_config_gpt_5-4.yaml
+    gpt-5.3-codex: configs/swe/ask_config_gpt_5-3_codex.yaml
+    gpt-5.4: configs/swe/ask_config_gpt_5-4.yaml
+    claude-opus-4-6: configs/swe/ask_config_claude_opus_4-6.yaml
+    gemini-3-1-pro-preview-customtools: configs/swe/ask_config_gemini_3-1_pro_preview_customtools.yaml
+    qwen3-30b-a3b-instruct-2507: configs/swe/ask_config_qwen3_30b_a3b_instruct_2507.yaml
+
+  full_info:
+    openai/gpt-4.1: configs/swe/default_swe_config.yaml
+    gpt-5.3-codex: configs/swe/default_swe_config.yaml
+    gpt-5.4: configs/swe/default_swe_config.yaml
+    claude-opus-4-6: configs/swe/default_swe_config.yaml
+    gemini-3-1-pro-preview-customtools: configs/swe/default_swe_config.yaml
+    qwen3-30b-a3b-instruct-2507: configs/swe/default_swe_config.yaml

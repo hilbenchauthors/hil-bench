@@ -1,0 +1,9 @@
+tools:
+  get_database_info:
+    signature: "get_database_info <database_name>"
+    docstring: "Retrieves information about a given database in dictionary form. Dictionary keys are table names, dictionary values are their descriptions. If the database doesn't exist, returns an error message."
+    arguments:
+      - name: database_name
+        type: string
+        description: "The name of the database to get information for."
+        required: true

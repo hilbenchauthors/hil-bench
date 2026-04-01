@@ -1,0 +1,10 @@
+tools:
+  execute_sql:
+    signature: "execute_sql <<ENDOFSQL\n<query>\nENDOFSQL"
+    docstring: "Executes a SQL query against the database and returns the result if query execution is successful, else returns the execution error string. If the result is too large, only the first 200 rows are returned. The query can span multiple lines. End with ENDOFSQL on its own line."
+    end_name: "ENDOFSQL"
+    arguments:
+      - name: query
+        type: string
+        description: "The SQL query to execute. Can span multiple lines."
+        required: true

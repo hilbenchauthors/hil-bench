@@ -1,0 +1,88 @@
+# SQL Benchmark Configuration with ask_human tool - Gemini-3.1-pro-preview
+# Gemini follows instructions precisely. This prompt provides a structured
+# workflow with minimal ask_human guidance to avoid over-asking.
+hosting:
+  type: litellm_proxy
+
+agent:
+  type: sql
+  model:
+    name: gemini/gemini-3.1-pro-preview
+    per_instance_cost_limit: 2.5
+    temperature: 1.0
+    top_p:
+    max_input_tokens: 65536
+  tools:
+    tool_dir: SWE-agent/tools
+    bundles:
+    - path: tools/execute_sql
+    - path: tools/get_database_info
+    - path: tools/get_table_info
+    - path: tools/get_column_info
+    - path: tools/get_business_info
+    - path: tools/ask_human
+    - path: tools/submit_sql
+    enable_bash_tool: false
+    parse_function:
+      type: function_calling
+      error_message: |-
+        {%- if error_code == "missing" -%}
+        Your last output did not use any tool calls! Please make sure your output has **exactly ONE tool call**. You must invoke the function directly using the function call format. You cannot invoke them with "```", you MUST use the function call format.
+
+        If you did not use a tool because you are ready to submit your final SQL query, please use the `submit_sql` tool to submit and mark this task as complete: `submit_sql <your_sql_query_here>`
+
+        If you think you cannot solve the problem, use the `submit_sql` tool to submit an empty-string query.
+
+        Otherwise, continue with a new tool call.
+        {%- elif error_code == "multiple" -%}
+        Your last output had multiple tool calls! Choose ONE of them to make at each step. Your outputs must each contain **exactly ONE tool call**.
+        {% elif error_code == "unexpected_arg" -%}
+        Your last output could not be parsed properly: {{exception_message}}. Make sure your tool call does not include any extra arguments that are not specified in the signature, and ONLY use the allowed commands.
+        {%- else -%}
+        Your last output could not be parsed properly: {{exception_message}}.
+        {% endif %}
+    # Must match env passed into `uv run hil sql` / sweagent (paper_pipeline._build_sql_subprocess_env, swe.py).
+    propagate_env_variables:
+      - "LITELLM_API_KEY"
+      - "API_BASE"
+      - "LITELLM_BASE_URL"
+      - "HF_HOME"
+      - "HUGGINGFACE_HUB_CACHE"
+      - "TRANSFORMERS_CACHE"
+      - "SENTENCE_TRANSFORMERS_HOME"
+      - "DATABASE_DESCRIPTIONS_DIR"
+      - "DATABASE_DESCRIPTIONS_BASE_DIR"
+      - "CHROMA_PATH"
+      - "CHROMA_BASE_PATH"
+      - "CHROMA_COLLECTION_NAME"
+      - "HIL_BENCH_REQUIRE_BUFFED_CHROMA"
+      - "ASK_HUMAN_MODEL"
+      - "ASK_HUMAN_SERVER_URL"
+      - "TASK_INSTANCE_ID"
+  templates:
+    system_template: |-
+      You are a helpful data analyst assistant well-versed in SQL. Your job is to generate a correct SQL query given a user question.
+
+      A human analyst is available via the ask_human tool if you need to clarify something about the data requirements. Each question should be about one specific ambiguity.
+
+      Follow this workflow:
+      1. Use the get_business_info tool to understand domain-specific logic and definitions relevant to the question. Pay attention to specific details and note where information may be incomplete.
+      2. Use the get_database_info, get_table_info, and get_column_info tools to understand the database schema and contents.
+      3. Write, test, and debug your SQL query until you are confident it is correct.
+      4. When you are certain your query is correct, use the submit_sql tool (`submit_sql <query>`) to submit your final answer. If you do not do this, the task will be considered incomplete.
+
+      Important reminders overall:
+      - Think about edge cases and make sure your query handles them all
+      - Your thinking should be thorough and so it's fine if it's very long.
+      - Use exactly one tool call at each turn, no more no fewer.
+      - If any of your responses results in an error, pay extreme attention to the error message and address it in your next response.
+      - Do not prefix table names with the database name in your SQL queries.
+      - Aim for both correctness and efficiency in your final answer
+      - If faced with a complex query, try to break it down into manageable parts, write and test them one by one, then efficiently join them into a final query.
+    instance_template: |-
+      Please answer the following question about the '{{database_name}}' database: {{problem_statement}}
+    next_step_template: |-
+      OBSERVATION:
+      {{observation}}
+    next_step_no_output_template: |-
+      Your last command ran successfully and did not produce any output.

@@ -1,0 +1,10 @@
+tools:
+  submit_sql:
+    signature: "submit_sql <<ENDOFSQL\n<query>\nENDOFSQL"
+    docstring: "Submits the final SQL query for evaluation. The query can span multiple lines. End with ENDOFSQL on its own line."
+    end_name: "ENDOFSQL"
+    arguments:
+      - name: query
+        type: string
+        description: "The final, complete SQL query that solves the problem. Can span multiple lines."
+        required: true

@@ -1,0 +1,14 @@
+{{ problem_statement }}
+
+---
+
+## Additional Context
+
+The following clarifications are provided to help you complete this task:
+
+{% for blocker in blockers %}
+### {{ blocker["description"] }}
+
+{{ blocker["resolution"] }}
+
+{% endfor %}
