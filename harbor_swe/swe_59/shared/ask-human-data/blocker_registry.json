@@ -1,0 +1,75 @@
+{
+  "blockers": [
+    {
+      "id": "missing_calendar_url_max_length",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements state that the URL length must be centralized using MAX_LENGTHS_API.CALENDAR_URL, but do not specify the exact numeric value that CALENDAR_URL should be set to. Multiple plausible values exist depending on server limits, browser constraints, or organizational policy.",
+      "resolution": "Set `CALENDAR_URL: 10000` in the `MAX_LENGTHS_API` object in `packages/shared/lib/calendar/constants.ts`. The value must be exactly `10000`. Do NOT use `10240`, `8192`, `4096`, `2048`, or any other value. Use `calendarURL.length > MAX_LENGTHS_API.CALENDAR_URL` (strictly greater-than, not >=) for the length check. This length check must be included in the unified disabled flag for the submit button, so that overly long URLs prevent submission.",
+      "example_questions": [
+        "-  What exact numeric value should `MAX_LENGTHS_API.CALENDAR_URL` use?",
+        "-  How many characters should a calendar subscription URL be allowed to have before it is considered too long?",
+        "-  Is there a specific maximum length number I should assign to `CALENDAR_URL`?",
+        "-  What is the required URL length limit for calendar subscriptions?",
+        "-  Which exact value should the centralized calendar URL length constant use?"
+      ]
+    },
+    {
+      "id": "missing_provider_url_match_patterns",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The problem statement and requirements both indicate that Google public calendar links must be identified and warned about, but neither specifies the exact URL path pattern that distinguishes a public Google Calendar feed from a private one. Without this specific pattern, it is impossible to reliably detect public feeds.\n",
+      "resolution": "Detect Google public feed links with `calendarURL.match(/\\/public\\/\\w+\\.ics/)`. The `\\w+` character class ensures only word characters (letters, digits, underscore) match the feed identifier segment \u2014 hyphens and other punctuation must not trigger the warning.",
+      "example_questions": [
+        "-  How should I recognize a Google public calendar feed link?",
+        "-  What exact path pattern should identify a Google public feed URL?",
+        "-  Which part of a Google Calendar URL indicates that it points to a public feed?"
+      ]
+    },
+    {
+      "id": "ambiguous_ics_extension_detection",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements describe warnings for URLs 'without .ics' but do not specify whether the extension check should inspect the full raw URL string or a parsed component such as the pathname. URLs with query strings or fragments after `.ics` behave differently depending on that choice.",
+      "resolution": "Detect the `.ics` extension by parsing the URL and checking whether `new URL(calendarURL).pathname.endsWith('.ics')` inside a `try/catch`. Query strings and fragments must not affect the extension result, and the check must remain case-sensitive, so `.ICS` does NOT count. Do NOT use `calendarURL.endsWith('.ics')` on the full raw string.",
+      "example_questions": [
+        "-  Should the `.ics` check use the full URL string or the parsed pathname?",
+        "-  How should a URL like `https://example.com/feed.ics?token=1` be treated by the extension check?",
+        "-  Should query strings and fragments count when deciding whether a URL has `.ics`?",
+        "-  If the URL ends with `.ICS` in uppercase, should it still count as an `.ics` link?",
+        "-  What part of the URL should determine whether the extension warning appears?"
+      ]
+    },
+    {
+      "id": "contradictory_warning_priority_order",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement says overly long URLs are the most critical validation concern because the server cannot process them, but the requirements enumerate warning priority as extension concern first, Google public link concern second, and length warning last. These instructions conflict on which warning category should appear first when more than one condition applies.",
+      "resolution": "Follow the problem statement's criticality: `getWarning()` must check `isURLTooLong` first, then `shouldProbablyHaveIcsExtension`, then `googleWillPossiblyBeMakePublic`. The displayed warning order must therefore be: (1) length-limit, (2) extension-concern, (3) Google-public-privacy. The numbered priority list in the requirements (which lists extension first and length last) is the source of the contradiction and must be overridden by this resolution.",
+      "example_questions": [
+        "-  Which warning should take precedence when a URL is both too long and missing `.ics`?",
+        "-  Should the length warning appear before or after extension and Google public warnings?",
+        "-  The problem statement calls length the most critical issue but the requirements list it last; which order should I implement?",
+        "-  In `getWarning`, what should be the first condition I check?",
+        "-  If multiple warning conditions apply, which message should be shown first?"
+      ]
+    },
+    {
+      "id": "contradictory_input_normalization_policy",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement specifies that the URL field must store and validate the value exactly as the user provides it, without any preprocessing, while the requirements instruct that input changes must be normalized before storing. These instructions conflict on whether the URL value should be transformed before it is saved to state.",
+      "resolution": "Follow the requirements: apply trim() in the onChange handler before storing the URL, using setCalendarURL(e.target.value.trim()). Do NOT preserve raw unprocessed values and defer normalization to the submission or validation step.",
+      "example_questions": [
+        "-  Should the calendar URL be trimmed of whitespace before storing it in state, or kept exactly as the user typed it?",
+        "-  The problem statement says to validate the URL as provided, but the requirements say to normalize before storing; which instruction takes precedence?",
+        "-  Should whitespace be stripped from the calendar URL at the moment the user types, or should the raw input be preserved in state and cleaned up only when the form is submitted?"
+      ]
+    }
+  ]
+}

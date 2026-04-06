@@ -1,0 +1,46 @@
+{
+  "blockers": [
+    {
+      "id": "missing_album_refresh_chunk_size",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The implementation must refresh albums in batches to avoid overloading the DB, but the problem statement only mentions that the batch number must be changed, and never specifies the maximum number of album IDs per batch.\n",
+      "resolution": "Use a chunk size of 70 album IDs per batch. In scanner/refresher.go, in the function that splits album IDs for refresh (e.g. chunkRefreshAlbums), call utils.BreakUpStringSlice(ids, 70), or a configuration value whose default/fallback is 70. The effective batch size must be 70 unless explicitly overridden. The second argument must not default to 100, 50, or any other value. Example: 250 albums must be split into batches of 70, 70, 70, and 40.",
+      "example_questions": [
+        "-  What batch size should I use when refreshing albums?",
+        "-  How many album IDs per batch for refresh?",
+        "-  Is there a maximum number of albums to refresh in one go?",
+        "-  What is the batch size limit for album refresh operations?",
+        "-  How many albums per batch does the implementation require?"
+      ]
+    },
+    {
+      "id": "conflicting_path_separator",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement contains two determinant requirements that conflict: the concatenated image paths must use the system list separator, and the concatenated value must use comma as the separator for compatibility with CSV consumers. A reader cannot satisfy both.\n",
+      "resolution": "Use the pipe character | as the separator between paths (no spaces). In code: join the slice of path strings with strings.Join(pathSlice, \\\"|\\\"). Do not use comma (\\\",\\\"), semicolon (\\\";\\\"), or os.PathListSeparator. Example output: path1|path2|path3.",
+      "example_questions": [
+        "-  Should I use comma or system list separator?",
+        "-  Which list separator should I use?",
+        "-  Between system separator and comma, which takes precedence?",
+        "-  What character should separate multiple image paths in the stored string?"
+      ]
+    },
+    {
+      "id": "conflicting_path_normalization",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement and requirements contain two determinant requirements that appear mutually exclusive: (A) stored paths must be relative so the library can be moved without invalidating paths; (B) stored paths must be absolute or fully qualified so clients can resolve files without the library root. A reader may conclude only one can be satisfied.\n",
+      "resolution": "Store fully qualified paths, while normalizing separators for portability. Build each image path with filepath.Join(dir, imageName), then normalize with filepath.ToSlash(...). Do not store relative paths (do not use filepath.Rel), including when rootFolder is set. Example accepted value: /music/Artist/Album/cover.jpg ; rejected value: Artist/Album/cover.jpg.",
+      "example_questions": [
+        "-  Should paths be stored relative or absolute?",
+        "-  If the library moves, should stored paths still work or must they be full paths?",
+        "-  How should I format stored image paths: relative to library root or fully qualified?"
+      ]
+    }
+  ]
+}

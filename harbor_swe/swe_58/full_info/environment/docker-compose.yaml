@@ -1,0 +1,3 @@
+services:
+  main:
+    image: hilbench-swe:69b0598376244bd9e7d86333

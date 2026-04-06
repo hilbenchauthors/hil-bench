@@ -1,0 +1,46 @@
+{
+  "blockers": [
+    {
+      "id": "playback_server_datastore_binding",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The task expects playback-backed request handling to work as soon as application wiring is in place, but it does not identify the extra construction input needed to make that early access work.\n",
+      "resolution": "Change the playback accessor to `playback.GetInstance(ds model.DataStore)` and construct the playback service with the datastore used by application wiring, keeping that datastore available for request-time media lookups before Run executes. Example: a media lookup can read an item that was inserted into that datastore before startup. Counterexample: leaving `GetInstance` as a no-argument singleton and waiting for background startup to establish data access.\n",
+      "example_questions": [
+        "-  What additional construction input is required so playback-backed request handling works before startup finishes?",
+        "-  Should playback-backed request handling work immediately after the service is created?",
+        "-  May the data path needed by playback-backed requests be established later during startup?",
+        "-  What must be threaded into playback construction so early media access uses the intended application state?"
+      ]
+    },
+    {
+      "id": "scanner_singleton_initialization_policy",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The new scanner accessor is shared across application wiring, but the task does not say how a later call with a different collaborator set should be handled once the shared scanner has already been established.\n",
+      "resolution": "Implement this policy in `scanner.GetInstance(ds, playlists, cacheWarmer, broker)` itself. Return one process-wide Scanner instance. A later call with the same collaborator identities returns that shared instance. A later call with any different datastore, playlists service, cache warmer, or broker must fail immediately instead of silently reusing or rebuilding the shared scanner. Example: two calls with the same collaborator objects return the same scanner, while a later call with a different datastore panics. Counterexample: quietly keeping the old scanner when later calls supply different collaborators.\n",
+      "example_questions": [
+        "-  What should happen after the shared scanner has already been created and a later call supplies different collaborators?",
+        "-  If the scanner accessor is called again with the same collaborators, what result is expected?",
+        "-  Should a later call with different collaborators be accepted, rejected, or handled another way?",
+        "-  What deterministic policy should the shared scanner accessor apply to collaborator mismatches across repeated calls?"
+      ]
+    },
+    {
+      "id": "router_playback_fallback_policy",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The task says the same router entrypoint must remain valid for legacy lightweight call sites that do not bring playback wiring up first, while the updated requirements and constructor surface also say that router construction now accepts an added playback collaborator for playback-aware use.\n",
+      "resolution": "Keep `subsonic.New(...)` callable without a playback collaborator, while also accepting a playback collaborator as the final optional constructor argument when playback-aware routes need it. Allow the router to be constructed without a playback service. Non-jukebox handlers remain callable in that state, including when jukebox support is enabled. Jukebox control must use the injected playback service when present and must return an error when none was supplied, rather than consulting package-global playback state. Example: ping succeeds without playback, while jukebox control errors until a playback service is injected. Counterexample: automatically falling back to package-global playback state for jukebox requests.\n",
+      "example_questions": [
+        "-  If legacy lightweight call sites still construct the router without playback wiring, should that same constructor continue to work there?",
+        "-  How should the task reconcile legacy call-site compatibility with an added playback collaborator for playback-aware use?",
+        "-  When playback is available, should jukebox control use that supplied service or some other source?",
+        "-  What behavior split is expected between playback-dependent routes and unrelated routes when playback wiring is incomplete?"
+      ]
+    }
+  ]
+}

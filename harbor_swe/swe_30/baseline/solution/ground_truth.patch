@@ -1,0 +1,55 @@
+diff --git a/lib/ansible/utils/collection_loader/_collection_finder.py b/lib/ansible/utils/collection_loader/_collection_finder.py
+index 70e2d1038e..102e48299f 100644
+--- a/lib/ansible/utils/collection_loader/_collection_finder.py
++++ b/lib/ansible/utils/collection_loader/_collection_finder.py
+@@ -244,6 +244,8 @@
+ # function as a finder in most cases, since our meta_path finder is consulted first for *almost* everything, except
+ # pkgutil.iter_modules, and under py2, pkgutil.get_data if the parent package passed has not been loaded yet.
+ class _AnsiblePathHookFinder:
++    _FILEFINDER_CLASS_ID = '_frozen_importlib_external.FileFinder'
++
+     def __init__(self, collection_finder, pathctx):
+         # when called from a path_hook, find_module doesn't usually get the path arg, so this provides our context
+         self._pathctx = to_native(pathctx)
+@@ -265,6 +267,15 @@
+         return _file_finder_hook
+ 
+     _filefinder_path_hook = _get_filefinder_path_hook()
++
++    @classmethod
++    def _is_filefinder(cls, finder):
++        finder_class = finder.__class__
++        finder_class_id = '{0}.{1}'.format(
++            getattr(finder_class, '__module__', ''),
++            getattr(finder_class, '__name__', ''),
++        )
++        return finder_class_id == cls._FILEFINDER_CLASS_ID
+ 
+     def _get_finder(self, fullname):
+         split_name = fullname.split('.')
+@@ -300,19 +311,18 @@
+         # we ignore the passed in path here- use what we got from the path hook init
+         finder = self._get_finder(fullname)
+         if finder is not None:
+-            return finder.find_module(fullname, path=[self._pathctx])
++            if self._is_filefinder(finder):
++                return finder.find_module(fullname)
++            return finder.find_module(fullname, path=(self._pathctx,))
+         else:
+             return None
+ 
+     def find_spec(self, fullname, target=None):
+-        split_name = fullname.split('.')
+-        toplevel_pkg = split_name[0]
+-
+         finder = self._get_finder(fullname)
+         if finder is not None:
+-            if toplevel_pkg == 'ansible_collections':
++            if fullname.startswith('ansible_collections'):
+                 return finder.find_spec(fullname, path=[self._pathctx])
+-            else:
+-                return finder.find_spec(fullname)
++            # Raise to preserve legacy fallback behavior for non-collection modules.
++            raise AttributeError('find_spec fallback required for non-collection modules')
+         else:
+             return None

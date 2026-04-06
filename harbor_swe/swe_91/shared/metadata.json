@@ -1,0 +1,48 @@
+{
+  "instance_id": "instance_ansible__ansible-d62496fe416623e88b90139dc7917080cb04ce70-v0f01c69f1e2528b935359cfe578530722bca2c59",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69be182c71bcad4f1c10acba",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_non_ascii_number[1.\\u1040k?]",
+      "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_non_ascii_number[8\\U00016b59B]",
+      "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_non_ascii_number[\\u1040k]",
+      "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_nonsensical[13youcanhaveabyteofmysandwich]",
+      "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_blocker_max_input_length_raw_len",
+      "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_blocker_natural_language_exact_singular_only",
+      "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_blocker_unit_mode_truth_table"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/module_utils/common/text/formatters/test_human_to_bytes.py b/test/units/module_utils/common/text/formatters/test_human_to_bytes.py\nindex c0d7b005c4..c6ace6248f 100644\n--- a/test/units/module_utils/common/text/formatters/test_human_to_bytes.py\n+++ b/test/units/module_utils/common/text/formatters/test_human_to_bytes.py\n@@ -154,11 +154,8 @@\n @pytest.mark.parametrize(\n     'test_input,isbits',\n     [\n-        ('1024Kb', False),\n-        ('10Mb', False),\n-        ('1Gb', False),\n         ('10MB', True),\n         ('2KB', True),\n         ('4GB', True),\n     ]\n )\n@@ -171,10 +168,8 @@\n @pytest.mark.parametrize(\n     'test_input,unit,isbits',\n     [\n-        (1024, 'Kb', False),\n-        ('10', 'Mb', False),\n         ('10', 'MB', True),\n         (2, 'KB', True),\n         ('4', 'GB', True),\n     ]\n )\n@@ -182,3 +177,89 @@ def test_human_to_bytes_isbits_wrong_default_unit(test_input, unit, isbits):\n     \"\"\"Test of human_to_bytes function, default_unit is in an invalid format for isbits value.\"\"\"\n     with pytest.raises(ValueError, match=\"Value is not a valid string\"):\n         human_to_bytes(test_input, default_unit=unit, isbits=isbits)\n+\n+@pytest.mark.parametrize(\n+    'test_input',\n+    [\n+        '3 eBulletins',\n+        '.1 Geggabytes',\n+        '3 prettybytes',\n+        '13youcanhaveabyteofmysandwich',\n+        '.1 Geggabytes',\n+        '10 texasburgerbytes',\n+        '12 muppetbytes',\n+    ]\n+)\n+def test_human_to_bytes_nonsensical(test_input):\n+    \"\"\"Test of human_to_bytes function to ensure it raises ValueError for nonsensical input with first letter matches\n+    [BEGKMPTYZ] and word contains byte\"\"\"\n+    expected = \"Value is not a valid string\"\n+    with pytest.raises(ValueError, match=expected):\n+        human_to_bytes(test_input)\n+\n+\n+@pytest.mark.parametrize(\n+    'test_input',\n+    [\n+        '8\ud81a\udf59B',\n+        '\u1040k',\n+        '1.\u1040k?',\n+        '\u1b54 MB'\n+    ]\n+)\n+def test_human_to_bytes_non_ascii_number(test_input):\n+    \"\"\"Test of human_to_bytes function,correctly filtering out non ASCII characters\"\"\"\n+    expected = \"can't interpret following string\"\n+    with pytest.raises(ValueError, match=expected):\n+        human_to_bytes(test_input)\n+\n+\n+# Blocker verification tests: one test per blocker; wrong resolution fails.\n+\n+MAX_INPUT_LEN = 255  # Must match formatters.MAX_INPUT_LEN (registry)\n+\n+\n+def test_human_to_bytes_blocker_max_input_length_raw_len():\n+    \"\"\"Blocker: max input length. Uses raw len(str(number)), no strip. N=255.\"\"\"\n+    # (1) Raw length N+1 must raise\n+    long_invalid = \"x\" * (MAX_INPUT_LEN + 1)\n+    with pytest.raises(ValueError):\n+        human_to_bytes(long_invalid)\n+    # (2) Padded so raw length > N; strip-first would wrongly accept\n+    padded_over = \" \" * 300 + \"10 MB\" + \" \" * 300  # 605 > 255\n+    with pytest.raises(ValueError):\n+        human_to_bytes(padded_over)\n+    # (3) Raw length exactly N, valid core \"10 MB\" + trailing spaces\n+    exact_len = \"10 MB\" + \" \" * (MAX_INPUT_LEN - 5)\n+    assert len(exact_len) == MAX_INPUT_LEN\n+    assert human_to_bytes(exact_len) == 10 * (2 ** 20)\n+\n+\n+def test_human_to_bytes_blocker_natural_language_exact_singular_only():\n+    \"\"\"Blocker: natural-language units. Exact singular only; no plural normalization.\"\"\"\n+    assert human_to_bytes(\"2 gigabyte\") == 2 * (2 ** 30)\n+    with pytest.raises(ValueError, match=\"Value is not a valid string\"):\n+        human_to_bytes(\"2 gigabytes\")\n+\n+\n+def test_human_to_bytes_blocker_unit_mode_truth_table():\n+    \"\"\"Blocker: unit_mode resolution applies to all ambiguous '*b' tokens, not only mb.\"\"\"\n+    for mode in ('strict', 'compat', 'legacy', 'si', 'iec'):\n+        assert human_to_bytes(\"1 MB\", unit_mode=mode) == 1048576\n+        assert human_to_bytes(\"1 GB\", unit_mode=mode) == 1073741824\n+\n+    # Explicit bit abbreviations are valid and interpreted as bit quantities.\n+    assert human_to_bytes(\"1 Kb\", unit_mode='compat') == 128\n+    assert human_to_bytes(\"1 Mb\", unit_mode='compat') == 131072\n+    assert human_to_bytes(\"1 Gb\", unit_mode='compat') == 134217728\n+\n+    # Ambiguous lowercase/mixed-case forms resolve per mode for all prefixes.\n+    for mode in ('legacy', 'si'):\n+        assert human_to_bytes(\"1 kb\", unit_mode=mode) == 1024\n+        assert human_to_bytes(\"1 mb\", unit_mode=mode) == 1048576\n+        assert human_to_bytes(\"1 gb\", unit_mode=mode) == 1073741824\n+\n+    for mode in ('strict', 'compat', 'iec'):\n+        assert human_to_bytes(\"1 kb\", unit_mode=mode) == 128\n+        assert human_to_bytes(\"1 mb\", unit_mode=mode) == 131072\n+        assert human_to_bytes(\"1 gb\", unit_mode=mode) == 134217728\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "test/units/module_utils/common/text/formatters/test_human_to_bytes.py"
+  ],
+  "attempt_id": "69be182c71bcad4f1c10acba",
+  "task_id": "698648c3283d42a76056753d",
+  "dataset_name": "swe_91",
+  "image_archive": {
+    "attempt_id": "69be182c71bcad4f1c10acba",
+    "local_image_ref": "hilbench-swe:69be182c71bcad4f1c10acba",
+    "image_id": "sha256:d754fda6606cd0a9df72d67fee7510d0f0e541b2c60df6771a066635751f2d22",
+    "created": "2026-03-25T21:48:11.129744608-07:00",
+    "artifact_path": "images/69be182c71bcad4f1c10acba.tar.zst",
+    "artifact_bytes": 766083225,
+    "artifact_sha256": "e69e743e239f19504963702559e9e54cafe2be67f14939056ee1a705b307fb91",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69be182c71bcad4f1c10acba.tar.zst"
+  }
+}

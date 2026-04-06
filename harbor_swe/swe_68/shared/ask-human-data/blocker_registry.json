@@ -1,0 +1,71 @@
+{
+  "blockers": [
+    {
+      "id": "missing_dnf_variant_detection_rule",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements mention that Fedora 39+ may report dnf5, but do not provide the specific comparison rule needed to distinguish dnf from dnf5, the path to resolve, the resolution function, and the target string are all unspecified. What concrete detection rule should be used?",
+      "resolution": "When /usr/bin/dnf exists, resolve that path with os.path.realpath(). If os.path.basename() of the resolved path equals 'dnf5', return 'dnf5'; otherwise return 'dnf'. Dnf variant detection (dnf vs dnf5 via os.path.realpath('/usr/bin/dnf')) applies to all RedHat-family dnf-family outcomes, including non-Fedora/non-Amazon systems (RHEL/clones) when major version indicates dnf-family usage. Example: os.path.realpath('/usr/bin/dnf') is '/usr/bin/dnf-3' means pkg\\_mgr is 'dnf'. Counter-example: do NOT infer the variant from the Fedora version number alone",
+      "example_questions": [
+        "-  What specific path and comparison target should be used to distinguish dnf from dnf5?",
+        "-  Is there a filesystem-level resolution rule to identify the active dnf variant?",
+        "-  What exact string should the resolved binary name be compared against?"
+      ]
+    },
+    {
+      "id": "missing_microdnf_fallback_path_and_value",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements state that when the preferred manager binary is not found, the collector must fall through to dnf-family binary detection, but they do not specify which binaries the detection should check or what value to return when the primary dnf binary is absent but another dnf-family binary exists on the system.",
+      "resolution": "If /usr/bin/dnf does not exist but /usr/bin/microdnf exists, return 'dnf' directly. The presence of microdnf is sufficient to confirm the system belongs to the dnf family. Example: Fedora 38 with only /usr/bin/microdnf installed \u2014 pkg_mgr is 'dnf'.",
+      "example_questions": [
+        "-  What should happen if /usr/bin/dnf is missing but /usr/bin/microdnf is present?",
+        "-  Can microdnf determine pkg_mgr when dnf is absent?",
+        "-  What should the collector do when /usr/bin/dnf is absent but /usr/bin/microdnf is installed?",
+        "-  Is /usr/bin/microdnf a fallback default binary for the dnf family?",
+        "-  If only microdnf exists, should pkg_mgr still be unknown?"
+      ]
+    },
+    {
+      "id": "missing_secondary_binary_exclusion_list",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements state the collector returns 'unknown' when no valid manager can be inferred but do not define which specific binary paths qualify as primary defaults versus secondary variants excluded from inference. What is the exact boundary?",
+      "resolution": "If /usr/bin/dnf does not exist, the collector must not infer pkg\\_mgr from standalone secondary binaries such as /usr/bin/dnf-3 or /usr/bin/dnf5. In that situation, pkg\\_mgr must be 'unknown'. Example: Fedora 38 with only /usr/bin/dnf5 installed, pkg\\_mgr is 'unknown'.",
+      "example_questions": [
+        "-  Which specific binary paths are classified as secondary and excluded from pkg\\_mgr inference?",
+        "-  What is the exact list of binaries that do not count as valid primary defaults?",
+        "-  If only /usr/bin/dnf-3 or /usr/bin/dnf5 exist without a primary default, is pkg\\_mgr 'unknown'?"
+      ]
+    },
+    {
+      "id": "ambiguous_major_version_parse_rule",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements define behavior in terms of ansible\\_distribution\\_major\\_version as a number, but do not say how to handle cases where that value cannot be parsed as an integer. Should the collector fall back to a family default, attempt partial interpretation, or return unknown?",
+      "resolution": "Parse ansible\\_distribution\\_major\\_version as a full integer. If parsing fails (e.g., 'rawhide'), do not fall back to a family default like 'dnf'; instead skip version-based logic and proceed with binary-based detection. If no valid binary is detected, return 'unknown'. Example: Fedora with version 'rawhide' and no dnf binary installed, pkg\\_mgr is 'unknown'.",
+      "example_questions": [
+        "-  What should the collector return when ansible\\_distribution\\_major\\_version is not a valid integer?",
+        "-  Should a non-numeric version like 'rawhide' cause the collector to default to dnf or return unknown?",
+        "-  How should version-based branching behave when the major version cannot be parsed as a number?"
+      ]
+    },
+    {
+      "id": "contradictory_other_redhat_version_without_binary",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The other Red Hat requirement says version-based defaults are authoritative and should be applied based on the version number, but the general requirement says pkg\\_mgr must be 'unknown' when no valid manager can be inferred. Which rule takes precedence when the version-implied binary is absent?",
+      "resolution": "The 'unknown' fallback rule takes precedence over the version-authority claim for non-Fedora, non-Amazon RedHat-family systems. Determine the version-preferred manager by major version (<8 => yum, >=8 => dnf), then verify that preferred manager's primary binary exists using os.path.exists(). If the preferred binary does not exist, return 'unknown' even if other package-manager binaries are present.",
+      "example_questions": [
+        "-  Should the version-authority rule override the 'unknown' fallback for RHEL clones?",
+        "-  Is the version-based default truly authoritative, or must binary presence still be confirmed?",
+        "-  How should the collector resolve the conflict between the version-authority claim and the unknown fallback requirement?"
+      ]
+    }
+  ]
+}

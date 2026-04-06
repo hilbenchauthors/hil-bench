@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "processor_nproc_cache_ttl_unspecified",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The implementation requires caching the processor_nproc value to avoid excessive syscalls during repeated setup module executions. However, the specific time-to-live duration for this cache is not specified. An incorrect TTL will either waste system resources through repeated calls or fail to detect critical CPU allocation changes that affect workload scheduling decisions.",
+      "resolution": "The cache TTL must be set to exactly 300 seconds (5 minutes). This value is stored in the class constant PROCESSOR_NPROC_CACHE_TTL = 300. ",
+      "example_questions": [
+        "-  What is the exact TTL duration in seconds for caching the processor_nproc value?",
+        "-  How long should the processor_nproc cache be valid before refreshing?",
+        "-  What is the specific cache expiration time for the CPU count fact?"
+      ]
+    },
+    {
+      "id": "cpu_discrepancy_warning_threshold_ambiguous",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "When processor_nproc differs from processor_vcpus, this indicates possible containerization or CPU pinning. The implementation must emit a warning when the difference is 'substantial'. However, the specification does not clearly define what metric or threshold constitutes 'substantial'. ",
+      "resolution": "The discrepancy threshold must be exactly 30 percent calculated as a relative difference. The implementation stores this as PROCESSOR_NPROC_DISCREPANCY_THRESHOLD = 0.3. The warning triggers regardless of which value is larger. The warning message must include both values: 'Significant discrepancy detected between processor_vcpus (%d) and processor_nproc (%d). This may indicate containerization or CPU pinning.' ",
+      "example_questions": [
+        "-  What exact threshold percentage should trigger the CPU discrepancy warning?",
+        "-  Should the discrepancy be calculated as percentage, absolute difference, or ratio?",
+        "-  What numeric value defines a substantial difference between processor counts?"
+      ]
+    },
+    {
+      "id": "invalid_cpu_count_fallback_strategy_contradictory",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The implementation must handle edge cases where all CPU detection methods fail or return invalid values such as zero or negative numbers. However, there is a direct contradiction between the problem statement and requirements about how to handle this scenario. The problem statement mandates graceful degradation, stating that 'Facts gathering should never cause playbook failures' and requires 'continue execution with a safe fallback value'. In contrast, the requirements document states that when CPU detection is unreliable, the implementation must 'ensure operational safety and prevent silent data corruption by making the failure visible rather than masking it with fallback values', which implies raising an error. ",
+      "resolution": "When all CPU detection methods return values less than or equal to zero, the implementation must return exactly 1 as a safe minimum fallback value, following the problem statement's mandate that facts gathering should never cause playbook failures. This prevents division-by-zero errors in downstream playbooks while maintaining the principle that Ansible facts gathering should not fail.",
+      "example_questions": [
+        "-  What value should processor_nproc return when all detection methods fail or return zero?",
+        "-  How should the implementation handle invalid CPU count values like zero or negative numbers?",
+        "-  Should the module return a fallback value or raise an error when CPU detection fails?"
+      ]
+    }
+  ]
+}

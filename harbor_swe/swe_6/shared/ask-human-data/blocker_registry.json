@@ -1,0 +1,49 @@
+{
+  "blockers": [
+    {
+      "id": "missing_modal_startup_contract",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The extracted default card verifier must decide whether verification should begin automatically when the modal mounts or wait for an explicit user action, but the task never specifies the exact startup parameterization for `PaymentVerificationModal`. What launch policy and `initialProcess` value should the default verifier use?",
+      "resolution": "Start verification only from the modal submit path: pass `onProcess` and OMIT `initialProcess` entirely. The modal must not auto-start the process on mount \u2014 do NOT pass `initialProcess` at all (not even as `undefined`). The `onProcess` callback should create a new `AbortController`, start the redirect/polling flow using the controller's signal, and return an object `{ promise, abort }` where `promise` is the process result and `abort` is the controller. This ensures timer-driven test determinism because the process only starts when the user explicitly submits.",
+      "example_questions": [
+        "-  Should the extracted verifier auto-start processing when the modal opens, or wait for an explicit submit action?",
+        "-  What exact `initialProcess` value, if any, should the new verifier pass into `PaymentVerificationModal`?",
+        "-  How is the modal supposed to enter the verification process after it is created?",
+        "-  Is the startup contract eager or manual for the default verification modal?",
+        "-  Do I omit `initialProcess`, or should the modal receive a controller before the user submits?"
+      ]
+    },
+    {
+      "id": "ambiguous_redirect_metadata_ownership_boundary",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements state that `createPaymentToken` should call `verify` with an object containing `ApprovalURL` and `ReturnHost`, and that `getDefaultVerifyPayment` should create a `PaymentVerificationModal`. However, neither the problem statement nor the requirements define whether `ApprovalURL` and `ReturnHost` should be passed as props on `PaymentVerificationModal` or kept private to the verifier's internal `process` call. Choosing the wrong ownership boundary changes both the extracted interface and downstream coupling.",
+      "resolution": "Keep `ApprovalURL` and `ReturnHost` private to the verifier/process boundary and do NOT add them as `PaymentVerificationModal` props. The modal should only receive display-oriented props: `mode`, `payment` (the CardPayment object), and `token` (the Token string). The redirect metadata is consumed exclusively within the verifier's internal call to `process({ Token, api, ReturnHost, ApprovalURL, signal })`, not forwarded to the modal component. Do NOT write `<PaymentVerificationModal ApprovalURL={ApprovalURL} ReturnHost={ReturnHost} ... />`.",
+      "example_questions": [
+        "-  Should `ApprovalURL` and `ReturnHost` become public props on `PaymentVerificationModal`, or should they stay inside the verifier logic?",
+        "-  Which layer is supposed to own the redirect metadata after the verification callback is extracted?",
+        "-  Do I extend the modal API with redirect fields, or keep those values private to the polling flow?",
+        "-  How should redirect metadata move through the extracted verification implementation?",
+        "-  Is the modal meant to receive `ApprovalURL` and `ReturnHost`, or only display-oriented verification data?"
+      ]
+    },
+    {
+      "id": "contradictory_pre_verification_status_partition",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement specifies that terminal payment-token failures should surface without launching or leaving behind stale verification UI. The requirements state that any tokenization response that does not yield STATUS_CHARGEABLE must be forwarded to `verify` so the verification callback governs all non-chargeable outcomes, including terminal failure statuses. These instructions directly conflict regarding how terminal statuses such as STATUS_FAILED and STATUS_CONSUMED should be handled.",
+      "resolution": "Use this exact status partition inside `createPaymentToken`, after the `STATUS_CHARGEABLE` early return and before calling `verify`: (1) if `Status === STATUS_FAILED`, throw `new Error(c('Error').t`Payment process failed`)`. (2) if `Status === STATUS_CONSUMED`, throw `new Error(c('Error').t`Payment process consumed`)`. (3) if `Status === STATUS_NOT_SUPPORTED`, throw `new Error(c('Error').t`Payment process not supported`)`. (4) if `Status !== STATUS_PENDING`, throw `new Error(c('Error').t`Unknown payment token status`)`. Only after all these guards should `createPaymentToken` call `return verify({ mode, Payment, Token, ApprovalURL, ReturnHost })`. Terminal statuses must never reach `verify`.",
+      "example_questions": [
+        "-  What should happen if tokenization returns an unrecognized status value before verification begins?",
+        "-  Which payment-token statuses should invoke `verify`, and which ones should fail immediately?",
+        "-  Should terminal non-chargeable statuses still open the verification flow, or should they reject before any modal is shown",
+        "-  How should `STATUS_FAILED`, `STATUS_CONSUMED`, and `STATUS_NOT_SUPPORTED` behave in `createPaymentToken`?",
+        "-  Is `verify` only for `STATUS_PENDING`, or for every non-chargeable status returned by tokenization?"
+      ]
+    }
+  ]
+}

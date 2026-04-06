@@ -1,0 +1,24 @@
+version = "1.0"
+
+[metadata]
+task_id = "baseline"
+task_type = "swe"
+mode = "baseline"
+repo_name = "ansible/ansible"
+task_attempt_id = "69839e79db8f5e922c44f807__69c42201029d24509a863611"
+image_name = "hilbench-swe:69c42201029d24509a863611"
+tags = ["swe", "baseline", "hil-bench"]
+
+[verifier]
+timeout_sec = 1800.0
+
+[agent]
+timeout_sec = 7200.0
+
+[environment]
+build_timeout_sec = 1200.0
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true

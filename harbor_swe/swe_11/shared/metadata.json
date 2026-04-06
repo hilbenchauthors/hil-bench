@@ -1,0 +1,46 @@
+{
+  "instance_id": "instance_ansible__ansible-d9f1866249756efc264b00ff7497e92c11a9885f-v0f01c69f1e2528b935359cfe578530722bca2c59",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c0ead7ef94e54e9dc6a130",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/module_utils/common/validation/test_check_type_dict.py::test_check_type_dict_fail",
+      "test/units/module_utils/common/validation/test_check_type_dict.py::test_check_type_dict_max_length_limit",
+      "test/units/module_utils/common/validation/test_check_type_dict.py::test_check_type_dict_max_fields_limit",
+      "test/units/module_utils/common/validation/test_check_type_dict.py::test_check_type_dict_max_nesting_depth",
+      "test/units/module_utils/common/validation/test_check_type_dict.py::test_check_type_dict_max_nesting_depth_python_literal"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/module_utils/common/validation/test_check_type_dict.py b/test/units/module_utils/common/validation/test_check_type_dict.py\nindex 665224e4ef..dcfc949639 100644\n--- a/test/units/module_utils/common/validation/test_check_type_dict.py\n+++ b/test/units/module_utils/common/validation/test_check_type_dict.py\n@@ -15,7 +15,8 @@ def test_check_type_dict():\n         ('k1=v1,k2=v2', {'k1': 'v1', 'k2': 'v2'}),\n         ('k1=v1, k2=v2', {'k1': 'v1', 'k2': 'v2'}),\n         ('k1=v1,     k2=v2,  k3=v3', {'k1': 'v1', 'k2': 'v2', 'k3': 'v3'}),\n-        ('{\"key\": \"value\", \"list\": [\"one\", \"two\"]}', {'key': 'value', 'list': ['one', 'two']})\n+        ('{\"key\": \"value\", \"list\": [\"one\", \"two\"]}', {'key': 'value', 'list': ['one', 'two']}),\n+        ('k1=v1 k2=v2', {'k1': 'v1', 'k2': 'v2'}),\n     )\n     for case in test_cases:\n         assert case[1] == check_type_dict(case[0])\n@@ -27,7 +28,44 @@ def test_check_type_dict_fail():\n         3.14159,\n         [1, 2],\n         'a',\n+        '{1}',\n+        'k1=v1 k2'\n     )\n     for case in test_cases:\n         with pytest.raises(TypeError):\n             check_type_dict(case)\n+\n+\n+def test_check_type_dict_max_length_limit():\n+    \"\"\"Verify that input strings exceeding 10000 characters are rejected.\"\"\"\n+    too_long = 'k1=' + 'x' * 10000\n+    with pytest.raises(TypeError) as exc_info:\n+        check_type_dict(too_long)\n+    assert str(exc_info.value) == 'input string too long to safely parse as dictionary'\n+\n+\n+def test_check_type_dict_max_fields_limit():\n+    \"\"\"Verify that inputs with more than 100 fields are rejected.\"\"\"\n+    fields_101 = ','.join(['k' + str(i) + '=v' + str(i) for i in range(101)])\n+    with pytest.raises(TypeError) as exc_info:\n+        check_type_dict(fields_101)\n+    assert str(exc_info.value) == 'too many fields to parse as dictionary'\n+\n+\n+def test_check_type_dict_max_nesting_depth():\n+    \"\"\"Verify that structured inputs exceeding the maximum nesting depth are rejected.\"\"\"\n+    import json\n+    nested = {}\n+    for _ in range(21):\n+        nested = {\"k\": nested}\n+    with pytest.raises(TypeError) as exc_info:\n+        check_type_dict(json.dumps(nested))\n+    assert str(exc_info.value) == 'input structure too deeply nested to safely parse as dictionary'\n+\n+\n+def test_check_type_dict_max_nesting_depth_python_literal():\n+    \"\"\"Verify nesting depth limit is enforced for Python-literal inputs.\"\"\"\n+    nested_str = \"{'k': \" * 21 + \"{}\" + \"}\" * 21\n+    with pytest.raises(TypeError) as exc_info:\n+        check_type_dict(nested_str)\n+    assert str(exc_info.value) == 'input structure too deeply nested to safely parse as dictionary'\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "test/units/module_utils/common/validation/test_check_type_dict.py"
+  ],
+  "attempt_id": "69c0ead7ef94e54e9dc6a130",
+  "task_id": "69836ee4987091d7e86e44de",
+  "dataset_name": "swe_11",
+  "image_archive": {
+    "attempt_id": "69c0ead7ef94e54e9dc6a130",
+    "local_image_ref": "hilbench-swe:69c0ead7ef94e54e9dc6a130",
+    "image_id": "sha256:d0878346f05fb3238cdd029a9ff78f9a6f3f8145329b762b36025fdd39fa0f35",
+    "created": "2026-03-25T23:16:47.386104658-07:00",
+    "artifact_path": "images/69c0ead7ef94e54e9dc6a130.tar.zst",
+    "artifact_bytes": 765999741,
+    "artifact_sha256": "ffcbb4693b0a6a6144ab343714fc6b7324d9e8b39c6e554bba25e06cba89c197",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c0ead7ef94e54e9dc6a130.tar.zst"
+  }
+}

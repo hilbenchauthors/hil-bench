@@ -1,0 +1,28 @@
+version = "1.0"
+
+[metadata]
+task_id = "ask_human"
+task_type = "swe"
+mode = "ask_human"
+repo_name = "navidrome/navidrome"
+task_attempt_id = "69836ee4987091d7e86e44ac__69c1793416d8045828134a96"
+image_name = "hilbench-swe:69c1793416d8045828134a96"
+tags = ["swe", "ask_human", "hil-bench"]
+
+[verifier]
+timeout_sec = 1800.0
+
+[agent]
+timeout_sec = 7200.0
+
+[environment]
+build_timeout_sec = 1200.0
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true
+[[environment.mcp_servers]]
+name = "ask-human"
+transport = "streamable-http"
+url = "http://ask-human:8000/mcp"

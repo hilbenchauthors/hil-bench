@@ -1,0 +1,44 @@
+{
+  "instance_id": "instance_protonmail__webclients-51742625834d3bd0d10fe0c7e76b8739a59c6b9f",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c0195f3296c9e39d59bac6",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "packages/components/helpers/url.obstructed.test.ts | derives_a_stable_matching_key_from_nested_hosts",
+      "packages/components/helpers/url.obstructed.test.ts | returns_inert_data_uri_for_unparseable_input",
+      "packages/components/helpers/url.obstructed.test.ts | strips_root_separator_but_preserves_deep_path_separator"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/packages/components/helpers/url.obstructed.test.ts b/packages/components/helpers/url.obstructed.test.ts\nnew file mode 100644\nindex 0000000000..6555727aaa\n--- /dev/null\n+++ b/packages/components/helpers/url.obstructed.test.ts\n@@ -0,0 +1,20 @@\n+import { getHostnameWithRegex, punycodeUrl } from '@proton/components/helpers/url';\n+\n+describe('url obstructed blockers', () => {\n+    it('derives_a_stable_matching_key_from_nested_hosts', () => {\n+        expect(getHostnameWithRegex('https://www.mail.proton.me')).toEqual('proton');\n+        expect(getHostnameWithRegex('https://calendar.proton.me')).toEqual('proton');\n+        expect(getHostnameWithRegex('https://secure.login.example.co.uk')).toEqual('example');\n+    });\n+\n+    it('returns_inert_data_uri_for_unparseable_input', () => {\n+        expect(punycodeUrl('not-a-valid-url')).toEqual('data:,not-a-valid-url');\n+        expect(punycodeUrl(':::invalid')).toEqual('data:,:::invalid');\n+    });\n+\n+    it('strips_root_separator_but_preserves_deep_path_separator', () => {\n+        expect(punycodeUrl('https://www.\u00e4\u00f6\u00fc.com/')).toEqual('https://www.xn--4ca0bs.com');\n+        expect(punycodeUrl('https://www.\u00e4\u00f6\u00fc.com/path/')).toEqual('https://www.xn--4ca0bs.com/path/');\n+        expect(punycodeUrl('https://www.\u00e4\u00f6\u00fc.com/a/b/?k=v#end')).toEqual('https://www.xn--4ca0bs.com/a/b/?k=v#end');\n+    });\n+});\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "packages/components/helpers/url.test.ts"
+  ],
+  "attempt_id": "69c0195f3296c9e39d59bac6",
+  "task_id": "69836ee4987091d7e86e44ba",
+  "dataset_name": "swe_96",
+  "image_archive": {
+    "attempt_id": "69c0195f3296c9e39d59bac6",
+    "local_image_ref": "hilbench-swe:69c0195f3296c9e39d59bac6",
+    "image_id": "sha256:479bf18e8ebb36a174b11560716dc777145641b41c6dd3cae3f002a76e4aa10d",
+    "created": "2026-03-25T23:24:37.022180182-07:00",
+    "artifact_path": "images/69c0195f3296c9e39d59bac6.tar.zst",
+    "artifact_bytes": 7912090547,
+    "artifact_sha256": "0f66022012a24ecfb58b56bf2a5c6165d68e10adb95fef91b1d9e4f8bb629f3a",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c0195f3296c9e39d59bac6.tar.zst"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "missing_constant_name_and_type_for_py2_reserved_literals",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements require rejecting the literals 'True', 'False', and 'None' on the Python 2 path but do not specify the name of the constant to use for these values or the data structure (set, frozenset, tuple, or list) in which they should be stored.",
+      "resolution": "Define a module-level constant named exactly ADDITIONAL_PY2_KEYWORDS as a frozenset: frozenset(('True', 'False', 'None')). In the Python 2 path, reject the identifier if ident in ADDITIONAL_PY2_KEYWORDS. Use frozenset, not set or tuple; use this exact constant name.",
+      "example_questions": [
+        "-  Should the three reserved literals be stored in a set, frozenset, tuple, or list?",
+        "-  What is the expected constant name for the Python 2 additional keywords?",
+        "-  What should I name the constant that holds True, False, and None for Python 2 rejection?"
+      ]
+    },
+    {
+      "id": "string_type_check_placement_shared_versus_per_helper",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements state that the implementation must be compatible with the string_types check from ansible.module_utils.six but do not specify where that check should occur\u2014whether once in a shared entry point before calling the version-specific implementation, or at the beginning of each version-specific helper so that both the Python 2 and Python 3 paths perform their own isinstance(ident, string_types) check.",
+      "resolution": "Perform the string_types check at the start of each version-specific helper (_isidentifier_PY2 and _isidentifier_PY3). Each helper must begin with 'if not isinstance(ident, string_types): return False'. Do not rely on a single shared wrapper to perform the type check before dispatching; both helpers must validate the type themselves.",
+      "example_questions": [
+        "-  Does the string_types check need to be in both _isidentifier_PY2 and _isidentifier_PY3 or only once at entry?",
+        "-  Where should I perform the isinstance(ident, string_types) check\u2014before dispatching or inside each of the PY2 and PY3 helpers?",
+        "-  The requirements mention string_types compatibility\u2014should each implementation path perform its own type check?"
+      ]
+    },
+    {
+      "id": "module_load_binding_versus_per_call_dispatch",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "One requirement states that isidentifier must dispatch to the correct Python-version implementation on every call (check PY3 inside the function and call the appropriate helper). Another one states that it must be bind to the correct implementation once at module load time (e.g. isidentifier = _isidentifier_PY3 or _isidentifier_PY2) with no per-call dispatch. These conflict because one requires a branch on every call and the other requires a single assignment at load time.",
+      "resolution": "Bind isidentifier at module load time. Use 'if PY3: isidentifier = _isidentifier_PY3' and 'else: isidentifier = _isidentifier_PY2' so that isidentifier is assigned once to the correct function. Do not implement a wrapper that checks PY3 on every call and then calls the helper; the public isidentifier must be the version-specific function itself.",
+      "example_questions": [
+        "-  Should isidentifier dispatch to the version-specific implementation on every call or be bound once at module load?",
+        "-  The requirements mention dispatching on every call but binding at load time is also valid\u2014which should I implement?",
+        "-  Should the public isidentifier be a wrapper that calls _isidentifier_PY2 or _isidentifier_PY3 per call, or a direct binding to one of them at import?"
+      ]
+    }
+  ]
+}

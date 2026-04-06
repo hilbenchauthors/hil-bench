@@ -1,0 +1,60 @@
+{
+  "blockers": [
+    {
+      "id": "missing_show_all_parameter",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements state enumeration should operate \"in a mode that includes trashed items\" but do not specify the parameter name, position, or value needed to activate this mode in the listing function.",
+      "resolution": "Pass showAll as true in the 6th positional argument of loadChildren, with undefined for the two preceding optional parameters",
+      "example_questions": [
+        "-  What parameter activates the inclusion of trashed items when calling loadChildren?",
+        "-  What is the exact positional signature for loadChildren when trashed items must be included?",
+        "-  Should a new boolean parameter be added to loadChildren, or should an existing parameter be modified?",
+        "-  How are intermediate optional parameters handled when only the last one needs a value?"
+      ]
+    },
+    {
+      "id": "missing_trashed_cache_accessor",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements reference \"trashed source\" items but do not specify which function retrieves cached trashed items or what identifier it requires as input.",
+      "resolution": "Use getCachedTrashed from useLinksListing in all three recovery phases.",
+      "example_questions": [
+        "-  Which function from useLinksListing retrieves cached trashed items?",
+        "-  Does the trashed cache function take volumeId or shareId as its lookup key?",
+        "-  In which recovery phases should trashed items be queried?",
+        "-  Is the trashed items accessor already exposed by useLinksListing or does it need to be created?"
+      ]
+    },
+    {
+      "id": "ambiguous_photo_filter_field",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirement specifies trashed items must be \"filtered to photo entries only\" but does not indicate which link property determines whether a trashed item qualifies as a photo entry.",
+      "resolution": "Filter trashed links using the truthiness of activeRevision?.photo on each link.",
+      "example_questions": [
+        "-  What property on a DecryptedLink identifies it as a photo entry?",
+        "-  Is the photo classification based on file metadata, revision data, or the link type itself?",
+        "-  Is the photo classification derived from revision metadata or from the link's own properties?",
+        "-  Does the filter use a boolean check or a string/enum comparison?"
+      ]
+    },
+    {
+      "id": "contradictory_delete_gate_scope",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "One requirement states SUCCEED requires \"no photo entries remain in either source.\" Another requirement states recovered shares should be cleaned up once regular source items have been fully processed. These two statements create a conflict regarding the scope of the deletion condition.",
+      "resolution": "The delete-share condition must require both regular items and trashed photo items to be empty before proceeding.",
+      "example_questions": [
+        "-  Should the share deletion gate verify trashed photo items in addition to regular items?",
+        "-  If regular children are empty but trashed photo entries remain, should the share be deleted?",
+        "-  Does the SUCCEED condition (\"no photo entries in either source\") also govern the delete-share decision?",
+        "-  What is the exact boolean condition for safely deleting a recovered share?"
+      ]
+    }
+  ]
+}

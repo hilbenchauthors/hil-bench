@@ -1,0 +1,5 @@
+{
+  "images": {
+    "ask-human": "hil-bench-harbor/ask-human:latest"
+  }
+}

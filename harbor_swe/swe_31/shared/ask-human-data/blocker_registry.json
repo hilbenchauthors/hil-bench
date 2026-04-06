@@ -1,0 +1,49 @@
+{
+  "blockers": [
+    {
+      "id": "missing_commerce_copy_tokens",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements demand policy-approved commerce channel names and an account-navigation noun, but none of those exact tokens are provided.",
+      "resolution": "Use exactly \"Google Play\" for `External.Android` and \"Apple App Store\" for `External.iOS`.\n\nIn non-delegated mode:\n- The modal title must be exactly \"Manage your subscription on {storeLabel}\" using the store label above.\n- The account-navigation noun is platform-specific:\n  - Android: exactly \"Payments & subscriptions\" (ampersand, lowercase s)\n  - iOS: exactly \"Subscriptions\" (capital S, plural)\n- The helper sentence must render the navigation noun as bold text via translator-safe rich formatting (i.e., using `ttag` `.jt` with a `<span className=\"text-bold\">...</span>` node).\n\nConstraints:\n- Do NOT use \"Google Play store\".\n- Do NOT use a single shared navigation noun across platforms.",
+      "example_questions": [
+        "-  What exact store label should be used for `External.Android` and what exact store label should be used for `External.iOS` in user-facing text?",
+        "-  What exact modal title string should be used in non-delegated mode (including the store label placeholder/position)?",
+        "-  What exact account-navigation noun should be used on Android, and what exact account-navigation noun should be used on iOS?",
+        "-  In the helper sentence, should the navigation noun be rendered as bold via translator-safe rich formatting using `ttag` `.jt` with a React node (not an HTML string)?",
+        "-  Is the literal phrase \"Google Play store\" disallowed anywhere in the user-facing text?"
+      ]
+    },
+    {
+      "id": "ambiguous_delegated_context_body_density",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "Delegated/admin mode says to keep only minimum policy-required body content, but it does not define whether that means one paragraph or a multi-paragraph instructional layout.\n",
+      "resolution": "Delegated/admin mode is resolved only by body layout/content.\n\nIt must render exactly one body paragraph and must omit the secondary instructional paragraph entirely.\n\nThe single paragraph must contain the delegated ownership statement in this exact format:\n- \"Subscription for user ID: {userId} was purchased via an in-app purchase.\"\n  - Note the colon after \"ID\".\n\nNo other body paragraphs or helper lines are permitted in delegated/admin mode.\n\nThis entry does not define channel labels, navigation nouns, modal primitives, button text, or test IDs.",
+      "example_questions": [
+        "-  In delegated/admin context, should the modal body contain exactly one paragraph (and no other body paragraphs)?",
+        "-  In delegated/admin context, should the secondary instructional paragraph be omitted entirely?",
+        "-  What is the exact required delegated ownership sentence (including punctuation and spacing) that must appear in the single paragraph?",
+        "-  In delegated/admin context, must the single paragraph be restricted to only that delegated ownership sentence (no additional sentences)?",
+        "-  In delegated/admin context, should any helper lines (for example, navigation instructions) be prohibited entirely?"
+      ]
+    },
+    {
+      "id": "conflicting_modal_primitive_source_of_truth",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The requirements simultaneously ask to preserve the prompt-style modal contract and to implement the same flow with two-section modal primitives.\n",
+      "resolution": "Treat the two-section modal primitives as authoritative and implement the warning surface with:\n- `ModalTwo` + `ModalTwoHeader` + `ModalTwoContent` + `ModalTwoFooter`\n- No `Prompt` usage or wrapper\n\n`ModalTwo` must be rendered with `size=\"large\"`.\n\nThe first body paragraph must always exist and must carry `data-testid=\"InAppPurchaseModal/text\"`.\n\nThe footer must render exactly one primary action button with:\n- Label: \"Got it\"\n- `data-testid=\"InAppPurchaseModal/onClose\"`\n- It calls `onClose`\n\nFor non-eligible subscriptions (External not Android/iOS), the component must immediately call `onClose` and render nothing (return `null`).",
+      "example_questions": [
+        "-  Which modal API is the final source of truth for the warning surface: `ModalTwo` sections or the legacy `Prompt` contract?",
+        "-  Should the warning surface render `ModalTwo` with `size=\"large\"`?",
+        "-  Should the first body paragraph always carry `data-testid=\"InAppPurchaseModal/text\"` (including delegated/admin mode)?",
+        "-  Should the footer render exactly one primary action button, and should its label be exactly \"Got it\"?",
+        "-  For non-eligible subscriptions (External not Android/iOS), should the component immediately call `onClose` and render nothing (`null`)?"
+      ]
+    }
+  ]
+}

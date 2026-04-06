@@ -1,0 +1,36 @@
+diff --git a/persistence/album_repository.go b/persistence/album_repository.go
+index 3b9b49a1..f9f55086 100644
+--- a/persistence/album_repository.go
++++ b/persistence/album_repository.go
+@@ -27,11 +27,19 @@ type dbAlbum struct {
+ }
+ 
+ func (a *dbAlbum) PostScan() error {
++	if conf.Server.AlbumPlayCountMode == consts.AlbumPlayCountModeNormalized {
++		if a.Album.SongCount == 0 {
++			a.Album.PlayCount = 0
++		} else {
++			a.Album.PlayCount = int64(math.Floor(float64(a.Album.PlayCount) / float64(a.Album.SongCount)))
++		}
++	}
+ 	if a.Discs == "" {
+ 		a.Album.Discs = model.Discs{}
+-		return nil
++	} else {
++		return json.Unmarshal([]byte(a.Discs), &a.Album.Discs)
+ 	}
+-	return json.Unmarshal([]byte(a.Discs), &a.Album.Discs)
++	return nil
+ }
+ 
+ func (a *dbAlbum) PostMapArgs(m map[string]any) error {
+@@ -174,9 +182,6 @@ func (r *albumRepository) GetAll(options ...model.QueryOptions) (model.Albums, e
+ func (r *albumRepository) toModels(dba []dbAlbum) model.Albums {
+ 	res := model.Albums{}
+ 	for i := range dba {
+-		if conf.Server.AlbumPlayCountMode == consts.AlbumPlayCountModeNormalized && dba[i].Album.SongCount != 0 {
+-			dba[i].Album.PlayCount = int64(math.Round(float64(dba[i].Album.PlayCount) / float64(dba[i].Album.SongCount)))
+-		}
+ 		res = append(res, *dba[i].Album)
+ 	}
+ 	return res

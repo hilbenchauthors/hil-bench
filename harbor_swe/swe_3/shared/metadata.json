@@ -1,0 +1,48 @@
+{
+  "instance_id": "instance_ansible__ansible-e9e6001263f51103e96e58ad382660df0f3d0e39-v30a923fb5c164d6cd18280c02422f75e611e8fb2",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69bc1094b455a91fa20fb868",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 4,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_error_subprocess",
+      "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_error_pass_in_output_subprocess",
+      "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_start_new_session",
+      "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_password_raw_bytes",
+      "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_timeout_value",
+      "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_timeout_cleanup_sequence",
+      "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_path_env_default"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/plugins/connection/test_winrm.py b/test/units/plugins/connection/test_winrm.py\nindex d5b76ca8f2..b4ab40556e 100644\n--- a/test/units/plugins/connection/test_winrm.py\n+++ b/test/units/plugins/connection/test_winrm.py\n@@ -364,8 +364,7 @@ class TestWinRMKerbAuth(object):\n             conn._kerb_auth(\"invaliduser\", \"pass\")\n \n         assert str(err.value) == \\\n-            \"Kerberos auth failure for principal invaliduser with \" \\\n-            \"subprocess: %s\" % (expected_err)\n+            \"Kerberos auth failure for principal invaliduser: %s\" % (expected_err)\n \n     def test_kinit_error_pexpect(self, monkeypatch):\n         pytest.importorskip(\"pexpect\")\n@@ -411,7 +410,7 @@ class TestWinRMKerbAuth(object):\n         with pytest.raises(AnsibleConnectionFailure) as err:\n             conn._kerb_auth(\"username\", \"password\")\n         assert str(err.value) == \\\n-            \"Kerberos auth failure for principal username with subprocess: \" \\\n+            \"Kerberos auth failure for principal username: \" \\\n             \"Error with kinit\\n<redacted>\"\n \n     def test_kinit_error_pass_in_output_pexpect(self, monkeypatch):\n@@ -439,6 +438,94 @@ class TestWinRMKerbAuth(object):\n             \"Kerberos auth failure for principal username with pexpect: \" \\\n             \"Error with kinit\\n<redacted>\"\n \n+    def test_kinit_start_new_session(self, monkeypatch):\n+        def mock_communicate(input=None, timeout=None):\n+            return b\"\", b\"\"\n+        mock_popen = MagicMock()\n+        mock_popen.return_value.communicate = mock_communicate\n+        mock_popen.return_value.returncode = 0\n+        monkeypatch.setattr(\"subprocess.Popen\", mock_popen)\n+        pc = PlayContext()\n+        new_stdin = StringIO()\n+        conn = connection_loader.get(\"winrm\", pc, new_stdin)\n+        conn.set_options(var_options={\"_extras\": {}})\n+        conn._build_winrm_kwargs()\n+        conn._kerb_auth(\"user@domain\", \"pass\")\n+        call_kwargs = mock_popen.call_args[1]\n+        assert call_kwargs.get(\"start_new_session\") is True\n+\n+    def test_kinit_password_raw_bytes(self, monkeypatch):\n+        captured = {}\n+        def mock_communicate(input=None, timeout=None):\n+            captured[\"input\"] = input\n+            return b\"\", b\"\"\n+        mock_popen = MagicMock()\n+        mock_popen.return_value.communicate = mock_communicate\n+        mock_popen.return_value.returncode = 0\n+        monkeypatch.setattr(\"subprocess.Popen\", mock_popen)\n+        pc = PlayContext()\n+        new_stdin = StringIO()\n+        conn = connection_loader.get(\"winrm\", pc, new_stdin)\n+        conn.set_options(var_options={\"_extras\": {}})\n+        conn._build_winrm_kwargs()\n+        conn._kerb_auth(\"user@domain\", \"testpass\")\n+        assert captured[\"input\"] == b\"testpass\"\n+\n+    def test_kinit_timeout_value(self, monkeypatch):\n+        captured = {}\n+        def mock_communicate(input=None, timeout=None):\n+            captured[\"timeout\"] = timeout\n+            return b\"\", b\"\"\n+        mock_popen = MagicMock()\n+        mock_popen.return_value.communicate = mock_communicate\n+        mock_popen.return_value.returncode = 0\n+        monkeypatch.setattr(\"subprocess.Popen\", mock_popen)\n+        pc = PlayContext()\n+        new_stdin = StringIO()\n+        conn = connection_loader.get(\"winrm\", pc, new_stdin)\n+        conn.set_options(var_options={\"_extras\": {}})\n+        conn._build_winrm_kwargs()\n+        conn._kerb_auth(\"user@domain\", \"pass\")\n+        assert captured[\"timeout\"] == 30\n+\n+    def test_kinit_timeout_cleanup_sequence(self, monkeypatch):\n+        import subprocess\n+        mock_popen_instance = MagicMock()\n+        mock_popen_instance.pid = 12345\n+        def mock_communicate(input=None, timeout=None):\n+            raise subprocess.TimeoutExpired(\"kinit\", 30)\n+        mock_popen_instance.communicate = mock_communicate\n+        mock_popen_instance.returncode = -9\n+        mock_popen = MagicMock(return_value=mock_popen_instance)\n+        monkeypatch.setattr(\"subprocess.Popen\", mock_popen)\n+        pc = PlayContext()\n+        new_stdin = StringIO()\n+        conn = connection_loader.get(\"winrm\", pc, new_stdin)\n+        conn.set_options(var_options={\"_extras\": {}})\n+        conn._build_winrm_kwargs()\n+        with pytest.raises(AnsibleConnectionFailure):\n+            conn._kerb_auth(\"user@domain\", \"pass\")\n+        mock_popen_instance.kill.assert_called_once_with()\n+        mock_popen_instance.wait.assert_called_once_with()\n+        mock_popen_instance.terminate.assert_not_called()\n+\n+    def test_kinit_path_env_default(self, monkeypatch):\n+        monkeypatch.delenv(\"PATH\", raising=False)\n+        def mock_communicate(input=None, timeout=None):\n+            return b\"\", b\"\"\n+        mock_popen = MagicMock()\n+        mock_popen.return_value.communicate = mock_communicate\n+        mock_popen.return_value.returncode = 0\n+        monkeypatch.setattr(\"subprocess.Popen\", mock_popen)\n+        pc = PlayContext()\n+        new_stdin = StringIO()\n+        conn = connection_loader.get(\"winrm\", pc, new_stdin)\n+        conn.set_options(var_options={\"_extras\": {}})\n+        conn._build_winrm_kwargs()\n+        conn._kerb_auth(\"user@domain\", \"pass\")\n+        call_kwargs = mock_popen.call_args[1]\n+        assert call_kwargs[\"env\"][\"PATH\"] == \"\"\n+\n     def test_exec_command_with_timeout(self, monkeypatch):\n         requests_exc = pytest.importorskip(\"requests.exceptions\")\n \n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "test/units/plugins/connection/test_winrm.py"
+  ],
+  "attempt_id": "69bc1094b455a91fa20fb868",
+  "task_id": "69839e79db8f5e922c44f80d",
+  "dataset_name": "swe_3",
+  "image_archive": {
+    "attempt_id": "69bc1094b455a91fa20fb868",
+    "local_image_ref": "hilbench-swe:69bc1094b455a91fa20fb868",
+    "image_id": "sha256:f10a05c3b9fc3e8d8448cc49a390beee501cae31a27f3702c0f5ad47578fe4ee",
+    "created": "2026-03-25T23:17:12.386732364-07:00",
+    "artifact_path": "images/69bc1094b455a91fa20fb868.tar.zst",
+    "artifact_bytes": 767637895,
+    "artifact_sha256": "778fbea9837156c096b21b06982585893ac19478dfcccb4c5d23887c08f13953",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69bc1094b455a91fa20fb868.tar.zst"
+  }
+}

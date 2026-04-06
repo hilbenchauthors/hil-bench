@@ -1,0 +1,11 @@
+{
+  "attempt_id": "69c475e51fc373f5a63834d8",
+  "local_image_ref": "hilbench-swe:69c475e51fc373f5a63834d8",
+  "image_id": "sha256:e657721dbaad295195eaf6dc0d68e14a03da329af130caf6343bf2d7114a596d",
+  "created": "2026-03-29T11:09:13.778547102-07:00",
+  "artifact_path": "images/69c475e51fc373f5a63834d8.tar.zst",
+  "artifact_bytes": 796370106,
+  "artifact_sha256": "6c4846f5f44c9ca176490d933982b48dc10203e3fd39e75929c2daee8dc56add",
+  "hf_bucket": "kellu-scale/hil-bench-swe-images",
+  "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c475e51fc373f5a63834d8.tar.zst"
+}

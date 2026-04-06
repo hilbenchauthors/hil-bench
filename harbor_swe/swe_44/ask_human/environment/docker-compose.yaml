@@ -1,0 +1,38 @@
+services:
+  main:
+    image: hilbench-swe:69bc79c1e422471cb3f56166
+    depends_on:
+      ask-human:
+        condition: service_healthy
+    volumes:
+      - ask-human-metrics:/harbor_shared
+
+  ask-human:
+    image: hil-bench-harbor/ask-human:latest
+    volumes:
+      - ${CONTEXT_DIR:-.}/../../shared/ask-human-data:/ask-human-data:ro
+      - ask-human-metrics:/harbor_shared
+    environment:
+      - BLOCKER_REGISTRY_PATH=/ask-human-data/blocker_registry.json
+      - OUTPUT_DIR=/harbor_shared
+      - ASK_HUMAN_BACKEND=${ASK_HUMAN_BACKEND:-litellm_proxy}
+      - ASK_HUMAN_MODEL=${ASK_HUMAN_MODEL:-openai/gpt-4o}
+      - LITELLM_API_KEY=${LITELLM_API_KEY:-}
+      - LITELLM_BASE_URL=${LITELLM_BASE_URL:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - VLLM_BASE_URL=${VLLM_BASE_URL:-}
+      - VLLM_MODEL=${VLLM_MODEL:-}
+      - VLLM_API_KEY=${VLLM_API_KEY:-}
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('localhost',8000),timeout=2); s.close()"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s
+
+volumes:
+  ask-human-metrics:

@@ -1,0 +1,112 @@
+diff --git a/lib/ansible/executor/task_queue_manager.py b/lib/ansible/executor/task_queue_manager.py
+index 670a14b319..951f3a2b19 100644
+--- a/lib/ansible/executor/task_queue_manager.py
++++ b/lib/ansible/executor/task_queue_manager.py
+@@ -26,6 +26,7 @@ import threading
+ import time
+ import typing as t
+ import multiprocessing.queues
++from datetime import datetime
+ 
+ from ansible import constants as C
+ from ansible import context
+@@ -61,7 +62,9 @@ class CallbackSend:
+ 
+ 
+ class DisplaySend:
+-    def __init__(self, *args, **kwargs):
++    def __init__(self, method, timestamp, *args, **kwargs):
++        self.method = method
++        self.timestamp = timestamp
+         self.args = args
+         self.kwargs = kwargs
+ 
+@@ -95,9 +98,10 @@ class FinalQueue(multiprocessing.queues.SimpleQueue):
+             tr,
+         )
+ 
+-    def send_display(self, *args, **kwargs):
++    def send_display(self, method, *args, **kwargs):
++        timestamp = datetime.utcnow().strftime('%Y-%jT%H%M%SZ')
+         self.put(
+-            DisplaySend(*args, **kwargs),
++            DisplaySend(method, timestamp, *args, **kwargs),
+         )
+ 
+     def send_prompt(self, **kwargs):
+diff --git a/lib/ansible/plugins/strategy/__init__.py b/lib/ansible/plugins/strategy/__init__.py
+index dde7f9fe3a..dc9f7350b1 100644
+--- a/lib/ansible/plugins/strategy/__init__.py
++++ b/lib/ansible/plugins/strategy/__init__.py
+@@ -117,7 +117,9 @@ def results_thread_main(strategy):
+             if isinstance(result, StrategySentinel):
+                 break
+             elif isinstance(result, DisplaySend):
+-                display.display(*result.args, **result.kwargs)
++                sys.stdout.write(result.timestamp + '\n')
++                sys.stdout.flush()
++                getattr(display, result.method)(*result.args, **result.kwargs)
+             elif isinstance(result, CallbackSend):
+                 for arg in result.args:
+                     if isinstance(arg, TaskResult):
+diff --git a/lib/ansible/utils/display.py b/lib/ansible/utils/display.py
+index 2311120897..355048987c 100644
+--- a/lib/ansible/utils/display.py
++++ b/lib/ansible/utils/display.py
+@@ -337,6 +337,9 @@ class Display(metaclass=Singleton):
+                 if os.path.exists(b_cow_path):
+                     self.b_cowsay = b_cow_path
+ 
++    def proxy_display(self, method, *args, **kwargs):
++        return self._final_q.send_display(method, *args, **kwargs)
++
+     def display(self, msg, color=None, stderr=False, screen_only=False, log_only=False, newline=True):
+         """ Display a message to the user
+ 
+@@ -350,8 +353,15 @@ class Display(metaclass=Singleton):
+             # If _final_q is set, that means we are in a WorkerProcess
+             # and instead of displaying messages directly from the fork
+             # we will proxy them through the queue
+-            return self._final_q.send_display(msg, color=color, stderr=stderr,
+-                                              screen_only=screen_only, log_only=log_only, newline=newline)
++            return self.proxy_display(
++                'displaytocurrentuser',
++                msg,
++                color=color,
++                stderr=stderr,
++                screen_only=screen_only,
++                log_only=log_only,
++                newline=False,
++            )
+ 
+         nocolor = msg
+ 
+@@ -406,6 +416,9 @@ class Display(metaclass=Singleton):
+             # actually log
+             logger.log(lvl, msg2)
+ 
++    def displaytocurrentuser(self, msg, color=None, stderr=False, screen_only=False, log_only=False, newline=False):
++        return self.display(msg, color=color, stderr=stderr, screen_only=screen_only, log_only=log_only, newline=newline)
++
+     def v(self, msg, host=None):
+         return self.verbose(msg, host=host, caplevel=0)
+ 
+@@ -492,6 +505,8 @@ class Display(metaclass=Singleton):
+             self._deprecations[message_text] = 1
+ 
+     def warning(self, msg, formatted=False):
++        if self._final_q:
++            return self.proxy_display('sendwarningtouser', msg, formatted=formatted)
+ 
+         if not formatted:
+             new_msg = "[WARNING]: %s" % msg
+@@ -504,6 +519,9 @@ class Display(metaclass=Singleton):
+             self.display(new_msg, color=C.COLOR_WARN, stderr=True)
+             self._warns[new_msg] = 1
+ 
++    def sendwarningtouser(self, msg, formatted=False):
++        return self.warning(msg, formatted=formatted)
++
+     def system_warning(self, msg):
+         if C.SYSTEM_WARNINGS:
+             self.warning(msg)

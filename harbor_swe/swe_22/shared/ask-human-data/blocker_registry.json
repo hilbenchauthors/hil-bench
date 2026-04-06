@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "missing_kinit_args_max_length",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The problem statement requires that excessively long kinit_args values be rejected, and the requirements specify that input must be checked against an internal character limit, but the exact limit value is not specified anywhere.",
+      "resolution": "The internal safety limit is 892 characters. Define a module-level constant `KINIT_ARGS_MAX_LENGTH = 892` in `winrm.py`. Any `kinit_args` string longer than 892 characters must be rejected with `AnsibleConnectionFailure` before command execution.",
+      "example_questions": [
+        "-  What is the maximum allowed length for the kinit_args string?",
+        "-  What character limit should the kinit_args security validation enforce?",
+        "-  What is the value of the internal kinit_args length validation threshold?"
+      ]
+    },
+    {
+      "id": "ambiguous_retry_backoff_strategy",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The problem statement and requirements call for back-off between retry attempts to avoid overwhelming the KDC, but they do not define the specific back-off strategy. Multiple valid approaches exist: fixed delay, exponential backoff, linear increase, Fibonacci sequence, jittered delays, or capped exponential, among others.",
+      "resolution": "Retries must use Fibonacci-sequence back-off: delays of 1, 1, 2, 3, 5, 8, 13, ... seconds between consecutive attempts. Track two state variables (a, b) initialized to (1, 1); sleep `a` seconds before each retry, then update with `a, b = b, a + b`.",
+      "example_questions": [
+        "-  What back-off strategy should be used between kinit retry attempts?",
+        "-  Should retry delays be fixed, exponential, linear, or follow another pattern?",
+        "-  How should the delay between consecutive kinit retries increase?"
+      ]
+    },
+    {
+      "id": "contradictory_kinit_timeout_value",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement says the default kinit timeout should be greater than the standard 30-second budget, while the requirements state that ansible_winrm_kinit_timeout should default to 30 seconds. These instructions conflict on the default timeout baseline.",
+      "resolution": "The kinit_timeout option must default to 73 seconds. Set the default value in the DOCUMENTATION block to 73. Apply this timeout to both the subprocess path (via `p.communicate(timeout=kinit_timeout)`) and the pexpect path (via `pexpect.spawn(timeout=kinit_timeout)`).",
+      "example_questions": [
+        "-  What should the default timeout be for the kinit command execution?",
+        "-  Should the kinit timeout default to the standard budget or to a higher reliability-oriented baseline?",
+        "-  What is the correct default value for ansible_winrm_kinit_timeout?"
+      ]
+    }
+  ]
+}

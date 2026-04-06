@@ -1,0 +1,78 @@
+diff --git a/lib/ansible/module_utils/facts/network/linux.py b/lib/ansible/module_utils/facts/network/linux.py
+index 4a37588929..f8de6483b4 100644
+--- a/lib/ansible/module_utils/facts/network/linux.py
++++ b/lib/ansible/module_utils/facts/network/linux.py
+@@ -17,6 +17,7 @@ from __future__ import (absolute_import, division, print_function)
+ __metaclass__ = type
+ 
+ import glob
++import ipaddress
+ import os
+ import re
+ import socket
+@@ -62,10 +63,65 @@ class LinuxNetwork(Network):
+         network_facts['default_ipv6'] = default_ipv6
+         network_facts['all_ipv4_addresses'] = ips['all_ipv4_addresses']
+         network_facts['all_ipv6_addresses'] = ips['all_ipv6_addresses']
++        network_facts['snr_scope_host_addrs'] = self.get_locally_reachable_ips(ip_path)
+         # Additional structured network facts generally use short snake_case keys consistent
+         # with historical ansible_* naming, though not every list fact follows one pattern.
++        # When parsing `ip route` style lines elsewhere in this class, labeled fields (`src`,
++        # `via`, `dev`) are the usual anchors; ad-hoc token positions are easy to misread.
+         return network_facts
+ 
++    def get_locally_reachable_ips(self, ip_path):
++        locally_reachable_ips = {
++            'ipv4': [],
++            'ipv6': [],
++        }
++
++        def canonicalize(value):
++            if '/' in value:
++                return str(ipaddress.ip_network(value, strict=False))
++            return str(ipaddress.ip_address(value))
++
++        def parse_locally_reachable_ips(output, family):
++            seen = set()
++            for line in output.splitlines():
++                if not line:
++                    continue
++                words = line.split()
++                if words[0] != 'local':
++                    continue
++                try:
++                    src_idx = words.index('src')
++                    raw_value = words[src_idx + 1]
++                except (ValueError, IndexError):
++                    continue
++                try:
++                    normalized = canonicalize(raw_value)
++                except ValueError:
++                    continue
++                if normalized not in seen:
++                    seen.add(normalized)
++                    locally_reachable_ips[family].append(normalized)
++
++        commands = {
++            'ipv4': [ip_path, '-4', 'route', 'list', 'table', '255'],
++            'ipv6': [ip_path, '-6', 'route', 'list', 'table', '255'],
++        }
++        for family, args in commands.items():
++            rc, routes, _ = self.module.run_command(args)
++            if rc == 0:
++                parse_locally_reachable_ips(routes, family)
++
++        for fam in ('ipv4', 'ipv6'):
++            locally_reachable_ips[fam].sort()
++
++        has_any_values = bool(locally_reachable_ips['ipv4'] or locally_reachable_ips['ipv6'])
++        if not has_any_values:
++            warn = getattr(self.module, 'warn', None)
++            if callable(warn):
++                warn('[net-facts] snr: no scope-host rows')
++
++        return locally_reachable_ips
++
+     def get_default_interfaces(self, ip_path, collected_facts=None):
+         collected_facts = collected_facts or {}
+         # Use the commands:

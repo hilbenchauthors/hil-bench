@@ -1,0 +1,138 @@
+diff --git a/utils/singleton/singleton.go b/utils/singleton/singleton.go
+index fb1d86d4..10f5b56d 100644
+--- a/utils/singleton/singleton.go
++++ b/utils/singleton/singleton.go
+@@ -3,46 +3,104 @@ package singleton
+ import (
+ 	"reflect"
+ 	"strings"
++	"sync"
+ 
+ 	"github.com/navidrome/navidrome/log"
+ )
+ 
+ var (
+-	instances    = make(map[string]interface{})
+-	getOrCreateC = make(chan *entry, 1)
++	instances sync.Map
++	keyLocks  sync.Map
+ )
+ 
+-type entry struct {
+-	constructor func() interface{}
+-	object      interface{}
+-	resultC     chan interface{}
++// GetInstance returns a shared instance of type T.
++//
++// The constructor is executed only when an instance for the computed key does not
++// exist yet. A single optional namespace suffix can be used when callers need
++// multiple logical singletons for the same static type.
++func GetInstance[T any](constructor func() T, nameSuffixes ...string) T {
++	key := typeKey[T]() + normalizeSuffix(nameSuffixes...)
++
++	if value, ok := instances.Load(key); ok {
++		return value.(T)
++	}
++
++	lock := getKeyLock(key)
++	lock.Lock()
++	defer lock.Unlock()
++
++	if value, ok := instances.Load(key); ok {
++		return value.(T)
++	}
++
++	created := constructor()
++	if shouldCacheInstance(created) {
++		instances.Store(key, created)
++		log.Trace("Created new singleton", "key", key, "instance", created)
++	}
++
++	return created
+ }
+ 
+-// Get returns an existing instance of object. If it is not yet created, calls `constructor`, stores the
+-// result for future calls and return it
++// Get keeps the previous API for existing call sites.
+ func Get(object interface{}, constructor func() interface{}) interface{} {
+-	e := &entry{
+-		constructor: constructor,
+-		object:      object,
+-		resultC:     make(chan interface{}),
++	key := reflect.TypeOf(object).String()
++	key = strings.TrimPrefix(key, "*")
++
++	if value, ok := instances.Load(key); ok {
++		return value
+ 	}
+-	getOrCreateC <- e
+-	return <-e.resultC
++
++	lock := getKeyLock(key)
++	lock.Lock()
++	defer lock.Unlock()
++
++	if value, ok := instances.Load(key); ok {
++		return value
++	}
++
++	created := constructor()
++	instances.Store(key, created)
++	log.Trace("Created new singleton", "object", key, "instance", created)
++	return created
+ }
+ 
+-func init() {
+-	go func() {
+-		for {
+-			e := <-getOrCreateC
+-			name := reflect.TypeOf(e.object).String()
+-			name = strings.TrimPrefix(name, "*")
+-			v, created := instances[name]
+-			if !created {
+-				v = e.constructor()
+-				log.Trace("Created new singleton", "object", name, "instance", v)
+-				instances[name] = v
+-			}
+-			e.resultC <- v
+-		}
+-	}()
++func typeKey[T any]() string {
++	return reflect.TypeOf((*T)(nil)).Elem().String()
++}
++
++func normalizeSuffix(nameSuffixes ...string) string {
++	if len(nameSuffixes) == 0 {
++		return ""
++	}
++	if len(nameSuffixes) > 1 {
++		panic("singleton namespace accepts at most one suffix")
++	}
++
++	normalized := strings.TrimSpace(nameSuffixes[0])
++	if normalized == "" {
++		return ""
++	}
++
++	return "::" + normalized
++}
++
++func getKeyLock(key string) *sync.Mutex {
++	lock, _ := keyLocks.LoadOrStore(key, &sync.Mutex{})
++	return lock.(*sync.Mutex)
++}
++
++func shouldCacheInstance[T any](value T) bool {
++	v := any(value)
++	if v == nil {
++		return false
++	}
++
++	rv := reflect.ValueOf(v)
++	switch rv.Kind() {
++	case reflect.Pointer, reflect.Interface, reflect.Map, reflect.Slice, reflect.Chan, reflect.Func:
++		return !rv.IsNil()
++	default:
++		return true
++	}
+ }

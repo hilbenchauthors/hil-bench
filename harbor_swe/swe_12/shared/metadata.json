@@ -1,0 +1,45 @@
+{
+  "instance_id": "instance_protonmail__webclients-3a6790f480309130b5d6332dce6c9d5ccca13ee3",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69be580e4bde28908b05c56f",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "applications/drive/src/app/components/useSpotlight.test.tsx | should NOT show spotlight when cached children count is exactly 8",
+      "applications/drive/src/app/components/useSpotlight.test.tsx | should show spotlight when cached children count is greater than 8",
+      "applications/drive/src/app/components/useSpotlight.test.tsx | should use FeatureCode.DriveSearchFeatureDiscovery for spotlight visibility",
+      "applications/drive/src/app/components/useSpotlightArchitecture.test.tsx | should keep spotlight feature hooks centralized in useSpotlight provider only"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/applications/drive/src/app/components/useSpotlight.test.tsx b/applications/drive/src/app/components/useSpotlight.test.tsx\nnew file mode 100644\nindex 0000000000..5f4bf56bf1\n--- /dev/null\n+++ b/applications/drive/src/app/components/useSpotlight.test.tsx\n@@ -0,0 +1,98 @@\n+import { renderHook, act } from '@testing-library/react-hooks';\n+import { ReactNode } from 'react';\n+\n+const mockGetCachedChildrenCount = jest.fn();\n+const mockGetDefaultShare = jest.fn();\n+const mockUseSpotlightOnFeature = jest.fn();\n+const mockUseSpotlightShow = jest.fn();\n+\n+jest.mock('../store/links', () => ({\n+    useLinksListing: () => ({\n+        getCachedChildrenCount: mockGetCachedChildrenCount,\n+    }),\n+}));\n+\n+jest.mock('../store/shares', () => ({\n+    useDefaultShare: () => ({\n+        getDefaultShare: mockGetDefaultShare,\n+    }),\n+}));\n+\n+jest.mock('../store/utils', () => ({\n+    reportError: jest.fn(),\n+}));\n+\n+jest.mock('@proton/components', () => {\n+    const actual = jest.requireActual('@proton/components');\n+    return {\n+        ...actual,\n+        FeatureCode: {\n+            ...actual.FeatureCode,\n+            DriveSearchFeatureDiscovery: 'DriveSearchFeatureDiscovery',\n+        },\n+        useSpotlightOnFeature: (...args: any[]) => mockUseSpotlightOnFeature(...args),\n+        useSpotlightShow: (...args: any[]) => mockUseSpotlightShow(...args),\n+    };\n+});\n+\n+import { FeatureCode } from '@proton/components';\n+import { SpotlightProvider, useSpotlight } from './useSpotlight';\n+\n+describe('useSpotlight', () => {\n+    beforeEach(() => {\n+        jest.clearAllMocks();\n+        mockGetDefaultShare.mockResolvedValue({ shareId: 'share1', rootLinkId: 'root1' });\n+        mockUseSpotlightOnFeature.mockReturnValue({ show: false, onDisplayed: jest.fn(), onClose: jest.fn() });\n+        mockUseSpotlightShow.mockReturnValue(false);\n+    });\n+\n+    const wrapper = ({ children }: { children: ReactNode }) => (\n+        <SpotlightProvider>{children}</SpotlightProvider>\n+    );\n+\n+    describe('missing_spotlight_eligibility_cutoff', () => {\n+        it('should NOT show spotlight when cached children count is exactly 8', async () => {\n+            mockGetCachedChildrenCount.mockReturnValue(8);\n+\n+            await act(async () => {\n+                renderHook(() => useSpotlight(), { wrapper });\n+                await Promise.resolve();\n+            });\n+\n+            const calls = mockUseSpotlightOnFeature.mock.calls;\n+            const lastCall = calls[calls.length - 1];\n+            expect(lastCall[0]).toBe(FeatureCode.DriveSearchFeatureDiscovery);\n+            expect(lastCall[1]).toBe(false);\n+        });\n+\n+        it('should show spotlight when cached children count is greater than 8', async () => {\n+            mockGetCachedChildrenCount.mockReturnValue(9);\n+\n+            await act(async () => {\n+                renderHook(() => useSpotlight(), { wrapper });\n+                await Promise.resolve();\n+            });\n+\n+            const calls = mockUseSpotlightOnFeature.mock.calls;\n+            const lastCall = calls[calls.length - 1];\n+            expect(lastCall[0]).toBe(FeatureCode.DriveSearchFeatureDiscovery);\n+            expect(lastCall[1]).toBe(true);\n+        });\n+    });\n+\n+    describe('ambiguous_feature_toggle_token', () => {\n+        it('should use FeatureCode.DriveSearchFeatureDiscovery for spotlight visibility', async () => {\n+            mockGetCachedChildrenCount.mockReturnValue(20);\n+\n+            await act(async () => {\n+                renderHook(() => useSpotlight(), { wrapper });\n+                await Promise.resolve();\n+            });\n+\n+            expect(mockUseSpotlightOnFeature).toHaveBeenCalledWith(\n+                'DriveSearchFeatureDiscovery',\n+                expect.any(Boolean)\n+            );\n+        });\n+    });\n+});\ndiff --git a/applications/drive/src/app/components/useSpotlightArchitecture.test.tsx b/applications/drive/src/app/components/useSpotlightArchitecture.test.tsx\nnew file mode 100644\nindex 0000000000..2a84bd6651\n--- /dev/null\n+++ b/applications/drive/src/app/components/useSpotlightArchitecture.test.tsx\n@@ -0,0 +1,19 @@\n+import fs from 'fs';\n+import path from 'path';\n+\n+describe('spotlight architecture', () => {\n+    it('should keep spotlight feature hooks centralized in useSpotlight provider only', () => {\n+        const appRoot = path.resolve(__dirname, '..');\n+        const searchFieldSource = fs.readFileSync(\n+            path.join(appRoot, 'components/layout/search/SearchField.tsx'),\n+            'utf8'\n+        );\n+        const spotlightSource = fs.readFileSync(path.join(appRoot, 'components/useSpotlight.tsx'), 'utf8');\n+\n+        expect(spotlightSource).toContain('SEARCH_DISCOVERY_MIN_ELIGIBLE_ITEMS');\n+        expect(searchFieldSource).not.toContain('useSpotlightOnFeature(');\n+        expect(searchFieldSource).not.toContain('useSpotlightShow(');\n+        expect(spotlightSource).toContain('useSpotlightOnFeature(');\n+        expect(spotlightSource).toContain('useSpotlightShow(');\n+    });\n+});\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "applications/drive/src/app/store/links/useLinksListing.test.tsx"
+  ],
+  "attempt_id": "69be580e4bde28908b05c56f",
+  "task_id": "69836ee4987091d7e86e44b3",
+  "dataset_name": "swe_12",
+  "image_archive": {
+    "attempt_id": "69be580e4bde28908b05c56f",
+    "local_image_ref": "hilbench-swe:69be580e4bde28908b05c56f",
+    "image_id": "sha256:87733144f1bb01bb26264d327272a7748e20832ec62af6567c0f6d547430d7a8",
+    "created": "2026-03-26T00:40:57.152127689-07:00",
+    "artifact_path": "images/69be580e4bde28908b05c56f.tar.zst",
+    "artifact_bytes": 7556919896,
+    "artifact_sha256": "ee57b27818d9f1ad75dda342aad6cdd3c70a7a52824775f10c8692c50c8c661a",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69be580e4bde28908b05c56f.tar.zst"
+  }
+}

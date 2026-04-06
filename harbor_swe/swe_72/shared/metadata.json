@@ -1,0 +1,46 @@
+{
+  "instance_id": "instance_ansible__ansible-be59caa59bf47ca78a4760eb7ff38568372a8260-v1055803c3a812189a1133297f7f5468579283f86",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69bcf51525504f78069dde6f",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/modules/test_iptables.py::TestIptables::test_match_set",
+      "test/units/modules/test_iptables.py::TestIptables::test_match_set_negation",
+      "test/units/modules/test_iptables.py::TestIptables::test_match_set_dst_src_flags",
+      "test/units/modules/test_iptables.py::TestIptables::test_match_set_with_explicit_match",
+      "test/units/modules/test_iptables.py::TestIptables::test_match_set_flags_invalid"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/modules/test_iptables.py b/test/units/modules/test_iptables.py\nindex 7326b6563c..65691a6bec 100644\n--- a/test/units/modules/test_iptables.py\n+++ b/test/units/modules/test_iptables.py\n@@ -953,3 +953,173 @@ class TestIptables(ModuleTestCase):\n             '-m', 'comment',\n             '--comment', 'this is a comment'\n         ])\n+\n+    def test_match_set(self):\n+        \"\"\" Test match_set together with match_set_flags \"\"\"\n+        set_module_args({\n+            'chain': 'INPUT',\n+            'protocol': 'tcp',\n+            'match_set': 'admin_hosts',\n+            'match_set_flags': 'src',\n+            'destination_port': '22',\n+            'jump': 'ACCEPT',\n+            'comment': 'this is a comment',\n+        })\n+        commands_results = [\n+            (0, '', ''),\n+        ]\n+\n+        with patch.object(basic.AnsibleModule, 'run_command') as run_command:\n+            run_command.side_effect = commands_results\n+            with self.assertRaises(AnsibleExitJson) as result:\n+                iptables.main()\n+                self.assertTrue(result.exception.args[0]['changed'])\n+\n+        self.assertEqual(run_command.call_count, 1)\n+        self.assertEqual(run_command.call_args_list[0][0][0], [\n+            '/sbin/iptables',\n+            '-t', 'filter',\n+            '-C', 'INPUT',\n+            '-p', 'tcp',\n+            '-j', 'ACCEPT',\n+            '--destination-port', '22',\n+            '-m', 'set',\n+            '--match-set', 'admin_hosts', 'src',\n+            '-m', 'comment',\n+            '--comment', 'this is a comment'\n+        ])\n+\n+        set_module_args({\n+            'chain': 'INPUT',\n+            'protocol': 'udp',\n+            'match_set': 'banned_hosts',\n+            'match_set_flags': 'src,dst',\n+            'jump': 'REJECT',\n+        })\n+        commands_results = [\n+            (0, '', ''),\n+        ]\n+\n+        with patch.object(basic.AnsibleModule, 'run_command') as run_command:\n+            run_command.side_effect = commands_results\n+            with self.assertRaises(AnsibleExitJson) as result:\n+                iptables.main()\n+                self.assertTrue(result.exception.args[0]['changed'])\n+\n+        self.assertEqual(run_command.call_count, 1)\n+        self.assertEqual(run_command.call_args_list[0][0][0], [\n+            '/sbin/iptables',\n+            '-t', 'filter',\n+            '-C', 'INPUT',\n+            '-p', 'udp',\n+            '-j', 'REJECT',\n+            '-m', 'set',\n+            '--match-set', 'banned_hosts', 'src,dst'\n+        ])\n+\n+    def test_match_set_negation(self):\n+        \"\"\" Test match_set negation with ! prefix \"\"\"\n+        set_module_args({\n+            'chain': 'INPUT',\n+            'match_set': '!blocked_hosts',\n+            'match_set_flags': 'dst',\n+            'jump': 'DROP',\n+        })\n+        commands_results = [\n+            (0, '', ''),\n+        ]\n+\n+        with patch.object(basic.AnsibleModule, 'run_command') as run_command:\n+            run_command.side_effect = commands_results\n+            with self.assertRaises(AnsibleExitJson) as result:\n+                iptables.main()\n+                self.assertTrue(result.exception.args[0]['changed'])\n+\n+        self.assertEqual(run_command.call_count, 1)\n+        self.assertEqual(run_command.call_args_list[0][0][0], [\n+            '/sbin/iptables',\n+            '-t', 'filter',\n+            '-C', 'INPUT',\n+            '-j', 'DROP',\n+            '-m', 'set',\n+            '--match-set', '!blocked_hosts', 'dst'\n+        ])\n+\n+    def test_match_set_dst_src_flags(self):\n+        \"\"\" Test match_set with dst,src compound flags \"\"\"\n+        set_module_args({\n+            'chain': 'INPUT',\n+            'protocol': 'tcp',\n+            'match_set': 'admin_hosts',\n+            'match_set_flags': 'dst,src',\n+            'destination_port': '443',\n+            'jump': 'ACCEPT',\n+        })\n+        commands_results = [\n+            (0, '', ''),\n+        ]\n+\n+        with patch.object(basic.AnsibleModule, 'run_command') as run_command:\n+            run_command.side_effect = commands_results\n+            with self.assertRaises(AnsibleExitJson) as result:\n+                iptables.main()\n+                self.assertTrue(result.exception.args[0]['changed'])\n+\n+        self.assertEqual(run_command.call_count, 1)\n+        self.assertEqual(run_command.call_args_list[0][0][0], [\n+            '/sbin/iptables',\n+            '-t', 'filter',\n+            '-C', 'INPUT',\n+            '-p', 'tcp',\n+            '-j', 'ACCEPT',\n+            '--destination-port', '443',\n+            '-m', 'set',\n+            '--match-set', 'admin_hosts', 'dst,src'\n+        ])\n+\n+    def test_match_set_with_explicit_match(self):\n+        \"\"\" Test match_set when match: ['set'] is explicitly specified \"\"\"\n+        set_module_args({\n+            'chain': 'INPUT',\n+            'protocol': 'tcp',\n+            'match': ['set'],\n+            'match_set': 'admin_hosts',\n+            'match_set_flags': 'src',\n+            'destination_port': '22',\n+            'jump': 'ACCEPT',\n+        })\n+        commands_results = [\n+            (0, '', ''),\n+        ]\n+\n+        with patch.object(basic.AnsibleModule, 'run_command') as run_command:\n+            run_command.side_effect = commands_results\n+            with self.assertRaises(AnsibleExitJson) as result:\n+                iptables.main()\n+                self.assertTrue(result.exception.args[0]['changed'])\n+\n+        self.assertEqual(run_command.call_count, 1)\n+        self.assertEqual(run_command.call_args_list[0][0][0], [\n+            '/sbin/iptables',\n+            '-t', 'filter',\n+            '-C', 'INPUT',\n+            '-p', 'tcp',\n+            '-m', 'set',\n+            '-j', 'ACCEPT',\n+            '--destination-port', '22',\n+            '--match-set', 'admin_hosts', 'src'\n+        ])\n+\n+    def test_match_set_flags_invalid(self):\n+        \"\"\" Test that invalid match_set_flags values are rejected \"\"\"\n+        set_module_args({\n+            'chain': 'INPUT',\n+            'match_set': 'admin_hosts',\n+            'match_set_flags': 'source',\n+            'jump': 'ACCEPT',\n+        })\n+\n+        with self.assertRaises(AnsibleFailJson) as e:\n+            iptables.main()\n+        self.assertTrue(e.exception.args[0]['failed'])\n+        self.assertIn('must be one of', e.exception.args[0]['msg'])\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "test/units/modules/test_iptables.py"
+  ],
+  "attempt_id": "69bcf51525504f78069dde6f",
+  "task_id": "6978fa4d0df9703f1e96f3f9",
+  "dataset_name": "swe_72",
+  "image_archive": {
+    "attempt_id": "69bcf51525504f78069dde6f",
+    "local_image_ref": "hilbench-swe:69bcf51525504f78069dde6f",
+    "image_id": "sha256:496bf366650d4f619960f4984d2e39969c400e9b7fef77f824b95acd1a20b5a4",
+    "created": "2026-03-25T22:56:14.672744314-07:00",
+    "artifact_path": "images/69bcf51525504f78069dde6f.tar.zst",
+    "artifact_bytes": 747763315,
+    "artifact_sha256": "57307b1d582bc185d2ee3ad31cc99fd65d9831299cca163d0799e9cac2f8d38f",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69bcf51525504f78069dde6f.tar.zst"
+  }
+}

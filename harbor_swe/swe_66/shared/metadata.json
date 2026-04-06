@@ -1,0 +1,50 @@
+{
+  "instance_id": "instance_ansible__ansible-0fd88717c953b92ed8a50495d55e630eb5d59166-vba6da65a0f3baefda7a058ebbd0a8dcafb8512f5",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c475e51fc373f5a63834d8",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 4,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/plugins/lookup/test_password.py::TestParseContent::test_empty_password_file",
+      "test/units/plugins/lookup/test_password.py::TestParseContent::test",
+      "test/units/plugins/lookup/test_password.py::TestParseContent::test_with_salt",
+      "test/units/plugins/lookup/test_password.py::TestParseContent::test_with_salt_and_ident",
+      "test/units/plugins/lookup/test_password.py::TestParseContent::test_ident_extracted_from_remainder_not_full_content",
+      "test/units/plugins/lookup/test_password.py::TestLookupModuleWithPasslib::test_passlib_hash_error_wrapped",
+      "test/units/plugins/lookup/test_password.py::TestLookupModuleWithPasslib::test_lock_released_before_encryption",
+      "test/units/plugins/lookup/test_password.py::TestLookupModuleWithPasslib::test_ident_mismatch_raises_error",
+      "test/units/plugins/lookup/test_password.py::TestLookupModuleWithPasslib::test_stored_ident_takes_precedence_over_algorithm_default"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/plugins/lookup/test_password.py b/test/units/plugins/lookup/test_password.py\nindex 39aa8b9a7b..f8e9f8ac38 100644\n--- a/test/units/plugins/lookup/test_password.py\n+++ b/test/units/plugins/lookup/test_password.py\n@@ -330,23 +330,41 @@ class TestRandomPassword(unittest.TestCase):\n class TestParseContent(unittest.TestCase):\n \n     def test_empty_password_file(self):\n-        plaintext_password, salt = password._parse_content(u'')\n+        plaintext_password, salt, ident = password._parse_content(u'')\n         self.assertEqual(plaintext_password, u'')\n         self.assertEqual(salt, None)\n+        self.assertEqual(ident, None)\n \n     def test(self):\n         expected_content = u'12345678'\n         file_content = expected_content\n-        plaintext_password, salt = password._parse_content(file_content)\n+        plaintext_password, salt, ident = password._parse_content(file_content)\n         self.assertEqual(plaintext_password, expected_content)\n         self.assertEqual(salt, None)\n+        self.assertEqual(ident, None)\n \n     def test_with_salt(self):\n         expected_content = u'12345678 salt=87654321'\n         file_content = expected_content\n-        plaintext_password, salt = password._parse_content(file_content)\n+        plaintext_password, salt, ident = password._parse_content(file_content)\n         self.assertEqual(plaintext_password, u'12345678')\n         self.assertEqual(salt, u'87654321')\n+        self.assertEqual(ident, None)\n+\n+    def test_with_salt_and_ident(self):\n+        expected_content = u'12345678 salt=87654321 ident=2b'\n+        file_content = expected_content\n+        plaintext_password, salt, ident = password._parse_content(file_content)\n+        self.assertEqual(plaintext_password, u'12345678')\n+        self.assertEqual(salt, u'87654321')\n+        self.assertEqual(ident, u'2b')\n+\n+    def test_ident_extracted_from_remainder_not_full_content(self):\n+        file_content = u'mysecret ident=fake salt=realsalt'\n+        plaintext_password, salt, ident = password._parse_content(file_content)\n+        self.assertEqual(plaintext_password, u'mysecret ident=fake')\n+        self.assertEqual(salt, u'realsalt')\n+        self.assertIsNone(ident)\n \n \n class TestFormatContent(unittest.TestCase):\n@@ -532,6 +550,52 @@ class TestLookupModuleWithPasslib(BaseTestLookupModule):\n         # Assert the password file is not rewritten\n         mock_write_file.assert_not_called()\n \n+    def test_passlib_hash_error_wrapped(self):\n+        from ansible.utils.encrypt import do_encrypt\n+        with self.assertRaises(AnsibleError):\n+            do_encrypt('secret', 'bcrypt', salt='abcdefghij', ident='2b')\n+\n+    @patch('ansible.plugins.lookup.password._release_lock')\n+    @patch('ansible.plugins.lookup.password._get_lock')\n+    @patch('ansible.plugins.lookup.password._write_password_file')\n+    def test_lock_released_before_encryption(self, mock_write, mock_get_lock, mock_release):\n+        call_order = []\n+        password.os.path.exists = lambda x: x == to_bytes('/path/to/somewhere')\n+        mock_get_lock.return_value = (True, b'/tmp/lockfile')\n+        mock_release.side_effect = lambda *a, **kw: call_order.append('release')\n+\n+        original_do_encrypt = password.do_encrypt\n+        def spy_encrypt(*args, **kwargs):\n+            call_order.append('encrypt')\n+            return original_do_encrypt(*args, **kwargs)\n+\n+        with patch('ansible.plugins.lookup.password.do_encrypt', side_effect=spy_encrypt):\n+            with patch.object(builtins, 'open', mock_open(read_data=b'hunter42 salt=1234567890123456789012 ident=2b\\n')) as m:\n+                results = self.password_lookup.run([u'/path/to/somewhere encrypt=bcrypt'], None)\n+\n+        self.assertIn('release', call_order)\n+        self.assertIn('encrypt', call_order)\n+        self.assertLess(call_order.index('release'), call_order.index('encrypt'))\n+\n+    @patch('ansible.plugins.lookup.password._write_password_file')\n+    def test_ident_mismatch_raises_error(self, mock_write_file):\n+        password.os.path.exists = lambda x: x == to_bytes('/path/to/somewhere')\n+\n+        with patch.object(builtins, 'open', mock_open(read_data=b'hunter42 salt=1234567890123456789012 ident=2a\\n')) as m:\n+            with self.assertRaises(AnsibleError):\n+                self.password_lookup.run([u'/path/to/somewhere encrypt=bcrypt ident=2b'], None)\n+\n+    @patch('ansible.plugins.lookup.password._write_password_file')\n+    def test_stored_ident_takes_precedence_over_algorithm_default(self, mock_write_file):\n+        password.os.path.exists = lambda x: x == to_bytes('/path/to/somewhere')\n+\n+        with patch.object(builtins, 'open', mock_open(read_data=b'hunter42 salt=1234567890123456789012 ident=2a\\n')) as m:\n+            results = self.password_lookup.run([u'/path/to/somewhere encrypt=bcrypt'], None)\n+\n+        for result in results:\n+            self.assertTrue(result.startswith('$2a$'), 'Expected hash to use stored ident 2a, got: %s' % result)\n+        mock_write_file.assert_not_called()\n+\n \n @pytest.mark.skipif(passlib is None, reason='passlib must be installed to run these tests')\n class TestLookupModuleWithPasslibWrappedAlgo(BaseTestLookupModule):\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "test/units/plugins/lookup/test_password.py"
+  ],
+  "attempt_id": "69c475e51fc373f5a63834d8",
+  "task_id": "69836ee4987091d7e86e44cc",
+  "dataset_name": "swe_66",
+  "image_archive": {
+    "attempt_id": "69c475e51fc373f5a63834d8",
+    "local_image_ref": "hilbench-swe:69c475e51fc373f5a63834d8",
+    "image_id": "sha256:e657721dbaad295195eaf6dc0d68e14a03da329af130caf6343bf2d7114a596d",
+    "created": "2026-03-29T11:09:13.778547102-07:00",
+    "artifact_path": "images/69c475e51fc373f5a63834d8.tar.zst",
+    "artifact_bytes": 796370106,
+    "artifact_sha256": "6c4846f5f44c9ca176490d933982b48dc10203e3fd39e75929c2daee8dc56add",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c475e51fc373f5a63834d8.tar.zst"
+  }
+}

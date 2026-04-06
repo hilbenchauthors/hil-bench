@@ -1,0 +1,48 @@
+{
+  "instance_id": "instance_protonmail__webclients-01b519cd49e6a24d9a05d2eb97f54e420740072e",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c2bfa26710a0529566eec5",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | mimeTypeFromFile returns File.type when present even if extension differs",
+      "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | mimeTypeFromFile returns File.type over extension for conflicting formats",
+      "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | mimeTypeFromFile uses extension lookup when File.type is empty",
+      "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | mimeTypeFromFile falls back to 'application/octet-stream' when no MIME source resolves",
+      "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | isSupportedImage HEIC/JXL runtime gate supports HEIC family and JXL on iOS Safari 17+",
+      "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | isSupportedImage HEIC/JXL runtime gate accepts strict numeric versions and rejects suffixed variants",
+      "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | isSupportedImage HEIC/JXL runtime gate does not normalize whitespace-padded versions"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts b/applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts\nnew file mode 100644\nindex 0000000000..26b82596df\n--- /dev/null\n+++ b/applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts\n@@ -0,0 +1,103 @@\n+import { mimeTypeFromFile } from './mimeTypeParser';\n+import { getBrowser, getOS, isAndroid, isDesktop, isIos, isMobile } from '@proton/shared/lib/helpers/browser';\n+import { SupportedMimeTypes } from '@proton/shared/lib/drive/constants';\n+import { isSupportedImage } from '@proton/shared/lib/helpers/mimetype';\n+\n+jest.mock('@proton/shared/lib/helpers/browser');\n+\n+const mockGetBrowser = jest.mocked(getBrowser);\n+const mockGetOS = jest.mocked(getOS);\n+const mockIsDesktop = jest.mocked(isDesktop);\n+const mockIsMobile = jest.mocked(isMobile);\n+const mockIsAndroid = jest.mocked(isAndroid);\n+const mockIsIos = jest.mocked(isIos);\n+\n+const JXL_MIME = 'image/jxl';\n+\n+describe('mimeTypeFromFile', () => {\n+    test('returns File.type when present even if extension differs', async () => {\n+        const fileContents = new Blob(['test'], { type: 'image/jpeg' });\n+        const testFile = new File([fileContents], 'photo.jxl', { type: 'image/jpeg' });\n+\n+        await expect(mimeTypeFromFile(testFile)).resolves.toBe('image/jpeg');\n+    });\n+\n+    test('returns File.type over extension for conflicting formats', async () => {\n+        const fileContents = new Blob(['test'], { type: 'image/png' });\n+        const testFile = new File([fileContents], 'photo.jxl', { type: 'image/png' });\n+\n+        await expect(mimeTypeFromFile(testFile)).resolves.toBe('image/png');\n+    });\n+\n+    test('uses extension lookup when File.type is empty', async () => {\n+        const fileContents = new Blob(['test'], { type: '' });\n+        const testFile = new File([fileContents], 'photo.jxl', { type: '' });\n+\n+        await expect(mimeTypeFromFile(testFile)).resolves.toBe('image/jxl');\n+    });\n+\n+    test(\"falls back to 'application/octet-stream' when no MIME source resolves\", async () => {\n+        const fileContents = new Blob(['test'], { type: '' });\n+        const testFile = new File([fileContents], 'photo.unknownext', { type: '' });\n+\n+        await expect(mimeTypeFromFile(testFile)).resolves.toBe('application/octet-stream');\n+    });\n+});\n+\n+describe('isSupportedImage HEIC/JXL runtime gate', () => {\n+    beforeEach(() => {\n+        jest.resetAllMocks();\n+\n+        mockGetOS.mockReturnValue({ name: 'iOS', version: '17.4' });\n+        mockGetBrowser.mockReturnValue({ name: 'Mobile Safari', version: '17.4', major: '17' });\n+\n+        mockIsDesktop.mockReturnValue(false);\n+        mockIsMobile.mockReturnValue(true);\n+        mockIsAndroid.mockReturnValue(false);\n+        mockIsIos.mockReturnValue(true);\n+    });\n+\n+    test('supports HEIC family and JXL on iOS Safari 17+', () => {\n+        expect(isSupportedImage(SupportedMimeTypes.heic)).toBe(true);\n+        expect(isSupportedImage(SupportedMimeTypes.heif)).toBe(true);\n+        expect(isSupportedImage(SupportedMimeTypes.heics)).toBe(true);\n+        expect(isSupportedImage(SupportedMimeTypes.heifs)).toBe(true);\n+        expect(isSupportedImage(JXL_MIME)).toBe(true);\n+    });\n+\n+    test('accepts strict numeric versions and rejects suffixed variants', () => {\n+        mockGetBrowser.mockReturnValue({ name: 'Mobile Safari', version: '17.0.1', major: '17' });\n+\n+        expect(isSupportedImage(SupportedMimeTypes.heic)).toBe(true);\n+        expect(isSupportedImage(SupportedMimeTypes.heif)).toBe(true);\n+        expect(isSupportedImage(SupportedMimeTypes.heics)).toBe(true);\n+        expect(isSupportedImage(SupportedMimeTypes.heifs)).toBe(true);\n+        expect(isSupportedImage(JXL_MIME)).toBe(true);\n+\n+        mockGetBrowser.mockReturnValue({ name: 'Mobile Safari', version: '17.0b1', major: '17' });\n+\n+        expect(isSupportedImage(SupportedMimeTypes.heic)).toBe(false);\n+        expect(isSupportedImage(SupportedMimeTypes.heif)).toBe(false);\n+        expect(isSupportedImage(SupportedMimeTypes.heics)).toBe(false);\n+        expect(isSupportedImage(SupportedMimeTypes.heifs)).toBe(false);\n+        expect(isSupportedImage(JXL_MIME)).toBe(false);\n+    });\n+\n+    test('does not normalize whitespace-padded versions', () => {\n+        mockGetBrowser.mockReturnValue({ name: 'Mobile Safari', version: '17.4', major: '17' });\n+\n+        expect(isSupportedImage(SupportedMimeTypes.heic)).toBe(true);\n+        expect(isSupportedImage(SupportedMimeTypes.heif)).toBe(true);\n+        expect(isSupportedImage(SupportedMimeTypes.heics)).toBe(true);\n+        expect(isSupportedImage(SupportedMimeTypes.heifs)).toBe(true);\n+        expect(isSupportedImage(JXL_MIME)).toBe(true);\n+\n+        mockGetBrowser.mockReturnValue({ name: 'Mobile Safari', version: ' 17.4 ', major: '17' });\n+\n+        expect(isSupportedImage(SupportedMimeTypes.heic)).toBe(false);\n+        expect(isSupportedImage(SupportedMimeTypes.heif)).toBe(false);\n+        expect(isSupportedImage(SupportedMimeTypes.heics)).toBe(false);\n+        expect(isSupportedImage(SupportedMimeTypes.heifs)).toBe(false);\n+        expect(isSupportedImage(JXL_MIME)).toBe(false);\n+    });\n+});\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts"
+  ],
+  "attempt_id": "69c2bfa26710a0529566eec5",
+  "task_id": "698648c3283d42a760567536",
+  "dataset_name": "swe_50",
+  "image_archive": {
+    "attempt_id": "69c2bfa26710a0529566eec5",
+    "local_image_ref": "hilbench-swe:69c2bfa26710a0529566eec5",
+    "image_id": "sha256:a1159143fd409038bc5a9f61002efd2ad1591d530489afef112ddf32b9d386ee",
+    "created": "2026-03-29T10:55:03.798087439-07:00",
+    "artifact_path": "images/69c2bfa26710a0529566eec5.tar.zst",
+    "artifact_bytes": 9168713212,
+    "artifact_sha256": "39559401687c14907c67c8edabf2da1d570430d43e21175915b4682d133f74c1",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c2bfa26710a0529566eec5.tar.zst"
+  }
+}

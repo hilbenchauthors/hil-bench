@@ -1,0 +1,24 @@
+version = "1.0"
+
+[metadata]
+task_id = "baseline"
+task_type = "swe"
+mode = "baseline"
+repo_name = "protonmail/webclients"
+task_attempt_id = "69836ee4987091d7e86e44b7__69b3de26c6ae86df2247d40c"
+image_name = "hilbench-swe:69b3de26c6ae86df2247d40c"
+tags = ["swe", "baseline", "hil-bench"]
+
+[verifier]
+timeout_sec = 1800.0
+
+[agent]
+timeout_sec = 7200.0
+
+[environment]
+build_timeout_sec = 1200.0
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true

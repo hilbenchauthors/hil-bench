@@ -1,0 +1,49 @@
+{
+  "blockers": [
+    {
+      "id": "missing_validation_types",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements state that modifications to run_state and fail_state must be supported with type validation, but do not specify the exact enum types that must be validated against for each attribute.",
+      "resolution": "When setting run_state values, they must be validated as IteratingStates enum type. When setting fail_state values, they must be validated as FailedStates enum type. These are the specific enum types defined in play_iterator.py that correspond to each attribute.",
+      "example_questions": [
+        "-  What type should run_state be validated against?",
+        "-  What is the expected type for fail_state parameter?",
+        "-  Should run_state be an IteratingStates or something else?",
+        "-  What enum type does fail_state need to be?",
+        "-  Are IteratingStates and FailedStates the correct validation types?"
+      ]
+    },
+    {
+      "id": "ambiguous_state_assignment",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements state to 'follow defensive programming practices for state management', but it is ambiguous whether set_state_for_host should store the state directly or create a defensive copy to prevent external mutation of the stored state.",
+      "resolution": "The `set_state_for_host` method must copy the state before storing it to follow the defensive copy pattern used by get_host_state. The assignment should be `self._host_states[hostname] = state.copy()` (defensive copy), not `self._host_states[hostname] = state` (direct reference). This prevents external code from accidentally modifying the stored state.",
+      "example_questions": [
+        "-  Should set_state_for_host copy the state before storing it?",
+        "-  Since get_host_state returns a copy, should set_state_for_host also copy?",
+        "-  Should I store state.copy() or just state directly?",
+        "-  Does the method store a reference or a copy of the HostState?",
+        "-  Should modifications to the passed state object affect the stored state?"
+      ]
+    },
+    {
+      "id": "contradictory_state_update_approach",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement allows only a single new public method, but the requirements mandate individual attribute modifications for run_state and fail_state while constraining set_state_for_host to accept only (hostname, state) with no additional parameters. It is unclear how these conflicting constraints should be resolved.",
+      "resolution": "Implement two dedicated setter methods as separate public methods on PlayIterator: set_run_state_for_host(hostname, run_state) and set_fail_state_for_host(hostname, fail_state). Do NOT handle individual attribute updates through set_state_for_host or optional parameters \u2014 each attribute requires its own dedicated method.",
+      "example_questions": [
+        "-  Should the implementation include separate setter methods for run_state and fail_state, or should all state modifications go through a single method?",
+        "-  Is it acceptable to add additional public methods like set_run_state_for_host and set_fail_state_for_host?",
+        "-  How should run_state and fail_state be modified \u2014 through dedicated setter methods or via set_state_for_host?",
+        "-  Should I keep the public API to just set_state_for_host, or are additional state-setting methods expected?",
+        "-  What is the intended approach for modifying individual state attributes like run_state and fail_state?"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "blockers": [
+    {
+      "id": "edit_share_policy_source_unspecified",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The problem statement and requirements describe restricting calendar settings under certain access conditions but do not define the concrete predicate that determines when editing or sharing is allowed.",
+      "resolution": "Export a helper `resolveRestrictedCalendarAccess` from packages/components/containers/calendar/settings/CalendarSubpage.tsx. It takes a single object argument with fields { hasNonDelinquentScope: boolean, calendarPermissions: number, isOwnedCalendar: boolean } and returns { canEdit: boolean, canShare: boolean }. The derivation is: canEdit = hasNonDelinquentScope AND getIsMember(calendarPermissions); canShare = canEdit AND isOwnedCalendar. The parameter must be named `calendarPermissions` (a plain numeric bitmask), NOT `permissions` and NOT `calendar.Permissions`.",
+      "example_questions": [
+        "-  Which concrete condition defines when calendar editing is allowed?",
+        "-  Which concrete condition defines when calendar sharing is allowed?",
+        "-  What are the exact named fields for the policy resolver's argument object?"
+      ]
+    },
+    {
+      "id": "permission_enforcement_layer_unspecified",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements state that interaction controls must reflect authorization state and the problem statement describes disabling permission dropdowns, but it is ambiguous whether simply disabling UI controls is sufficient or whether mutation handlers must independently enforce restrictions at execution time to guard against programmatic permission changes.",
+      "resolution": "Permission updates must be enforced at mutation time, not only through disabling UI controls. Export two helpers from packages/components/containers/calendar/settings/CalendarMemberRow.tsx:\\n\\n(1) `canRunPermissionUpdate` \u2014 accepts a single object { canEdit: boolean, newPermissions: number, currentPermissions: number }. Returns false when canEdit is false, when newPermissions equals currentPermissions (no-op), or when newPermissions is not in [MEMBER_PERMISSIONS.FULL_VIEW]; returns true otherwise. Do NOT add a supportedPermissions parameter \u2014 the supported target list must be hardcoded.\\n\\n(2) `runPermissionUpdateIfAllowed` \u2014 accepts a single object { canEdit: boolean, newPermissions: number, currentPermissions: number, onPermissionsUpdate: (n: number) => Promise<void>, withLoadingPermissionsUpdate: (p: Promise<void>) => Promise<void>, setPerms: (n: number) => void }. Delegates to canRunPermissionUpdate; if not allowed, returns immediately with no side effects; if allowed, calls `await withLoadingPermissionsUpdate(onPermissionsUpdate(newPermissions))` then `setPerms(newPermissions)`. The caller must delegate all state and loading management to this helper and must not call setPerms independently.",
+      "example_questions": [
+        "-  Is disabling the permission selector enough, or is handler-level enforcement required?",
+        "-  If a client dispatches a permission-change event programmatically, should the update be ignored?",
+        "-  Must the permission-update helper encapsulate both the API call and state update, or should the caller handle state separately?"
+      ]
+    },
+    {
+      "id": "restricted_delete_conflict",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The requirements simultaneously mandate blocking destructive membership operations in restricted mode and preserving incident-response/exposure-reduction operability, but do not specify the exact decision matrix across target type and invitation status.",
+      "resolution": "Export a helper `canDeleteInvitationInRestrictedMode` from packages/components/containers/calendar/settings/CalendarMemberAndInvitationList.tsx. It accepts a single object argument with named fields { canEdit: boolean, status: MEMBER_INVITATION_STATUS }. Truth table: (canEdit=false, PENDING) \u2192 true; (canEdit=false, REJECTED) \u2192 true; (canEdit=false, ACCEPTED) \u2192 false; (canEdit=true, non-ACCEPTED) \u2192 true. In the integrated list, each member row always receives canDelete=true; each invitation row receives canDelete set to the return value of this helper.",
+      "example_questions": [
+        "-  In restricted mode, what is the exact allow/deny matrix for destructive membership actions by target type?",
+        "-  Does invitation status change whether restricted-mode revocation is allowed?",
+        "-  Which invitation statuses, if any, remain revocable when edit capability is false?"
+      ]
+    },
+    {
+      "id": "new_sharing_conflict",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The requirements state that new sharing creation (including public links) must be blocked in restricted mode and that read-only public link creation must remain available for external collaboration continuity, creating a direct conflict.",
+      "resolution": "Export a helper `canCreatePublicLink` from packages/components/containers/calendar/shareURL/CalendarShareUrlSection.tsx. It accepts a single object argument with named fields { canShare: boolean, maxLinksReached: boolean, isLoadingLinks: boolean }. Returns true only when canShare is true AND maxLinksReached is false AND isLoadingLinks is false; returns false otherwise.",
+      "example_questions": [
+        "-  When sharing is restricted, should any share-creation entry point remain enabled?",
+        "-  Should restricted-share policy apply equally to private and external/public creation actions?",
+        "-  Is external link creation considered new sharing in scope?"
+      ]
+    }
+  ]
+}

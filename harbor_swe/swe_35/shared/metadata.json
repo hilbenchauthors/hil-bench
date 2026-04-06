@@ -1,0 +1,44 @@
+{
+  "instance_id": "instance_ansible__ansible-5d253a13807e884b7ce0b6b57a963a45e2f0322c-v1055803c3a812189a1133297f7f5468579283f86",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c001026f271e93513b127a",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/plugins/lookup/test_password.py::TestLookupModuleWithoutPasslib::test_parse_parameters_is_instance_method_only",
+      "test/units/plugins/lookup/test_password.py::TestLookupModuleWithoutPasslib::test_run_sets_options_and_uses_plugin_default_chars_list",
+      "test/units/plugins/lookup/test_password.py::TestLookupModuleWithoutPasslib::test_parse_parameters_hashes_term_seed"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/plugins/lookup/test_password.py b/test/units/plugins/lookup/test_password.py\nindex 73b50418e1..0dd28ca47b 100644\n--- a/test/units/plugins/lookup/test_password.py\n+++ b/test/units/plugins/lookup/test_password.py\n@@ -28,6 +28,7 @@ except ImportError:\n     pbkdf2 = None\n \n import pytest\n+import hashlib\n \n from units.mock.loader import DictDataLoader\n \n@@ -123,7 +124,8 @@ old_style_params_data = (\n     dict(\n         term=u'/path/to/file seed=1',\n         filename=u'/path/to/file',\n-        params=dict(length=password.DEFAULT_LENGTH, encrypt=None, ident=None, chars=DEFAULT_CHARS, seed='1'),\n+        params=dict(length=password.DEFAULT_LENGTH, encrypt=None, ident=None, chars=DEFAULT_CHARS,\n+                    seed=hashlib.new('sha256', to_bytes('1')).hexdigest()),\n         candidate_chars=DEFAULT_CANDIDATE_CHARS,\n     ),\n \n@@ -210,25 +212,52 @@ old_style_params_data = (\n \n class TestParseParameters(unittest.TestCase):\n     def test(self):\n+        lookup = password.LookupModule(loader=DictDataLoader({}))\n+        option_values = {\n+            'length': password.DEFAULT_LENGTH,\n+            'encrypt': None,\n+            'ident': None,\n+            'seed': None,\n+            'chars': [u'ascii_letters', u'digits', u\".,:-_\"],\n+        }\n         for testcase in old_style_params_data:\n-            filename, params = password._parse_parameters(testcase['term'])\n+            with patch.object(lookup, 'get_option', side_effect=lambda key: option_values[key]):\n+                filename, params = lookup._parse_parameters(testcase['term'])\n             params['chars'].sort()\n             self.assertEqual(filename, testcase['filename'])\n             self.assertEqual(params, testcase['params'])\n \n     def test_unrecognized_value(self):\n+        lookup = password.LookupModule(loader=DictDataLoader({}))\n+        option_values = {\n+            'length': password.DEFAULT_LENGTH,\n+            'encrypt': None,\n+            'ident': None,\n+            'seed': None,\n+            'chars': [u'ascii_letters', u'digits', u\".,:-_\"],\n+        }\n         testcase = dict(term=u'/path/to/file chars=\u304f\u3089\u3068\u307fi  sdfsdf',\n                         filename=u'/path/to/file',\n                         params=dict(length=password.DEFAULT_LENGTH, encrypt=None, chars=[u'\u304f\u3089\u3068\u307f']),\n                         candidate_chars=u'\u304f\u3089\u3068\u307f')\n-        self.assertRaises(AnsibleError, password._parse_parameters, testcase['term'])\n+        with patch.object(lookup, 'get_option', side_effect=lambda key: option_values[key]):\n+            self.assertRaises(AnsibleError, lookup._parse_parameters, testcase['term'])\n \n     def test_invalid_params(self):\n+        lookup = password.LookupModule(loader=DictDataLoader({}))\n+        option_values = {\n+            'length': password.DEFAULT_LENGTH,\n+            'encrypt': None,\n+            'ident': None,\n+            'seed': None,\n+            'chars': [u'ascii_letters', u'digits', u\".,:-_\"],\n+        }\n         testcase = dict(term=u'/path/to/file chars=\u304f\u3089\u3068\u307fi  somethign_invalid=123',\n                         filename=u'/path/to/file',\n                         params=dict(length=password.DEFAULT_LENGTH, encrypt=None, chars=[u'\u304f\u3089\u3068\u307f']),\n                         candidate_chars=u'\u304f\u3089\u3068\u307f')\n-        self.assertRaises(AnsibleError, password._parse_parameters, testcase['term'])\n+        with patch.object(lookup, 'get_option', side_effect=lambda key: option_values[key]):\n+            self.assertRaises(AnsibleError, lookup._parse_parameters, testcase['term'])\n \n \n class TestReadPasswordFile(unittest.TestCase):\n@@ -410,6 +439,47 @@ class BaseTestLookupModule(unittest.TestCase):\n \n \n class TestLookupModuleWithoutPasslib(BaseTestLookupModule):\n+    def test_parse_parameters_is_instance_method_only(self):\n+        self.assertTrue(hasattr(self.password_lookup, '_parse_parameters'))\n+        self.assertFalse(hasattr(password, '_parse_parameters'))\n+\n+    def test_run_sets_options_and_uses_plugin_default_chars_list(self):\n+        # Force generation path so random_password is called.\n+        password.os.path.exists = lambda x: False\n+        default_seed = 'myseed'\n+        expected_seed = hashlib.new('sha256', to_bytes(default_seed)).hexdigest()\n+        option_values = {\n+            'length': 8,\n+            'encrypt': None,\n+            'ident': None,\n+            'seed': default_seed,\n+            'chars': [u'digits', u'abc'],\n+        }\n+\n+        with patch.object(self.password_lookup, 'set_options', wraps=self.password_lookup.set_options) as mock_set_options, \\\n+                patch.object(self.password_lookup, 'get_option', side_effect=lambda key: option_values[key]), \\\n+                patch('ansible.plugins.lookup.password._write_password_file'), \\\n+                patch('ansible.plugins.lookup.password.random_password', return_value=u'X' * 8) as mock_random_password:\n+            self.password_lookup.run([u'/path/to/newfile'], {'test': 'value'})\n+\n+        mock_set_options.assert_called_once_with(var_options={'test': 'value'}, direct={})\n+        mock_random_password.assert_called_once_with(8, u'0123456789abc', expected_seed)\n+\n+    def test_parse_parameters_hashes_term_seed(self):\n+        option_values = {\n+            'length': password.DEFAULT_LENGTH,\n+            'encrypt': None,\n+            'ident': None,\n+            'seed': None,\n+            'chars': [u'ascii_letters', u'digits', u\".,:-_\"],\n+        }\n+        with patch.object(self.password_lookup, 'get_option', side_effect=lambda key: option_values[key]):\n+            _, params = self.password_lookup._parse_parameters(u'/tmp/file seed=myseed')\n+        self.assertEqual(\n+            params['seed'],\n+            u'6321af8cdc81c0c1e162223e284081660ff2393322cdb59b85ed931f9995a0ef',\n+        )\n+\n     @patch.object(PluginLoader, '_get_paths')\n     @patch('ansible.plugins.lookup.password._write_password_file')\n     def test_no_encrypt(self, mock_get_paths, mock_write_file):\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "test/units/plugins/lookup/test_password.py"
+  ],
+  "attempt_id": "69c001026f271e93513b127a",
+  "task_id": "698648c3283d42a76056754f",
+  "dataset_name": "swe_35",
+  "image_archive": {
+    "attempt_id": "69c001026f271e93513b127a",
+    "local_image_ref": "hilbench-swe:69c001026f271e93513b127a",
+    "image_id": "sha256:471f4051e82027e57463bade6001701a61a0418d61efa4562750c975a79ee1bb",
+    "created": "2026-03-26T01:38:31.991102693-07:00",
+    "artifact_path": "images/69c001026f271e93513b127a.tar.zst",
+    "artifact_bytes": 767571444,
+    "artifact_sha256": "92ae79890c3f5d8523c7dbf00115aa952ad21693211dd8ab7507d1a6c9f18e95",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c001026f271e93513b127a.tar.zst"
+  }
+}

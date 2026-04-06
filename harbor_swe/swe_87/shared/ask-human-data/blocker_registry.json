@@ -1,0 +1,47 @@
+{
+  "blockers": [
+    {
+      "id": "missing_custom_method_literals",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements state that display and warning calls from a child process must invoke _final_q.send_display with an appropriate method-identifying literal as the first argument, but do not specify what those literals are for either method.",
+      "resolution": "The first argument for display calls is the literal 'displaytocurrentuser'. The first argument for warning calls is the literal 'sendwarningtouser'. These are the method-identifying strings passed as the first positional argument to _final_q.send_display when proxying from a worker process.",
+      "example_questions": [
+        "-  What is the first literal of send_display for a display call in a child process?",
+        "-  What first literal must be passed for a warning call in a child process?",
+        "-  What are the exact method-identifying strings used as the first argument to send_display?",
+        "-  What is the exact first literal of send_display for each proxied Display method?",
+        "-  What custom string identifiers should be passed when proxying display and warning calls through the queue?"
+      ]
+    },
+    {
+      "id": "message_formatting_requirement",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The requirements state that messages must be displayed with a /n at the end as per the current code, and should be displayed raw, without any additional formatting, to achieve maximum fidelity.",
+      "resolution": "Messages must be displayed raw, without any additional formatting, to achieve maximum fidelity. Do not implement the display of them with a /n at the end. When proxying display calls from a worker, the proxy must call _final_q.send_display(..., newline=False) so that the main process displays raw without adding a newline.",
+      "example_questions": [
+        "-  How should messages be displayed in the main process?",
+        "-  How should messages be displayed in the proxy?",
+        "-  How should messages' formatting be handled in the main process?",
+        "-  How should messages be displayed in the main process: with a \"/n\" at the end, or without a \"/n\" at the end?"
+      ]
+    },
+    {
+      "id": "ambiguous_timestamp_iso_format",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements state that when messages are sent via the display queue a timestamp of the time of occurrence must be printed to console in an ISO format, but do not specify which ISO format.",
+      "resolution": "Use ISO 8601 ordinal date/time basic format: YYYY-DDDTHHmmssZ (e.g. 2025-071T143000Z). The timestamp must represent UTC time with no separators between time components. The timestamp must be generated inside FinalQueue.send_display and passed as a positional argument to the DisplaySend constructor (signature: DisplaySend(method, timestamp, *args, **kwargs)). DisplaySend must store but not compute the timestamp. In the main process, the timestamp must be written directly to stdout as a raw line before dispatching the message -- it must not be printed through any Display method, as that would subject it to formatting and deduplication.",
+      "example_questions": [
+        "-  What ISO format should the message timestamp use?",
+        "-  Which ISO date/time format is required for the time of occurrence?",
+        "-  Should the timestamp include timezone (Z or offset)?",
+        "-  How should the date and time components be structured in the timestamp string?"
+      ]
+    }
+  ]
+}

@@ -8,3 +8,9 @@ xet/
 results/
 logs/
 hil_bench.egg-info/
+token
+stored_tokens
+datasets/
+datasets--*/
+judge_config.yaml
+.check_for_update_done

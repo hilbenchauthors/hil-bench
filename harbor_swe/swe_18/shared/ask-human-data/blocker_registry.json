@@ -1,0 +1,46 @@
+{
+  "blockers": [
+    {
+      "id": "default_manifest_pack_mode",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements say `manifest_version` accepts supported manifest-compatibility selector tokens as plain string input, but they do not specify which exact tokens are supported. A competent engineer could reasonably accept several different token sets that all sound compatible with the visible task, including raw version-like spellings, prefixed forms, or product-style aliases.\n",
+      "resolution": "The only supported `manifest_version` selector tokens are exactly `oci-1.0` and `oci-1.1`. Inputs such as `1.0`, `1.1`, `v1.0`, or `v1.1` are unsupported.\n",
+      "example_questions": [
+        "-  Which exact selector tokens should the setting accept for the supported manifest compatibility modes?",
+        "-  Are raw version-like forms, prefixed forms, or aliases also accepted, or only one canonical token per supported mode?",
+        "-  Should supported manifest compatibility input be limited to exact canonical selector tokens?",
+        "-  What string forms count as unsupported even if they look semantically related to a supported mode?"
+      ]
+    },
+    {
+      "id": "manifest_selection_propagation_scope",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements say omission must still behave deterministically using one supported compatibility behavior, but they do not define which observable bundle form omission should reuse. A competent engineer could still choose multiple omission behaviors, including matching one explicit supported form or keeping omission on its own stable bundle form.\n",
+      "resolution": "When `manifest_version` is omitted, bundle creation must produce the same observable manifest structure as the explicit supported selection whose manifest omits the top-level `artifactType` field and keeps the feature media type in `config.mediaType`. Counterexample: an omitted-setting bundle manifest carries the feature media type in a top-level `artifactType` field.\n",
+      "example_questions": [
+        "-  What runtime construction rule should apply when `manifest_version` is omitted?",
+        "-  Should omission reuse one explicit supported manifest form or follow its own supported construction rule?",
+        "-  How should the omitted-setting path map from configuration semantics to manifest construction behavior?",
+        "-  What manifest-structure relationship should exist between omission and explicit supported selections?"
+      ]
+    },
+    {
+      "id": "unsupported_manifest_value_policy",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement says shared configuration should not cause unrelated startup failures before OCI bundle handling is actually used, because some deployments reuse one config file across processes that do not all exercise bundle creation on startup. The requirements also say the schema-facing `manifest_version` field must reject any selector token other than the supported ones at the field boundary. Those instructions conflict on whether unsupported literals may survive configuration intake for shared-config portability or must be rejected immediately during intake.\n",
+      "resolution": "Unsupported `manifest_version` selector tokens must be preserved during schema validation and configuration loading so shared configuration can still be accepted before OCI bundle handling is used. Validation must occur when OCI bundle creation resolves the manifest compatibility mode: bundle creation must fail clearly before producing a bundle, and the failure must identify the manifest version setting in human-readable wording rather than only echoing the raw config key format. Unsupported input must not be normalized into a supported selector token or silently ignored.\n",
+      "example_questions": [
+        "-  Should an unsupported `manifest_version` be rejected at the schema boundary, only during runtime loading, in both places, or only later in execution?",
+        "-  If schema constraints reject unsupported designators, should configuration loading still treat them as invalid rather than tolerating them?",
+        "-  If unsupported input is allowed through intake, at what later stage must it become a blocking failure?",
+        "-  May an unsupported value survive configuration acceptance and fail only when OCI bundle behavior is used?"
+      ]
+    }
+  ]
+}

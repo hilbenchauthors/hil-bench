@@ -1,0 +1,69 @@
+{
+  "blockers": [
+    {
+      "id": "missing_refresh_chunk_size",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements mandate fixed-size batching for `refreshArtists` and state that batches above an internal repository/driver bound fail under large scans, but they do not provide the concrete repository-safe chunk size required for implementation.",
+      "resolution": "Use a fixed chunk size of `73` IDs for the `refreshArtists` batching path. This value is the repository-safe ceiling for the refresh query shape in large scans, balancing parameter-count constraints and bounded call cost; larger chunks can cross the internal bound and make refresh fail intermittently under load.",
+      "example_questions": [
+        "-  What exact fixed chunk size should `refreshArtists` use?",
+        "-  Is the batching size implementation-defined?",
+        "-  Which limit should refresh batching use for reliability constraints?"
+      ]
+    },
+    {
+      "id": "missing_mbz_absent_sentinel",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements state that album records may store placeholder values when no MusicBrainz assignment exists and that such entries must be excluded before determining the dominant identifier, but do not specify what the placeholder value actually is. ",
+      "resolution": "The placeholder value for absent MusicBrainz identifiers is the empty string (`\\\"\\\"`). Exclude it from the candidate pool before determining the dominant identifier. Only non-empty `MbzAlbumArtistID` values are valid candidates for the dominance computation. Do not exclude any non-empty values. The prior implementation's use of `strings.Fields` (which splits on whitespace and omits zero-length tokens) silently performed only the empty-string exclusion. Without filtering, the empty string would be treated as a valid candidate and could be incorrectly selected as the dominant identifier when a majority of albums lack MusicBrainz data.",
+      "example_questions": [
+        "-  What specific value represents an absent MusicBrainz identifier in album data?",
+        "-  What is the placeholder value for absent MusicBrainz identifiers",
+        "-  Could the placeholder be a non-empty conventionalized string rather than the empty string?"
+      ]
+    },
+    {
+      "id": "ambiguous_mbz_tiebreak",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements and public interface state that `MbzArtistID` should represent the 'dominant identifier' across albums but do not define how dominance is determined. Multiple valid selection algorithms exist: using the first value encountered during iteration, selecting the most commonly occurring value with priority to the earliest candidate, or selecting the most commonly occurring value with priority to the latest candidate.",
+      "resolution": "Use frequency counting of `MbzAlbumArtistID` values to determine the dominant ID. When two or more values are tied in frequency, keep the value that most recently reached the top count (i.e., use `>=` not `>` when updating the leader). Do not use `slice.MostFrequent` (which uses `>` and picks the first to reach the top count). Example: `[id1, id2, id1, id2]` yields `id2` because both reach count 2 but `id2` is the last to reach that count.",
+      "example_questions": [
+        "-  How should the dominant identifier be determined \u2014 by iteration order or by occurrence count?",
+        "-  When multiple values are equally common, which one should be selected as dominant?",
+        "-  Should the algorithm favor the earliest or the latest candidate when counts are equal?"
+      ]
+    },
+    {
+      "id": "contradictory_refresh_approach",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement directs that artist data should be computed at the model level from album data, moving away from persistence-layer SQL aggregation. However, the existing codebase defines `Refresh(ids ...string) error` as part of the `ArtistRepository` interface and the scanner explicitly invokes it for artist updates. The problem statement also requires preserving functional parity for existing artist update flows, creating tension between adopting the new model-level approach and maintaining the established persistence-layer refresh pipeline.",
+      "resolution": "Scanner refresh must not call `ArtistRepository.Refresh`; instead, load albums filtered by `album_artist_id`, group them by artist ID, aggregate each group with `model.Albums(group).ToAlbumArtist()`, and persist each resulting artist via `ArtistRepository.Put`. Remove `Refresh` from the `ArtistRepository` interface. Functional parity is preserved because the same artist data is produced \u2014 only the computation path changes from SQL aggregation to model-level aggregation.",
+      "example_questions": [
+        "-  Should the scanner continue calling `ArtistRepository.Refresh` or switch to model-level aggregation?",
+        "-  How is functional parity maintained when replacing the persistence-layer refresh?",
+        "-  What method should be used to persist artist data after model-level aggregation?"
+      ]
+    },
+    {
+      "id": "contradictory_genre_dedup_equality",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The public interface specifies that aggregated artist genres must be deduplicated by unique `Genre.ID`, but existing model-level genre aggregation code orders genre collections by `Genre.ID` and deduplicates them using full structural equality, while the prior persistence-layer path produced genre values containing only the `ID` field. These cues point to different implementations when multiple `Genre` entries share the same `ID` but differ in other fields such as `Name`, and they also leave unresolved whether artist genre aggregation should preserve full struct data or ID-only values and which canonical ordering policy should govern representative selection during ID-based deduplication.",
+      "resolution": "Deduplicate genres by Genre.ID only, preserving the full Genre struct. To keep artist refresh output deterministic, sort aggregated genres by Genre.ID in descending order before deduplication. Then keep the first occurrence of each ID in that list and discard later duplicates. Example: [{g1, Rock}, {g2, Zebra-Old}, {g3, Apple}, {g2, Zebra-New}] becomes [{g3, Apple}, {g2, Zebra-Old}, {g1, Rock}]. Do not use full-struct equality (slices.Compact) and do not strip genres to ID-only.",
+      "example_questions": [
+        "-  Should genres be deduplicated by `Genre.ID` alone or by full structural equality?",
+        "-  Which instruction takes precedence \u2014 the interface specification or the codebase documentation?",
+        "-  Should aggregated artist genres preserve full struct data (ID and Name) or replicate the prior ID-only format?"
+      ]
+    }
+  ]
+}

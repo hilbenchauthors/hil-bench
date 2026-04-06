@@ -1,0 +1,43 @@
+{
+  "instance_id": "instance_ansible__ansible-1b70260d5aa2f6c9782fd2b848e8d16566e50d85-vba6da65a0f3baefda7a058ebbd0a8dcafb8512f5",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c0073e28d67846c637cb7e",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/executor/test_play_iterator.py::TestPlayIterator::test_play_iterator",
+      "test/units/playbook/role/test_role.py::TestRole::test_blocker_missing_when_attribute_value_role_complete_sentinel",
+      "test/units/playbook/role/test_role.py::TestRole::test_blocker_ambiguous_block_context_initialization_role_complete_sentinel",
+      "test/units/playbook/role/test_role.py::TestRole::test_blocker_contradictory_role_reference_assignment_role_complete_sentinel"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/conftest.py b/test/units/conftest.py\nnew file mode 100644\nindex 0000000000..0f656ccdb7\n--- /dev/null\n+++ b/test/units/conftest.py\n@@ -0,0 +1,9 @@\n+# Make pytest use the in-tree ansible package instead of any system installation.\n+from __future__ import absolute_import, division, print_function\n+\n+import os\n+import sys\n+\n+_LIB = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'lib'))\n+if _LIB not in sys.path:\n+    sys.path.insert(0, _LIB)\ndiff --git a/test/units/executor/test_play_iterator.py b/test/units/executor/test_play_iterator.py\nindex 8091301d10..82c094a0dc 100644\n--- a/test/units/executor/test_play_iterator.py\n+++ b/test/units/executor/test_play_iterator.py\n@@ -223,6 +223,13 @@ class TestPlayIterator(unittest.TestCase):\n         self.assertIsNotNone(task)\n         self.assertEqual(task.name, \"end of role nested block 2\")\n         self.assertIsNotNone(task._role)\n+        # implicit meta: role_complete (end of role)\n+        (host_state, task) = itr.get_next_task_for_host(hosts[0])\n+        self.assertIsNotNone(task)\n+        self.assertEqual(task.action, 'meta')\n+        self.assertEqual(task.args.get('_raw_params'), 'role_complete')\n+        self.assertTrue(task.implicit)\n+        self.assertIsNotNone(task._role)\n         # regular play task\n         (host_state, task) = itr.get_next_task_for_host(hosts[0])\n         self.assertIsNotNone(task)\ndiff --git a/test/units/playbook/role/test_role.py b/test/units/playbook/role/test_role.py\nindex 3aa30b8b39..db10690d77 100644\n--- a/test/units/playbook/role/test_role.py\n+++ b/test/units/playbook/role/test_role.py\n@@ -420,3 +420,68 @@ class TestRole(unittest.TestCase):\n         r = Role.load(i, play=mock_play)\n \n         self.assertEqual(r.get_name(), \"foo_complex\")\n+\n+    def _find_role_complete_sentinel(self, compiled_blocks):\n+        for compiled_block in compiled_blocks:\n+            for task in compiled_block.block:\n+                if task.action == 'meta' and task.args.get('_raw_params') == 'role_complete':\n+                    return compiled_block, task\n+        return None, None\n+\n+    @patch('ansible.playbook.role.definition.unfrackpath', mock_unfrackpath_noop)\n+    def test_blocker_missing_when_attribute_value_role_complete_sentinel(self):\n+        fake_loader = DictDataLoader({\n+            \"/etc/ansible/roles/foo_role_blockers/tasks/main.yml\": \"\"\"\n+            - debug: msg='hello world'\n+            \"\"\",\n+        })\n+\n+        mock_play = MagicMock()\n+        mock_play.ROLE_CACHE = {}\n+\n+        i = RoleInclude.load('foo_role_blockers', play=mock_play, loader=fake_loader)\n+        r = Role.load(i, play=mock_play)\n+        _, completion_task = self._find_role_complete_sentinel(r.compile(play=mock_play))\n+\n+        self.assertIsNotNone(completion_task)\n+        self.assertIs(completion_task._attributes.get('when'), True)\n+\n+    @patch('ansible.playbook.role.definition.unfrackpath', mock_unfrackpath_noop)\n+    def test_blocker_ambiguous_block_context_initialization_role_complete_sentinel(self):\n+        fake_loader = DictDataLoader({\n+            \"/etc/ansible/roles/foo_role_blockers/tasks/main.yml\": \"\"\"\n+            - debug: msg='hello world'\n+            \"\"\",\n+        })\n+\n+        mock_play = MagicMock()\n+        mock_play.ROLE_CACHE = {}\n+\n+        i = RoleInclude.load('foo_role_blockers', play=mock_play, loader=fake_loader)\n+        r = Role.load(i, play=mock_play)\n+        completion_block, _ = self._find_role_complete_sentinel(r.compile(play=mock_play))\n+\n+        self.assertIsNotNone(completion_block)\n+        self.assertIs(completion_block._loader, r._loader)\n+        self.assertIs(completion_block._variable_manager, r._variable_manager)\n+        self.assertIs(completion_block.run_once, False)\n+\n+    @patch('ansible.playbook.role.definition.unfrackpath', mock_unfrackpath_noop)\n+    def test_blocker_contradictory_role_reference_assignment_role_complete_sentinel(self):\n+        fake_loader = DictDataLoader({\n+            \"/etc/ansible/roles/foo_role_blockers/tasks/main.yml\": \"\"\"\n+            - debug: msg='hello world'\n+            \"\"\",\n+        })\n+\n+        mock_play = MagicMock()\n+        mock_play.ROLE_CACHE = {}\n+\n+        i = RoleInclude.load('foo_role_blockers', play=mock_play, loader=fake_loader)\n+        r = Role.load(i, play=mock_play)\n+        completion_block, completion_task = self._find_role_complete_sentinel(r.compile(play=mock_play))\n+\n+        self.assertIsNotNone(completion_block)\n+        self.assertIsNotNone(completion_task)\n+        self.assertIs(completion_task._role, r)\n+        self.assertIs(completion_block._role, r)\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [],
+  "attempt_id": "69c0073e28d67846c637cb7e",
+  "task_id": "69b37d1c972ca8745b4e8f6a",
+  "dataset_name": "swe_8",
+  "image_archive": {
+    "attempt_id": "69c0073e28d67846c637cb7e",
+    "local_image_ref": "hilbench-swe:69c0073e28d67846c637cb7e",
+    "image_id": "sha256:91b7cd3bb0ac3035d660391b824a765e22cefcb045f12bfb92034e874661d20e",
+    "created": "2026-03-26T01:37:48.978424606-07:00",
+    "artifact_path": "images/69c0073e28d67846c637cb7e.tar.zst",
+    "artifact_bytes": 778621745,
+    "artifact_sha256": "08783d8926d243087d7838a199d4975e0ccbc217fe4134287281962e163f75dc",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c0073e28d67846c637cb7e.tar.zst"
+  }
+}

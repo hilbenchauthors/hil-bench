@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "html_expiration_threshold",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements specify that when HTML content is detected in a notification, the expiration should meet a minimum display threshold suitable for content requiring user interaction, but do not specify what that threshold value is. Different threshold values would produce different notification display durations, and without a defined value implementations cannot determine the correct minimum expiration to enforce.",
+      "resolution": "The minimum expiration for HTML-content notifications is 5000 milliseconds. When HTML content is detected, apply `Math.max(5000, expiration)` to ensure the notification remains visible for at least 5 seconds. Example: if the notification's current expiration is 3000ms, it becomes `Math.max(5000, 3000) = 5000`ms; if the current expiration is 8000ms, it stays `Math.max(5000, 8000) = 8000`ms. Counterexample: using a threshold of 3000ms or 10000ms, or not applying any minimum at all, does not match.",
+      "example_questions": [
+        "-  What is the minimum display duration for HTML-content notifications?",
+        "-  What threshold value should be used when enforcing a minimum expiration for notifications containing HTML?",
+        "-  How many milliseconds should the minimum expiration be set to for notifications with interactive HTML content?"
+      ]
+    },
+    {
+      "id": "sanitization_tag_allowlist",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements instruct using DOMPurify for HTML sanitization and state that \"safe structural and formatting tags, as well as link markup, should be preserved,\" but do not define which specific HTML tags constitute the safe set. DOMPurify's default configuration permits a broad range of tags (including `<img>`, `<form>`, `<table>`, `<div>`, etc.). Multiple valid interpretations exist: use DOMPurify defaults, restrict to inline formatting tags only, include block-level elements, or permit media tags. Each choice produces different sanitized output and different security properties. Without an explicit tag allowlist, implementations cannot determine which elements should survive sanitization.",
+      "resolution": "Configure DOMPurify with an explicit tag allowlist: `ALLOWED_TAGS: ['a', 'b', 'i', 'em', 'strong', 'span', 'br']`. Only these inline formatting and link tags are permitted; all other tags (including `<img>`, `<form>`, `<script>`, `<div>`, `<table>`) are stripped from the output. Example: `<b>bold</b> <img src=\"x\">` becomes `<b>bold</b> `. Counterexample: using DOMPurify defaults (which preserve `<img>`, `<form>`, etc.) or including tags like `<p>`, `<div>`, `<img>` in the allowlist does not match.",
+      "example_questions": [
+        "-  Which HTML tags are considered safe for notification content and should be included in the sanitization allowlist?",
+        "-  Should the sanitizer use DOMPurify's default tag set, or a restricted allowlist specific to notifications?",
+        "-  Are block-level elements like `<div>`, `<p>`, or media elements like `<img>` permitted in notification HTML?"
+      ]
+    },
+    {
+      "id": "safe_versus_interactive_rendering",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement specifies that the sanitizer should address script tags and event-handler attributes to mitigate code execution risks. The requirements explicitly prescribe using DOMPurify with `ADD_ATTR: ['onclick', 'onchange', 'onsubmit']`, which adds event-handler attributes to the allowed set, and further state that event-handler attributes must be retained in the rendered output. The problem statement implies event-handler attributes should be stripped for security, while the requirements instruct preserving them for interactivity, creating a direct contradiction.",
+      "resolution": "Apply sanitization that strips all event-handler attributes and does not allow them in the output. Do not use `ADD_ATTR: ['onclick', 'onchange', 'onsubmit']` as prescribed in the requirements; instead, use `ALLOWED_ATTR: ['href']` which restricts the attribute allowlist to `href` only. This ensures no executable attributes (`onclick`, `onerror`, `onchange`, `onsubmit`) or styling/identification attributes (`class`, `style`, `id`) survive sanitization. The security-first interpretation from the problem statement takes precedence over the interactivity requirement. Example: `<a href=\"...\" onclick=\"alert(1)\">` becomes `<a href=\"...\">`. Counterexample: preserving `onclick` or any event-handler attribute does not match.",
+      "example_questions": [
+        "-  Should event-handler attributes like onclick and onerror be stripped during sanitization or retained in the rendered notification?",
+        "-  How should event-handler attributes (e.g. onclick) on elements in notification content be handled given the security requirements?",
+        "-  The requirements say to use ADD_ATTR with onclick/onchange/onsubmit, but the problem statement says to mitigate event handlers\u2014which takes precedence?"
+      ]
+    }
+  ]
+}

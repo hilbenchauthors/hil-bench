@@ -67,6 +67,15 @@ uv run python run_hil_bench.py \
   --judge-config judge_config.yaml
 ```
 
+## Harbor SWE Tasks
+
+The Harborized public SWE task packages live under `harbor_swe/`.
+
+- `harbor_swe/swe_0` through `harbor_swe/swe_99` contain the per-task Harbor packages.
+- `harbor_swe/warmup_images.sh` resolves task images from local Docker, a local archive tree, or the configured HF bucket.
+- `harbor_swe/build_images.sh` builds the packaged sidecar images used by the Harbor tasks.
+- `harbor_swe/shared/image_source_defaults.json` points at the default image bucket.
+
 ## Output Structure
 
 Each run writes under `<output_dir>/<run_name>/public_metrics/`:

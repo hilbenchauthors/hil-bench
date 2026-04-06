@@ -1,0 +1,24 @@
+version = "1.0"
+
+[metadata]
+task_id = "full_info"
+task_type = "swe"
+mode = "full_info"
+repo_name = "flipt-io/flipt"
+task_attempt_id = "69839e79db8f5e922c44f80f__69b0598376244bd9e7d86333"
+image_name = "hilbench-swe:69b0598376244bd9e7d86333"
+tags = ["swe", "full_info", "hil-bench"]
+
+[verifier]
+timeout_sec = 1800.0
+
+[agent]
+timeout_sec = 7200.0
+
+[environment]
+build_timeout_sec = 1200.0
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true

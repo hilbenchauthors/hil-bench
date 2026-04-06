@@ -1,0 +1,69 @@
+{
+  "blockers": [
+    {
+      "id": "missing_bytearray_handling",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements reference \"binary-compatible input types\" without specifying which types beyond `bytes` are included or their handling order relative to `MutableSequence`.",
+      "resolution": "Add `elif isinstance(v, bytearray): v = AnsibleUnsafeBytes(bytes(v))` in `wrap_var` before the `MutableSequence` check.",
+      "example_questions": [
+        "-  What specific types does \"binary-compatible input types\" refer to besides `bytes`?",
+        "-  Should `bytearray` inputs be treated as binary data or as a mutable sequence in `wrap_var`?",
+        "-  How should `wrap_var` convert a `bytearray` before wrapping it as `AnsibleUnsafeBytes`?"
+      ]
+    },
+    {
+      "id": "missing_unsafe_attribute_check",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements only mention returning \"AnsibleUnsafe instances\" unchanged, but the codebase also uses `__UNSAFE__` attribute duck-typing to detect unsafe values in multiple modules.",
+      "resolution": "Change the `wrap_var` guard to: `if isinstance(v, AnsibleUnsafe) or getattr(v, '__UNSAFE__', False): return v`.",
+      "example_questions": [
+        "-  Should `wrap_var` detect unsafe values only via `isinstance(v, AnsibleUnsafe)` or also via the `__UNSAFE__` attribute?",
+        "-  How should `wrap_var` handle objects that have `__UNSAFE__ = True` but don't inherit from `AnsibleUnsafe`?",
+        "-  Is the `__UNSAFE__` attribute duck-typing pattern used elsewhere in the codebase relevant to `wrap_var`?"
+      ]
+    },
+    {
+      "id": "missing_tuple_wrapping",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements reference a project type-handling policy that defines which container types require recursive wrapping, but only enumerate Mapping, MutableSequence, and Set. The complete type list defined by this policy is not provided.",
+      "resolution": "Add `elif isinstance(v, tuple): v = tuple(wrap_var(item) if item is not None else item for item in v)` in `wrap_var` after the `Set` check.",
+      "example_questions": [
+        "-  Should `wrap_var` recursively wrap elements inside tuples, or return tuples unchanged?",
+        "-  How should `wrap_var` handle tuple inputs \u2014 are they treated like other iterables or left as-is?",
+        "-  If tuples are wrapped, should the result preserve the tuple type or convert to a list?"
+      ]
+    },
+    {
+      "id": "ambiguous_container_mutation_policy",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements state containers should be returned with elements processed by `wrap_var`, but do not specify whether to mutate the original container or return a new object.",
+      "resolution": "`wrap_var` must return new container objects: `_wrap_list` returns `type(v)(...)` and `_wrap_dict` creates and returns a new `type(v)()` instance.",
+      "example_questions": [
+        "-  Should `wrap_var` modify the input container in-place or return a new container object?",
+        "-  When wrapping a list or dict, is the original object mutated or is a copy returned?",
+        "-  Does `wrap_var` preserve the identity of the input container or allocate a new instance?"
+      ]
+    },
+    {
+      "id": "contradictory_remove_vs_deprecate_unsafeproxy",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The requirements state \"Remove UnsafeProxy class\" and also \"Ensure existing code using UnsafeProxy receives appropriate deprecation notices.\" A removed class cannot emit deprecation warnings.",
+      "resolution": "Keep `UnsafeProxy` as a class (not a function). Add `if isinstance(obj, AnsibleUnsafe): return obj` in `UnsafeProxy.__new__` so that already-unsafe inputs preserve object identity.",
+      "example_questions": [
+        "-  Should UnsafeProxy be removed entirely or kept with deprecation warnings?",
+        "-  How can UnsafeProxy emit deprecation notices if the class is deleted?",
+        "-  Must UnsafeProxy remain a class for backward compatibility, or can it become a function?"
+      ]
+    }
+  ]
+}

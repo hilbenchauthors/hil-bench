@@ -1,0 +1,60 @@
+{
+  "blockers": [
+    {
+      "id": "delegated_missing_target_placeholder",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "Delegated execution must still render a delegated label even when delegation metadata is present but none of the delegated identity candidates yields a displayable value. The public task surface leaves that fallback delegated token unspecified.\n",
+      "resolution": "When delegation metadata is present but no delegated identity can be derived, render the delegated side as unavailable. Delegation metadata is considered present whenever `_ansible_delegated_vars` exists in the result and is not `None`, even if it is an empty dict. Example: `web1 -> unavailable`. Counterexample: `web1`\n",
+      "example_questions": [
+        "-  What delegated label should be rendered when delegation metadata exists but no delegated identity is usable?",
+        "-  If the delegated result carries metadata but all delegated identity values are empty, what fallback delegated text should I show?",
+        "-  What exact delegated-side placeholder should the formatter use when delegation is known but no delegated host can be displayed?",
+        "-  How should the combined label look when delegation is present but the delegated target cannot be derived?"
+      ]
+    },
+    {
+      "id": "rendered_label_length_budget",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "Very long host names still need a compact, stable rendering rule in the shared formatter, but the public task surface does not define the exact per-side display budget or the concrete shortening formula that should be used once a name grows too long.\n",
+      "resolution": "Shorten each label side independently to at most 18 visible characters. If a side exceeds 18 characters, keep the first 15 characters and append `...`. Example: `abcdefghijklmnopqrst` becomes `abcdefghijklmno...`. Counterexample: truncating the whole combined label instead of each side.\n",
+      "example_questions": [
+        "-  What is the exact display budget for a long host name in the rendered label?",
+        "-  What is the exact per-side cutoff value that should trigger shortening?",
+        "-  Once the shared end-truncation style is applied, how many visible characters may each rendered side occupy?",
+        "-  What exact maximum rendered width should the formatter allow for each side before truncation?"
+      ]
+    },
+    {
+      "id": "delegated_identity_precedence",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "Delegated metadata may expose more than one candidate identity for the delegated side, but the public task surface does not define which candidate becomes canonical when several are present. Several reasonable precedence policies remain plausible.\n",
+      "resolution": "Choose the first non-empty delegated identity in this order: `delegated_host_name`, `ansible_hostname`, `ansible_delegated_host`. No other keys, including `ansible_host`, are consulted. Trim surrounding whitespace from each candidate before testing for emptiness, and use the trimmed value as the returned identity. Example: if `delegated_host_name` is relay and `ansible_delegated_host` is `delegate.example.com`, use relay. If `ansible_delegated_host` is `delegate-host`, use delegate-host (trimmed).",
+      "example_questions": [
+        "-  Which delegated identity source should the formatter prefer when multiple delegated host values are present?",
+        "-  What is the precedence order for delegated identity hints inside delegated metadata?",
+        "-  If the delegated metadata contains more than one candidate delegated name, which one becomes the displayed delegated side?",
+        "-  How should blank delegated identity fields be handled when deciding which delegated value to render?"
+      ]
+    },
+    {
+      "id": "readability_vs_roundtrip_contract",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The public task surface simultaneously asks the formatter to preserve the historical raw `primary -> delegated` presentation operators recognize in normal callback output and to emit an unambiguous combined label when a rendered side itself contains delimiter-like or escape-sensitive text. Those instructions cannot both be satisfied by leaving every delegated label side unwrapped in all cases.\n",
+      "resolution": "Render simple names as `primary -> delegated`. If a final label side contains ` -> `, a backslash, or a single quote, wrap that side in single quotes and escape backslashes as `\\\\` and single quotes as `\\'` before joining. Example: `db -> 'edge\\'one'`. Counterexample: leaving `db -> edge -> one` unquoted.\n",
+      "example_questions": [
+        "-  When a rendered side contains separator-like text, should the formatter still preserve the raw historical label shape or switch to a disambiguating form?",
+        "-  What exact quoting or escaping rule should the formatter apply when preserving the historical raw shape would make the combined label ambiguous?",
+        "-  How should the formatter resolve the conflict between historical raw delegated output and unambiguous rendering for escape-sensitive host names?",
+        "-  When a host name already contains delegated-separator text, what deterministic rendering rule takes precedence?"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "instance_id": "instance_ansible__ansible-12734fa21c08a0ce8c84e533abdc560db2eb1955-v7eee2454f617569fd6889f2211f75bc02a35f9f8",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c4be15ecee678a8ac3f143",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/parsing/yaml/test_dumper.py::TestAnsibleDumper::test_undefined",
+      "test/units/parsing/yaml/test_dumper.py::TestAnsibleDumper::test_to_yaml_default_emit_width_missing_parameter_resolution",
+      "test/units/parsing/yaml/test_dumper.py::TestAnsibleDumper::test_to_yaml_preserves_original_exception",
+      "test/units/parsing/yaml/test_dumper.py::TestAnsibleDumper::test_to_nice_yaml_default_width_prevents_line_wrapping",
+      "test/units/parsing/yaml/test_dumper.py::TestAnsibleDumper::test_to_yaml_filter_error_message_prefix"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/parsing/yaml/test_dumper.py b/test/units/parsing/yaml/test_dumper.py\nindex 6578a6d1bf..78f6615f67 100644\n--- a/test/units/parsing/yaml/test_dumper.py\n+++ b/test/units/parsing/yaml/test_dumper.py\n@@ -21,6 +21,15 @@ __metaclass__ = type\n import io\n import yaml\n\n+from unittest.mock import patch\n+from jinja2.exceptions import UndefinedError\n+from ansible.template import AnsibleUndefined\n+from ansible.plugins.filter.core import (\n+    to_yaml,\n+    to_nice_yaml,\n+    _DEFAULT_TO_YAML_EMIT_WIDTH,\n+)\n+from ansible.errors import AnsibleFilterError\n from units.compat import unittest\n from ansible.parsing import vault\n from ansible.parsing.yaml import dumper, objects\n@@ -109,3 +118,70 @@ class TestAnsibleDumper(unittest.TestCase, YamlTestUtils):\n             self._dump_string(VarsWithSources(), dumper=self.dumper)\n         except yaml.representer.RepresenterError:\n             self.fail(\"Dump VarsWithSources raised RepresenterError unexpectedly!\")\n+\n+    def test_undefined(self):\n+        undefined_object = AnsibleUndefined(name='MYSVC_ENV')\n+        try:\n+            self._dump_string(undefined_object, dumper=self.dumper)\n+            self.fail(\"Expected exception during YAML dump of undefined value\")\n+        except UndefinedError as e:\n+            self.assertIn('MYSVC_ENV', str(e))\n+        except yaml.representer.RepresenterError:\n+            self.fail(\"Representer must not raise; undefined must surface as UndefinedError, not RepresenterError\")\n+\n+    def test_to_yaml_default_emit_width_missing_parameter_resolution(self):\n+        self.assertEqual(_DEFAULT_TO_YAML_EMIT_WIDTH, 1048576)\n+\n+        with patch('ansible.plugins.filter.core.yaml.dump', return_value='') as mock_dump:\n+            to_yaml({'x': 1})\n+            self.assertEqual(mock_dump.call_args[1]['width'], 1048576)\n+\n+        with patch('ansible.plugins.filter.core.yaml.dump', return_value='') as mock_dump:\n+            to_nice_yaml({'y': 2})\n+            self.assertEqual(mock_dump.call_args[1]['width'], 1048576)\n+\n+        with patch('ansible.plugins.filter.core.yaml.dump', return_value='') as mock_dump:\n+            to_yaml({'z': 3}, width=4096)\n+            self.assertEqual(mock_dump.call_args[1]['width'], 4096)\n+\n+        with patch('ansible.plugins.filter.core.yaml.dump', return_value='') as mock_dump:\n+            to_nice_yaml({'w': 4}, width=80)\n+            self.assertEqual(mock_dump.call_args[1]['width'], 80)\n+\n+    def test_to_nice_yaml_default_width_prevents_line_wrapping(self):\n+        long_value = 'x' * 200\n+        data = {'MYSVC_ENV': long_value}\n+        result = to_nice_yaml(data)\n+        for line in result.splitlines():\n+            self.assertLessEqual(\n+                len(line),\n+                _DEFAULT_TO_YAML_EMIT_WIDTH,\n+                \"Output line should not be wrapped with default width\"\n+            )\n+        # Verify the long value appears unbroken\n+        self.assertIn(long_value, result)\n+\n+    def test_to_yaml_filter_error_message_prefix(self):\n+        with patch('ansible.plugins.filter.core.yaml.dump', side_effect=RuntimeError('fail')):\n+            with self.assertRaises(AnsibleFilterError) as ctx:\n+                to_yaml('test')\n+            self.assertIn('to_yaml', str(ctx.exception))\n+            self.assertNotIn('to_nice_yaml', str(ctx.exception))\n+\n+        with patch('ansible.plugins.filter.core.yaml.dump', side_effect=RuntimeError('fail')):\n+            with self.assertRaises(AnsibleFilterError) as ctx2:\n+                to_nice_yaml('test')\n+            self.assertIn('to_nice_yaml', str(ctx2.exception))\n+\n+    def test_to_yaml_preserves_original_exception(self):\n+        original = RuntimeError('original error')\n+        with patch('ansible.plugins.filter.core.yaml.dump', side_effect=original):\n+            with self.assertRaises(AnsibleFilterError) as ctx:\n+                to_yaml('test')\n+        self.assertIs(ctx.exception.__cause__, original)\n+\n+        original2 = RuntimeError('original error 2')\n+        with patch('ansible.plugins.filter.core.yaml.dump', side_effect=original2):\n+            with self.assertRaises(AnsibleFilterError) as ctx2:\n+                to_nice_yaml('test')\n+        self.assertIs(ctx2.exception.__cause__, original2)\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "test/units/parsing/yaml/test_dumper.py"
+  ],
+  "attempt_id": "69c4be15ecee678a8ac3f143",
+  "task_id": "69836ee4987091d7e86e44dd",
+  "dataset_name": "swe_34",
+  "image_archive": {
+    "attempt_id": "69c4be15ecee678a8ac3f143",
+    "local_image_ref": "hilbench-swe:69c4be15ecee678a8ac3f143",
+    "image_id": "sha256:a3c48b656c59623297a5f7140c99c2aa9eea91883537575b40af0b4bf6ff44ce",
+    "created": "2026-03-29T10:38:02.216246357-07:00",
+    "artifact_path": "images/69c4be15ecee678a8ac3f143.tar.zst",
+    "artifact_bytes": 763945914,
+    "artifact_sha256": "4dd5a52bd4cf65c7e73adeb031a7e17c7bb8037c825ba4a72b0e7755ef73399f",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c4be15ecee678a8ac3f143.tar.zst"
+  }
+}

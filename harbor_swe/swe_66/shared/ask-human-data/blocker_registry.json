@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "id": "hash_failure_exception_class",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The problem statement describes a crash caused by the hashing library receiving malformed salt input on subsequent runs. The fix requires intercepting this specific failure from passlib to convert it into a recoverable Ansible error, but the specific exception class that passlib raises for input validation failures is not documented in the problem statement or requirements. Catching the wrong exception class would either leave the original crash completely unfixed (if the actual exception type is not intercepted) or silently suppress unrelated programming errors by catching too broadly.",
+      "resolution": "Passlib raises ValueError when it encounters invalid input parameters such as a malformed salt or ident value. Catch specifically ValueError in the PasslibHash._hash method's hashing calls and convert it to an AnsibleError. Catching a different type (e.g., TypeError, OSError) would fail to intercept the actual crash, and catching broadly (e.g., Exception) would mask unrelated bugs.",
+      "example_questions": [
+        "-  What specific exception class does the passlib library raise when given invalid hashing input?",
+        "-  Which Python exception type should be caught when wrapping passlib hashing failures?",
+        "-  Does passlib raise ValueError, TypeError, or a library-specific exception on invalid salt or ident?",
+        "-  What exception class is thrown by passlib.hash when the ident or salt parameters are malformed?",
+        "-  Should the error wrapper catch a broad exception class or a specific one from passlib?"
+      ]
+    },
+    {
+      "id": "lock_release_error_safety",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements specify that password files are updated atomically using file locking to prevent corruption during concurrent access. However, they do not specify the boundary of the lock-protected region \u2014 specifically whether the computationally expensive encryption/hashing operation should execute while the lock is held or only after the lock is released. The existing code performs lock acquisition, file I/O, lock release, and then encryption in sequence, but the requirements for atomic updates do not clarify which operations must be inside the critical section when the code is refactored to use try/finally for safe lock release.",
+      "resolution": "The lock-protected region (try/finally block) must encompass only file operations: reading, parsing, and writing the password file. The encryption call (do_encrypt/passlib_or_crypt) must be placed outside and after the finally block that releases the lock. This preserves the original code's sequencing where the lock is released before encryption begins, preventing unnecessary lock contention during the expensive hashing operation.",
+      "example_questions": [
+        "-  Should the encryption/hashing operation execute inside the lock-protected critical section or after the lock is released?",
+        "-  What is the correct boundary of the try/finally block that manages the file lock?",
+        "-  Which operations must be inside the lock-protected region when refactoring for safe lock release?",
+        "-  Does the lock need to be held during the passlib hashing call, or only during file I/O?",
+        "-  Where should the do_encrypt call be placed relative to the lock release in the refactored code?"
+      ]
+    },
+    {
+      "id": "ident_extraction_search_scope",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements state that the password file format supports storing and retrieving metadata values alongside the password, and that parsing should be reliable on subsequent reads. However, neither the problem statement nor the requirements specify the correct search scope for extracting the ident field when the password body itself may contain substrings that resemble metadata markers. Multiple valid parsing strategies exist \u2014 searching the full content for each marker independently, restricting later extractions to a substring computed after earlier ones, or using a single-pass regex \u2014 and each can produce different results for the same file content.",
+      "resolution": "The ident value must be extracted exclusively from the portion of file content that follows the salt delimiter, never from the original full content. First, locate the salt delimiter and separate everything after it from the password. Then, search for the ident marker only within that post-salt portion. If found, the ident value is the text after the ident marker and the salt is the text before it within that portion. If the ident marker is not found in the post-salt portion, the entire portion is the salt value and ident is None.",
+      "example_questions": [
+        "-  Should the ident field be extracted from the original full content string or from a substring computed after salt extraction?",
+        "-  What is the correct source string to search within when locating the ident metadata in the file?",
+        "-  In what order should the metadata fields be parsed from the file content?",
+        "-  How does the parser prevent false ident matches when the password itself contains ident-like patterns?",
+        "-  What parsing strategy avoids misinterpreting password content as metadata when multiple field markers are present?"
+      ]
+    },
+    {
+      "id": "stored_ident_vs_algorithm_default_precedence",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The requirements contain conflicting guidance on ident value selection during password file processing. One requirement states that when a password file already contains an ident value, subsequent runs should reuse that stored value rather than generating a new one, implying stored values have persistence priority. A separate requirement states that when a user explicitly provides an ident parameter, that value directs the encryption algorithm identifier to use, implying user input should be authoritative. When the stored ident differs from the user-provided ident, these requirements directly conflict and there is no guidance on which takes priority or how the mismatch should be handled.",
+      "resolution": "The stored ident from the password file takes precedence over both the user-provided ident parameter and the encryption algorithm's default. If a stored ident exists and the user provides a different ident, the plugin must raise an error indicating the conflict between the two values. If no stored ident exists, the user-provided ident is used. If neither a stored nor user-provided ident exists, the encryption algorithm's implicit default ident is used as a last resort, and the file should be marked as changed for rewriting.",
+      "example_questions": [
+        "-  When the password file contains a stored ident but the user explicitly provides a different ident parameter, which value should take priority?",
+        "-  Should a mismatch between stored and user-provided ident values raise an error or be silently resolved?",
+        "-  What is the correct priority order among stored ident, user-provided ident, and algorithm default?",
+        "-  When no stored ident exists and the user does not provide one, how should the implementation select an ident value?",
+        "-  If the stored ident and the user-provided ident parameter conflict, should the plugin fail loudly or pick one silently?"
+      ]
+    }
+  ]
+}

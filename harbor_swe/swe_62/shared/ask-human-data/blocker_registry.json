@@ -1,0 +1,49 @@
+{
+  "blockers": [
+    {
+      "id": "```json\nserial_leading_zero_handling\n```",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The requirements state that the full zero-padded 'Sequence Code:' value should be preserved as-is without removing any leading characters, but the public interface states that 'the serial value doesn't include starting zeros'. These two instructions directly contradict each other regarding how to handle leading zeros in the serial.",
+      "resolution": "Strip ALL leading zeros from the Sequence Code value before storing as product_serial. For example, if /proc/sysinfo contains 'Sequence Code:        00000000000AB1CD', set product_serial to 'AB1CD', NOT '00000000000AB1CD'. Similarly, '0000000000099FED' becomes '99FED'. Do NOT preserve the zero-padded form.",
+      "example_questions": [
+        "-  Should the Sequence Code value be stored as-is or should leading zeros be removed?",
+        "-  The requirements say to preserve the full padded value \u2014 should I strip leading zeros from the serial?",
+        "-  How should I handle the leading zeros in the Sequence Code field for product_serial?",
+        "-  Is product_serial supposed to be the raw zero-padded value or a trimmed version?",
+        "-  Should '00000000000AB1CD' be stored as 'AB1CD' or kept as '00000000000AB1CD'?"
+      ]
+    },
+    {
+      "id": "```json\ntype_field_target_key\n```",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The 'Type:' line in /proc/sysinfo holds a numeric machine type identifier (e.g., '8561'). The requirements describe it as a 'hardware type version identifier', which is ambiguous \u2014 it could reasonably map to 'product_name' (as a machine type designation) or 'product_version' (as a version identifier).",
+      "resolution": "Map the 'Type:' line value to 'product_name', NOT to 'product_version'. For example, if /proc/sysinfo contains 'Type:                 8561', set product_name to '8561'. Do NOT assign it to product_version.",
+      "example_questions": [
+        "-  Should the 'Type:' field from /proc/sysinfo be stored as product_name or product_version?",
+        "-  The requirements call Type a 'hardware type version identifier' \u2014 does that mean product_name or product_version?",
+        "-  Is the IBM Z machine type identifier considered a product name or a product version?",
+        "-  How should the 'Type:' value map to the five hardware fact keys?",
+        "-  Does the numeric machine type go into product_name, product_version, or another key?"
+      ]
+    },
+    {
+      "id": "```json\nconflicting_na_value_expectation\n```",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements and interface do not specify what the function should return when /proc/sysinfo is absent. The existing get_dmi_facts method in the codebase returns a dict with 'NA' defaults, but the correct behavior for get_sysinfo_facts differs and cannot be inferred from the codebase pattern.",
+      "resolution": "Return {} (empty dict) when /proc/sysinfo is absent \u2014 do NOT return a dict with 'NA' values. When the file IS present, initialize all five keys to 'NA' and only update keys that have matching data lines. Not all five keys have a corresponding data source in the file, so some keys will remain 'NA'. Do NOT fabricate values or omit keys.",
+      "example_questions": [
+        "-  What should get_sysinfo_facts return when /proc/sysinfo does not exist?",
+        "-  Should the function return an empty dict or a dict with 'NA' defaults when the file is absent?",
+        "-  The codebase's get_dmi_facts returns a populated dict \u2014 should get_sysinfo_facts follow the same pattern?",
+        "-  If /proc/sysinfo is not present, should the five keys still appear with 'NA' values or should no keys be returned?",
+        "-  What is the expected return value when the sysinfo file cannot be found?"
+      ]
+    }
+  ]
+}

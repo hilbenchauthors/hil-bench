@@ -1,0 +1,104 @@
+diff --git a/utils/hasher/hasher.go b/utils/hasher/hasher.go
+index 78566913..d1a7fc8a 100644
+--- a/utils/hasher/hasher.go
++++ b/utils/hasher/hasher.go
+@@ -1,6 +1,12 @@
+ package hasher
+ 
+-import "hash/maphash"
++import (
++	"hash/maphash"
++	"math"
++	"strconv"
++
++	"github.com/navidrome/navidrome/utils/random"
++)
+ 
+ var instance = NewHasher()
+ 
+@@ -8,37 +14,69 @@ func Reseed(id string) {
+ 	instance.Reseed(id)
+ }
+ 
++func SetSeed(id string, seed string) {
++	instance.SetSeed(id, seed)
++}
++
++func GetSeed(id string) (string, bool) {
++	return instance.GetSeed(id)
++}
++
+ func HashFunc() func(id, str string) uint64 {
+ 	return instance.HashFunc()
+ }
+ 
+-type hasher struct {
+-	seeds map[string]maphash.Seed
++type Hasher struct {
++	seeds    map[string]string
++	hashSeed maphash.Seed
+ }
+ 
+-func NewHasher() *hasher {
+-	h := new(hasher)
+-	h.seeds = make(map[string]maphash.Seed)
++func NewHasher() *Hasher {
++	h := new(Hasher)
++	h.seeds = make(map[string]string)
++	h.hashSeed = maphash.MakeSeed()
+ 	return h
+ }
+ 
+-// Reseed generates a new seed for the given id
+-func (h *hasher) Reseed(id string) {
+-	h.seeds[id] = maphash.MakeSeed()
++// SetSeed sets a seed for the given id
++func (h *Hasher) SetSeed(id string, seed string) {
++	h.seeds[id] = seed
++}
++
++// GetSeed returns the seed for the given id
++func (h *Hasher) GetSeed(id string) (string, bool) {
++	seed, ok := h.seeds[id]
++	return seed, ok
++}
++
++func buildSeedInputPayload(seed, str string) []byte {
++	b := make([]byte, 0, len(seed)+1+len(str))
++	b = append(b, seed...)
++	b = append(b, 0x1f)
++	b = append(b, str...)
++	return b
++}
++
++// Reseed generates a new random seed for the given id
++func (h *Hasher) Reseed(id string) {
++	_ = h.reseed(id)
++}
++
++func (h *Hasher) reseed(id string) string {
++	seed := strconv.FormatInt(random.Int64(math.MaxInt64), 10)
++	h.seeds[id] = seed
++	return seed
+ }
+ 
+ // HashFunc returns a function that hashes a string using the seed for the given id
+-func (h *hasher) HashFunc() func(id, str string) uint64 {
++func (h *Hasher) HashFunc() func(id, str string) uint64 {
+ 	return func(id, str string) uint64 {
+-		var hash maphash.Hash
+-		var seed maphash.Seed
++		var seed string
+ 		var ok bool
+ 		if seed, ok = h.seeds[id]; !ok {
+-			seed = maphash.MakeSeed()
+-			h.seeds[id] = seed
++			seed = h.reseed(id)
+ 		}
+-		hash.SetSeed(seed)
+-		_, _ = hash.WriteString(str)
+-		return hash.Sum64()
++
++		return maphash.Bytes(h.hashSeed, buildSeedInputPayload(seed, str))
+ 	}
+ }

@@ -1,0 +1,44 @@
+{
+  "instance_id": "instance_protonmail__webclients-8afd9ce04c8dde9e150e1c2b50d32e7ee2efa3e7",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c723c40c9404b4280cf982",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts | SelectionState serializes and restores the canonical wire labels",
+      "applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts | SelectionState is defined in useSelectionControls.ts and not in useSelection.tsx",
+      "applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts | toggleAllSelected clears partial selection and selects all from empty"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts b/applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts\nindex 428866bd30..6a952a738e 100644\n--- a/applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts\n+++ b/applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts\n@@ -1,6 +1,8 @@\n+import fs from 'fs';\n+import path from 'path';\n import { act, renderHook } from '@testing-library/react-hooks';\n \n-import { useSelectionControls } from './useSelectionControls';\n+import { SelectionState, parseSelectionState, serializeSelectionState, useSelectionControls } from './useSelectionControls';\n \n const ALL_IDS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];\n \n@@ -68,17 +70,40 @@ describe('useSelection', () => {\n         expect(hook.current.isSelected('1')).toBe(false);\n     });\n \n-    it('isIndeterminate', () => {\n+    it('SelectionState serializes and restores the canonical wire labels', () => {\n+        expect(serializeSelectionState(SelectionState.NONE)).toBe('clear');\n+        expect(serializeSelectionState(SelectionState.SOME)).toBe('mixed');\n+        expect(serializeSelectionState(SelectionState.ALL)).toBe('complete');\n+\n+        expect(parseSelectionState('clear')).toBe(SelectionState.NONE);\n+        expect(parseSelectionState('mixed')).toBe(SelectionState.SOME);\n+        expect(parseSelectionState('complete')).toBe(SelectionState.ALL);\n+    });\n+\n+    it('SelectionState is defined in useSelectionControls.ts and not in useSelection.tsx', () => {\n+        const hookSource = fs.readFileSync(path.join(__dirname, 'useSelectionControls.ts'), 'utf8');\n+        const selectionContextSource = fs.readFileSync(path.join(__dirname, '../state/useSelection.tsx'), 'utf8');\n+\n+        expect(hookSource).toContain('export enum SelectionState');\n+        expect(selectionContextSource).not.toContain('enum SelectionState');\n+    });\n+\n+    it('toggleAllSelected clears partial selection and selects all from empty', () => {\n         act(() => {\n-            hook.current.selectItem('2');\n-            hook.current.selectItem('1');\n+            hook.current.toggleSelectItem('1');\n+            hook.current.toggleSelectItem('2');\n         });\n \n-        expect(hook.current.isIndeterminate).toBe(true);\n+        expect(hook.current.selectedItemIds).toMatchObject(['1', '2']);\n+\n+        act(() => {\n+            hook.current.toggleAllSelected();\n+        });\n+        expect(hook.current.selectedItemIds).toEqual([]);\n \n         act(() => {\n             hook.current.toggleAllSelected();\n         });\n-        expect(hook.current.isIndeterminate).toBe(false);\n+        expect(hook.current.selectedItemIds).toMatchObject(ALL_IDS);\n     });\n });\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts"
+  ],
+  "attempt_id": "69c723c40c9404b4280cf982",
+  "task_id": "6978fa4d0df9703f1e96f3f0",
+  "dataset_name": "swe_47",
+  "image_archive": {
+    "attempt_id": "69c723c40c9404b4280cf982",
+    "local_image_ref": "hilbench-swe:69c723c40c9404b4280cf982",
+    "image_id": "sha256:8bd9b53bbb5b9df11e2b05ad3b5d0d4149557cc285cf112c49aff3cc798c012d",
+    "created": "2026-03-28T04:12:16.990928049-07:00",
+    "artifact_path": "images/69c723c40c9404b4280cf982.tar.zst",
+    "artifact_bytes": 7589573097,
+    "artifact_sha256": "be24789b2d2d09d34ddb3c2f442a877be5bd42b15f669e12d79e7e4c95986df5",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c723c40c9404b4280cf982.tar.zst"
+  }
+}

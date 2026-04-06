@@ -1,0 +1,49 @@
+{
+  "instance_id": "instance_ansible__ansible-3db08adbb1cc6aa9941be5e0fc810132c6e1fa4b-vba6da65a0f3baefda7a058ebbd0a8dcafb8512f5",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c2a3769cf07c8af4c86ed3",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 4,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/plugins/filter/test_mathstuff.py::TestMin::test_min",
+      "test/units/plugins/filter/test_mathstuff.py::TestMin::test_min_empty",
+      "test/units/plugins/filter/test_mathstuff.py::TestMin::test_min_scalar_input",
+      "test/units/plugins/filter/test_mathstuff.py::TestMin::test_min_none_filtering",
+      "test/units/plugins/filter/test_mathstuff.py::TestMax::test_max",
+      "test/units/plugins/filter/test_mathstuff.py::TestMax::test_max_empty",
+      "test/units/plugins/filter/test_mathstuff.py::TestMax::test_max_scalar_input",
+      "test/units/plugins/filter/test_mathstuff.py::TestMax::test_max_none_filtering"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/plugins/filter/test_mathstuff.py b/test/units/plugins/filter/test_mathstuff.py\nindex a0e78d338c..c496b6877e 100644\n--- a/test/units/plugins/filter/test_mathstuff.py\n+++ b/test/units/plugins/filter/test_mathstuff.py\n@@ -4,6 +4,7 @@\n # Make coding more python3-ish\n from __future__ import (absolute_import, division, print_function)\n __metaclass__ = type\n+import math\n import pytest\n \n from jinja2 import Environment\n@@ -64,16 +65,46 @@ class TestSymmetricDifference:\n \n class TestMin:\n     def test_min(self):\n-        assert ms.min((1, 2)) == 1\n-        assert ms.min((2, 1)) == 1\n-        assert ms.min(('p', 'a', 'w', 'b', 'p')) == 'a'\n+        assert ms.min(env, (1, 2)) == 1\n+        assert ms.min(env, (2, 1)) == 1\n+        assert ms.min(env, ('p', 'a', 'w', 'b', 'p')) == 'a'\n+        assert ms.min(env, ({'key': 'a'}, {'key': 'b'}, {'key': 'c'}), attribute='key') == {'key': 'a'}\n+        assert ms.min(env, ({'key': 1}, {'key': 2}, {'key': 3}), attribute='key') == {'key': 1}\n+        assert ms.min(env, ('a', 'A', 'b', 'B'), case_sensitive=True) == 'A'\n+\n+    def test_min_empty(self):\n+        assert math.isnan(ms.min(env, []))\n+        assert math.isnan(ms.min(env, ()))\n+\n+    def test_min_scalar_input(self):\n+        assert ms.min(env, 42) == 42\n+        assert ms.min(env, 7.5) == 7.5\n+\n+    def test_min_none_filtering(self):\n+        assert ms.min(env, [3, None, 1, None, 2]) == 1\n+        assert ms.min(env, (None, 5, None, 3)) == 3\n \n \n class TestMax:\n     def test_max(self):\n-        assert ms.max((1, 2)) == 2\n-        assert ms.max((2, 1)) == 2\n-        assert ms.max(('p', 'a', 'w', 'b', 'p')) == 'w'\n+        assert ms.max(env, (1, 2)) == 2\n+        assert ms.max(env, (2, 1)) == 2\n+        assert ms.max(env, ('p', 'a', 'w', 'b', 'p')) == 'w'\n+        assert ms.max(env, ({'key': 'a'}, {'key': 'b'}, {'key': 'c'}), attribute='key') == {'key': 'c'}\n+        assert ms.max(env, ({'key': 1}, {'key': 2}, {'key': 3}), attribute='key') == {'key': 3}\n+        assert ms.max(env, ('a', 'A', 'b', 'B'), case_sensitive=True) == 'b'\n+\n+    def test_max_empty(self):\n+        assert math.isnan(ms.max(env, []))\n+        assert math.isnan(ms.max(env, ()))\n+\n+    def test_max_scalar_input(self):\n+        assert ms.max(env, 42) == 42\n+        assert ms.max(env, 7.5) == 7.5\n+\n+    def test_max_none_filtering(self):\n+        assert ms.max(env, [3, None, 1, None, 2]) == 3\n+        assert ms.max(env, (None, 5, None, 3)) == 5\n \n \n class TestLogarithm:\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "test/units/plugins/filter/test_mathstuff.py"
+  ],
+  "attempt_id": "69c2a3769cf07c8af4c86ed3",
+  "task_id": "698648c3283d42a760567539",
+  "dataset_name": "swe_74",
+  "image_archive": {
+    "attempt_id": "69c2a3769cf07c8af4c86ed3",
+    "local_image_ref": "hilbench-swe:69c2a3769cf07c8af4c86ed3",
+    "image_id": "sha256:8ce0c6ab88fda63ca33f29f5b8dbcf9e6da9c3097f9afd750e8ca0df58de8d88",
+    "created": "2026-03-25T22:03:31.926607199-07:00",
+    "artifact_path": "images/69c2a3769cf07c8af4c86ed3.tar.zst",
+    "artifact_bytes": 779404736,
+    "artifact_sha256": "6af6fdd957687d949ba6a444a6f485b0bb97d76ef7ed071d15490a280db7e5d1",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c2a3769cf07c8af4c86ed3.tar.zst"
+  }
+}

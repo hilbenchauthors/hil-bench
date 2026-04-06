@@ -1,0 +1,46 @@
+{
+  "instance_id": "instance_protonmail__webclients-da91f084c0f532d9cc8ca385a701274d598057b8",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c56eff29a0696146766009",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "packages/components/containers/notifications/manager.test.tsx | should deduplicate react elements using the provided key",
+      "packages/components/containers/notifications/manager.test.tsx | should allow to create notifications with raw html text and deduplicate it",
+      "packages/components/containers/notifications/manager.test.tsx | notification sanitizer only permits safe inline tags",
+      "packages/components/containers/notifications/manager.test.tsx | rendered html notifications must not contain executable or event-handler markup",
+      "packages/components/containers/notifications/manager.test.tsx | html content notifications have a minimum display threshold"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/packages/components/containers/notifications/manager.test.tsx b/packages/components/containers/notifications/manager.test.tsx\nnew file mode 100644\nindex 0000000000..4b055226bd\n--- /dev/null\n+++ b/packages/components/containers/notifications/manager.test.tsx\n@@ -0,0 +1,146 @@\n+import { useState } from 'react';\n+import { renderHook, act } from '@testing-library/react-hooks';\n+import { NotificationOptions } from './interfaces';\n+\n+import createNotificationManager from './manager';\n+\n+describe('notification manager', () => {\n+    describe('deduplication', () => {\n+        it('should deduplicate react elements using the provided key', () => {\n+            const { result } = renderHook(() => useState<NotificationOptions[]>([]));\n+            const [, setState] = result.current;\n+\n+            const manager = createNotificationManager(setState);\n+            act(() => {\n+                manager.createNotification({\n+                    text: <div>text</div>,\n+                    key: 'item1',\n+                    type: 'error',\n+                });\n+                manager.createNotification({\n+                    text: <div>text</div>,\n+                    key: 'item1',\n+                    type: 'error',\n+                });\n+                manager.createNotification({\n+                    text: 'bar',\n+                    key: 'item2',\n+                    type: 'error',\n+                });\n+                // Do not deduplicate if key is not provided\n+                manager.createNotification({\n+                    text: <div>text</div>,\n+                    type: 'error',\n+                });\n+            });\n+\n+            expect(result.current[0]).toStrictEqual([\n+                expect.objectContaining({ text: <div>text</div>, key: 'item1' }),\n+                expect.objectContaining({ text: 'bar', key: 'item2' }),\n+                expect.objectContaining({ text: <div>text</div> }),\n+            ]);\n+        });\n+    });\n+\n+    it('should allow to create notifications with raw html text and deduplicate it', () => {\n+        const { result } = renderHook(() => useState<NotificationOptions[]>([]));\n+        const [, setState] = result.current;\n+\n+        const manager = createNotificationManager(setState);\n+        act(() => {\n+            manager.createNotification({\n+                text: 'Foo <a href=\"https://foo.bar\">text</a>',\n+                type: 'error',\n+            });\n+            manager.createNotification({\n+                text: 'Foo <a href=\"https://foo.bar\">text</a>',\n+                type: 'error',\n+            });\n+        });\n+\n+        expect(result.current[0]).toHaveLength(1);\n+        const notification = result.current[0][0];\n+        expect(notification.key).toBe('Foo <a href=\"https://foo.bar\">text</a>');\n+        expect(notification.text?.props?.dangerouslySetInnerHTML).toBeDefined();\n+        const html = notification.text?.props?.dangerouslySetInnerHTML?.__html ?? '';\n+        expect(html).toContain('href=\"https://foo.bar\"');\n+        expect(html).toMatch(/noopener/);\n+        expect(html).toMatch(/noreferrer/);\n+        expect(html).toContain('target=\"_blank\"');\n+        expect(html).toContain('>text</a>');\n+    });\n+\n+    it('notification sanitizer only permits safe inline tags', () => {\n+        const { result } = renderHook(() => useState<NotificationOptions[]>([]));\n+        const [, setState] = result.current;\n+\n+        const manager = createNotificationManager(setState);\n+        act(() => {\n+            manager.createNotification({\n+                text: '<b>bold</b> <em>italic</em> <strong>strong</strong> <span>span</span> line<br>break <img src=\"https://tracker.example.com/pixel.gif\"> <form action=\"https://phish.example.com\">Submit</form> <p>paragraph</p> <div>block</div> end',\n+                type: 'error',\n+            });\n+        });\n+\n+        const notification = result.current[0][0];\n+        const html = notification.text?.props?.dangerouslySetInnerHTML?.__html ?? '';\n+        expect(html).toContain('<b>bold</b>');\n+        expect(html).toContain('<em>italic</em>');\n+        expect(html).toContain('<strong>strong</strong>');\n+        expect(html).toContain('<span>span</span>');\n+        expect(html).toMatch(/<br\\s*\\/?>/i);\n+        expect(html).not.toMatch(/<img/i);\n+        expect(html).not.toMatch(/<form/i);\n+        expect(html).not.toMatch(/<p[\\s>]/i);\n+        expect(html).not.toMatch(/<div/i);\n+    });\n+\n+    it('rendered html notifications must not contain executable or event-handler markup', () => {\n+        const { result } = renderHook(() => useState<NotificationOptions[]>([]));\n+        const [, setState] = result.current;\n+\n+        const manager = createNotificationManager(setState);\n+        act(() => {\n+            manager.createNotification({\n+                text: 'Alert <span onclick=\"alert(1)\" style=\"color:red\" id=\"xss\">trigger</span> and <a href=\"https://example.com\" class=\"custom\">link</a>',\n+                type: 'error',\n+            });\n+        });\n+\n+        const notification = result.current[0][0];\n+        expect(notification.text?.props?.dangerouslySetInnerHTML).toBeDefined();\n+        const html = notification.text?.props?.dangerouslySetInnerHTML?.__html ?? '';\n+        expect(html).not.toMatch(/onclick/i);\n+        expect(html).not.toMatch(/<\\s*script/i);\n+        expect(html).not.toMatch(/class=\"/i);\n+        expect(html).not.toMatch(/style=\"/i);\n+        expect(html).not.toMatch(/id=\"xss\"/i);\n+    });\n+\n+    it('html content notifications have a minimum display threshold', () => {\n+        const { result } = renderHook(() => useState<NotificationOptions[]>([]));\n+        const [, setState] = result.current;\n+\n+        const manager = createNotificationManager(setState);\n+        act(() => {\n+            manager.createNotification({\n+                text: 'Hello <b>world</b>',\n+                type: 'error',\n+                expiration: 2000,\n+            });\n+            manager.createNotification({\n+                text: 'Check <i>longer</i>',\n+                type: 'error',\n+                expiration: 8000,\n+            });\n+        });\n+\n+        const low = result.current[0][0];\n+        expect(low.expiration).toBe(5000);\n+        expect(low.disableAutoClose).toBe(true);\n+\n+        const high = result.current[0][1];\n+        expect(high.expiration).toBe(8000);\n+        expect(high.disableAutoClose).toBe(true);\n+    });\n+});\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "packages/components/containers/notifications/manager.test.tsx"
+  ],
+  "attempt_id": "69c56eff29a0696146766009",
+  "task_id": "69836ee4987091d7e86e44bb",
+  "dataset_name": "swe_26",
+  "image_archive": {
+    "attempt_id": "69c56eff29a0696146766009",
+    "local_image_ref": "hilbench-swe:69c56eff29a0696146766009",
+    "image_id": "sha256:8756ef75fc9763ca28a0a61e25541dab13d6427222751315c3fea68927554c1f",
+    "created": "2026-03-29T10:31:33.913358615-07:00",
+    "artifact_path": "images/69c56eff29a0696146766009.tar.zst",
+    "artifact_bytes": 7564333424,
+    "artifact_sha256": "01b940c2d0b509f00d4e5447cbbe4abbe8e91018a109d7ddba7c1e5bfcc2909f",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c56eff29a0696146766009.tar.zst"
+  }
+}

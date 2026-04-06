@@ -1,0 +1,49 @@
+{
+  "instance_id": "instance_ansible__ansible-415e08c2970757472314e515cb63a51ad825c45e-v7eee2454f617569fd6889f2211f75bc02a35f9f8",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c770dd90358046a74c30e7",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 5,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/module_utils/common/test_locale.py::TestLocale::test_finding_last",
+      "test/units/module_utils/common/test_locale.py::TestLocale::test_default_preference_list",
+      "test/units/module_utils/common/test_locale.py::TestLocale::test_exact_locale_comparison",
+      "test/units/module_utils/common/test_locale.py::TestLocale::test_case_sensitive_no_match",
+      "test/units/module_utils/common/test_locale.py::TestLocale::test_locale_command_uses_c_environment",
+      "test/units/module_utils/common/test_locale.py::TestLocale::test_empty_preferences_uses_defaults",
+      "test/units/module_utils/common/test_locale.py::TestLocale::test_no_match_returns_fallback"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/module_utils/common/test_locale.py b/test/units/module_utils/common/test_locale.py\nnew file mode 100644\nindex 0000000000..a1b2c3d4e5\n--- /dev/null\n+++ b/test/units/module_utils/common/test_locale.py\n@@ -0,0 +1,85 @@\n+# -*- coding: utf-8 -*-\n+# (c) Ansible Project\n+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)\n+\n+from __future__ import absolute_import, division, print_function\n+__metaclass__ = type\n+\n+from units.compat.mock import MagicMock\n+\n+from ansible.module_utils.common.locale import get_best_parsable_locale\n+\n+\n+class TestLocale:\n+    \"\"\"Tests for get_best_parsable_locale\"\"\"\n+\n+    mock_module = MagicMock()\n+    mock_module.get_bin_path = MagicMock(return_value='/usr/bin/locale')\n+\n+    def test_finding_last(self):\n+        self.mock_module.run_command = MagicMock(return_value=(0, \"fr_FR.utf8\\nen_GB.utf8\\nPOSIX\\n\", ''))\n+        locale = get_best_parsable_locale(self.mock_module)\n+        assert locale == 'en_GB.utf8'\n+\n+    def test_default_preference_list(self):\n+        \"\"\"Verify the exact default preference list entries and ordering\"\"\"\n+        mock = MagicMock()\n+        mock.get_bin_path = MagicMock(return_value='/usr/bin/locale')\n+        # C.utf8 should be the first default preference\n+        mock.run_command = MagicMock(return_value=(0, \"C.utf8\\nen_US.utf8\\nen_GB.utf8\\nC\\nPOSIX\\n\", ''))\n+        assert get_best_parsable_locale(mock) == 'C.utf8'\n+        # en_US.utf8 should be preferred over en_GB.utf8\n+        mock.run_command = MagicMock(return_value=(0, \"en_GB.utf8\\nen_US.utf8\\nPOSIX\\n\", ''))\n+        assert get_best_parsable_locale(mock) == 'en_US.utf8'\n+        # en_GB.utf8 should be in defaults and preferred over C and POSIX\n+        mock.run_command = MagicMock(return_value=(0, \"en_GB.utf8\\nC\\nPOSIX\\n\", ''))\n+        assert get_best_parsable_locale(mock) == 'en_GB.utf8'\n+        # C should be preferred over POSIX when no utf8 locales are available\n+        mock.run_command = MagicMock(return_value=(0, \"C\\nPOSIX\\n\", ''))\n+        assert get_best_parsable_locale(mock) == 'C'\n+\n+    def test_exact_locale_comparison(self):\n+        \"\"\"Matching should be exact string comparison, not case-insensitive\"\"\"\n+        mock = MagicMock()\n+        mock.get_bin_path = MagicMock(return_value='/usr/bin/locale')\n+        mock.run_command = MagicMock(return_value=(0, \"c.utf8\\nen_GB.UTF-8\\n\", ''))\n+        locale = get_best_parsable_locale(mock)\n+        assert locale == 'POSIX'\n+\n+    def test_case_sensitive_no_match(self):\n+        \"\"\"Case differences should prevent matching\"\"\"\n+        mock = MagicMock()\n+        mock.get_bin_path = MagicMock(return_value='/usr/bin/locale')\n+        mock.run_command = MagicMock(return_value=(0, \"ENGLISH.UTF8\\n\", ''))\n+        locale = get_best_parsable_locale(mock, preferences=['english.utf8'])\n+        assert locale == 'POSIX'\n+\n+    def test_locale_command_uses_c_environment(self):\n+        \"\"\"Locale enumeration should run under a stable C locale environment\"\"\"\n+        mock = MagicMock()\n+        mock.get_bin_path = MagicMock(return_value='/usr/bin/locale')\n+        mock.run_command = MagicMock(return_value=(0, \"en_GB.utf8\\n\", ''))\n+        locale = get_best_parsable_locale(mock)\n+        assert locale == 'en_GB.utf8'\n+        mock.run_command.assert_called_once_with(\n+            ['/usr/bin/locale', '-a'],\n+            environ_update={'LANG': 'C', 'LC_ALL': 'C', 'LC_MESSAGES': 'C'},\n+        )\n+\n+    def test_empty_preferences_uses_defaults(self):\n+        \"\"\"Empty preferences list should fall back to default preferences\"\"\"\n+        mock = MagicMock()\n+        mock.get_bin_path = MagicMock(return_value='/usr/bin/locale')\n+        mock.run_command = MagicMock(return_value=(0, \"en_GB.utf8\\nC\\nPOSIX\\n\", ''))\n+        locale_with_defaults = get_best_parsable_locale(mock)\n+        locale_with_empty = get_best_parsable_locale(mock, preferences=[])\n+        assert locale_with_defaults == 'en_GB.utf8'\n+        assert locale_with_empty == 'en_GB.utf8'\n+\n+    def test_no_match_returns_fallback(self):\n+        \"\"\"When no preference matches available locales, return the fallback\"\"\"\n+        mock = MagicMock()\n+        mock.get_bin_path = MagicMock(return_value='/usr/bin/locale')\n+        mock.run_command = MagicMock(return_value=(0, \"unknown_locale\\n\", ''))\n+        locale = get_best_parsable_locale(mock)\n+        assert locale == 'POSIX'\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "test/units/executor/module_common/test_recursive_finder.py",
+    "test/units/module_utils/common/test_locale.py"
+  ],
+  "attempt_id": "69c770dd90358046a74c30e7",
+  "task_id": "698648c3283d42a76056753f",
+  "dataset_name": "swe_89",
+  "image_archive": {
+    "attempt_id": "69c770dd90358046a74c30e7",
+    "local_image_ref": "hilbench-swe:69c770dd90358046a74c30e7",
+    "image_id": "sha256:98cbd9dbc5f92cfef412f07998f6f5fd5ee3424d6eb7f92559ddf19463ba8e48",
+    "created": "2026-03-28T04:01:48.848858543-07:00",
+    "artifact_path": "images/69c770dd90358046a74c30e7.tar.zst",
+    "artifact_bytes": 762679699,
+    "artifact_sha256": "ca2ccd79012889bd5390983d8edf742c1a97108c51045a688c26410e0e6f8149",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c770dd90358046a74c30e7.tar.zst"
+  }
+}

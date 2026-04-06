@@ -1,0 +1,195 @@
+diff --git a/internal/server/audit/logfile/logfile.go b/internal/server/audit/logfile/logfile.go
+--- a/internal/server/audit/logfile/logfile.go
++++ b/internal/server/audit/logfile/logfile.go
+@@ -5,35 +5,108 @@
+ 	"encoding/json"
+ 	"fmt"
+ 	"os"
++	"path/filepath"
++	"strings"
+ 	"sync"
+ 
+ 	"github.com/hashicorp/go-multierror"
++	"go.flipt.io/flipt/internal/config"
+ 	"go.flipt.io/flipt/internal/server/audit"
+ 	"go.uber.org/zap"
+ )
+ 
+ const sinkType = "logfile"
+ 
++type filesystem interface {
++	OpenFile(name string, flag int, perm os.FileMode) (file, error)
++	Stat(name string) (os.FileInfo, error)
++	MkdirAll(path string, perm os.FileMode) error
++}
++
++type file interface {
++	Write(p []byte) (n int, err error)
++	Close() error
++	Name() string
++	Sync() error
++}
++
++type osFS struct{}
++
++func (osFS) OpenFile(name string, flag int, perm os.FileMode) (file, error) {
++	return os.OpenFile(name, flag, perm)
++}
++
++func (osFS) Stat(name string) (os.FileInfo, error) {
++	return os.Stat(name)
++}
++
++func (osFS) MkdirAll(path string, perm os.FileMode) error {
++	return os.MkdirAll(path, perm)
++}
++
+ // Sink is the structure in charge of sending Audits to a specified file location.
+ type Sink struct {
+ 	logger *zap.Logger
+-	file   *os.File
++	file   file
+ 	mtx    sync.Mutex
+ 	enc    *json.Encoder
+ }
+ 
+ // NewSink is the constructor for a Sink.
+-func NewSink(logger *zap.Logger, path string) (audit.Sink, error) {
+-	file, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666)
++func NewSink(logger *zap.Logger, cfg config.LogFileSinkConfig) (audit.Sink, error) {
++	return newSink(logger, cfg, osFS{})
++}
++
++func newSink(logger *zap.Logger, cfg config.LogFileSinkConfig, fs filesystem) (audit.Sink, error) {
++	if cfg.RunDelimiterMode == "" {
++		cfg.RunDelimiterMode = "always"
++	}
++
++	switch cfg.RunDelimiterMode {
++	case "always", "on_restart", "per_session", "never", "disabled":
++	default:
++		return nil, fmt.Errorf("invalid run_delimiter_mode: %q", cfg.RunDelimiterMode)
++	}
++
++	dir := filepath.Dir(cfg.File)
++	if _, err := fs.Stat(dir); os.IsNotExist(err) {
++		cleaned := filepath.Clean(dir)
++		segments := strings.Split(cleaned, string(filepath.Separator))
++		count := 0
++		for _, s := range segments {
++			if s != "" {
++				count++
++			}
++		}
++		if count > 8 {
++			return nil, fmt.Errorf("directory creation depth exceeded: %d > 8", count)
++		}
++
++		if err := fs.MkdirAll(dir, 0751); err != nil {
++			return nil, fmt.Errorf("creating directory: %w", err)
++		}
++	} else if err != nil {
++		return nil, fmt.Errorf("checking directory: %w", err)
++	}
++
++	f, err := fs.OpenFile(cfg.File, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0641)
+ 	if err != nil {
+ 		return nil, fmt.Errorf("opening log file: %w", err)
+ 	}
+ 
+-	return &Sink{
++	s := &Sink{
+ 		logger: logger,
+-		file:   file,
+-		enc:    json.NewEncoder(file),
+-	}, nil
++		file:   f,
++		enc:    json.NewEncoder(f),
++	}
++
++	if cfg.RunDelimiterMode == "always" || cfg.RunDelimiterMode == "per_session" {
++		if _, err := f.Write([]byte("{\"type\":\"run_start\"}\n")); err != nil {
++			return nil, fmt.Errorf("writing run-start marker: %w", err)
++		}
++	}
++
++	return s, nil
+ }
+ 
+ func (l *Sink) SendAudits(ctx context.Context, events []audit.Event) error {
+@@ -42,9 +115,19 @@
+ 	var result error
+ 
+ 	for _, e := range events {
+-		err := l.enc.Encode(e)
++		b, err := json.Marshal(e)
+ 		if err != nil {
++			result = multierror.Append(result, err)
++			continue
++		}
++
++		if _, err := l.file.Write(append(b, '\n')); err != nil {
+ 			l.logger.Error("failed to write audit event to file", zap.String("file", l.file.Name()), zap.Error(err))
++			result = multierror.Append(result, err)
++		}
++
++		if err := l.file.Sync(); err != nil {
++			l.logger.Error("failed to sync audit event to file", zap.String("file", l.file.Name()), zap.Error(err))
+ 			result = multierror.Append(result, err)
+ 		}
+ 	}
+diff --git a/internal/config/audit.go b/internal/config/audit.go
+--- a/internal/config/audit.go
++++ b/internal/config/audit.go
+@@ -2,6 +2,7 @@
+ 
+ import (
+ 	"errors"
++	"fmt"
+ 	"time"
+ 
+ 	"github.com/spf13/viper"
+@@ -49,8 +50,16 @@
+ }
+ 
+ func (c *AuditConfig) validate() error {
+-	if c.Sinks.LogFile.Enabled && c.Sinks.LogFile.File == "" {
+-		return errors.New("file not specified")
++	if c.Sinks.LogFile.Enabled {
++		if c.Sinks.LogFile.File == "" {
++			return errors.New("file not specified")
++		}
++
++		switch c.Sinks.LogFile.RunDelimiterMode {
++		case "", "always", "on_restart", "per_session", "never", "disabled":
++		default:
++			return fmt.Errorf("invalid run_delimiter_mode: %q", c.Sinks.LogFile.RunDelimiterMode)
++		}
+ 	}
+ 
+ 	if c.Sinks.Webhook.Enabled {
+@@ -94,8 +103,9 @@
+ // LogFileSinkConfig contains fields that hold configuration for sending audits
+ // to a log file.
+ type LogFileSinkConfig struct {
+-	Enabled bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
+-	File    string `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
++	Enabled          bool   `json:"enabled,omitempty" mapstructure:"enabled" yaml:"enabled,omitempty"`
++	File             string `json:"file,omitempty" mapstructure:"file" yaml:"file,omitempty"`
++	RunDelimiterMode string `json:"run_delimiter_mode,omitempty" mapstructure:"run_delimiter_mode" yaml:"run_delimiter_mode,omitempty"`
+ }
+ 
+ // BufferConfig holds configuration for the buffering of sending the audit
+diff --git a/internal/cmd/grpc.go b/internal/cmd/grpc.go
+--- a/internal/cmd/grpc.go
++++ b/internal/cmd/grpc.go
+@@ -359,7 +359,7 @@
+ 	sinks := make([]audit.Sink, 0)
+ 
+ 	if cfg.Audit.Sinks.LogFile.Enabled {
+-		logFileSink, err := logfile.NewSink(logger, cfg.Audit.Sinks.LogFile.File)
++		logFileSink, err := logfile.NewSink(logger, cfg.Audit.Sinks.LogFile)
+ 		if err != nil {
+-			return nil, fmt.Errorf("opening file at path: %s", cfg.Audit.Sinks.LogFile.File)
++			return nil, fmt.Errorf("opening file at path %s: %w", cfg.Audit.Sinks.LogFile.File, err)
+ 		}

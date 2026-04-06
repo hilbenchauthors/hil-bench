@@ -1,0 +1,74 @@
+{
+  "blockers": [
+    {
+      "id": "missing_referral_sender_eligibility_scope",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The task says signature build and sender-switch update paths must apply sender-specific referral gating consistently, but it does not define which senders are actually referral-eligible. What exact sender scope should retain referral-aware settings?\n",
+      "resolution": "Only the account primary sender is referral-eligible. When the active sender is any non-primary sender, the compose flow must use the no-referral path instead of preserving referral-aware settings.\n",
+      "example_questions": [
+        "-  Which sender identities are referral-eligible?",
+        "-  Should referral-aware settings apply to every sender or only a specific sender scope?",
+        "-  What exact sender scope should keep referral support enabled?",
+        "-  How should non-primary senders be treated by referral-aware signature flows?"
+      ]
+    },
+    {
+      "id": "missing_referral_render_mapping_parameter",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The task requires referral-enabled signatures to render consistently with the active signature format, but it does not define the exact render mapping for each format. What exact referral output form should each signature format use?\n",
+      "resolution": "Use this render mapping: plain-text signatures append `REFERRAL_LINK` as raw text on its own new line; HTML signatures append exactly one anchor for that same `REFERRAL_LINK`.\n",
+      "example_questions": [
+        "-  What exact referral render form should plain-text signatures use?",
+        "-  What exact referral render form should HTML signatures use?",
+        "-  How should the compose flow map signature format to referral output form?",
+        "-  Should the same referral content be rendered differently for plain text and HTML?"
+      ]
+    },
+    {
+      "id": "missing_empty_referral_settings_fallback_parameter",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The task requires compose flows without referral-specific settings to behave safely, but it does not define the exact fallback user-settings shape that those flows should pass into shared signature helpers. What exact fallback shape should be used when referral-specific settings are unavailable?\n",
+      "resolution": "Use the safe empty fallback shape `SAFE_EMPTY_USER_SETTINGS = { Referral: undefined }` whenever referral-specific settings are unavailable or intentionally disabled for a compose path.\n",
+      "example_questions": [
+        "-  What exact fallback user-settings shape should be passed when referral settings are unavailable?",
+        "-  How should compose flows represent the absence of referral-specific settings?",
+        "-  Which exact empty user-settings value should shared signature helpers receive in no-referral paths?",
+        "-  What is the canonical safe fallback for referral-aware signature helpers?"
+      ]
+    },
+    {
+      "id": "ambiguous_sender_switch_preservation_scope",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "When sender eligibility changes from referral-enabled to no-referral, the task says signature updates should preserve user-visible integrity but does not define whether the flow should preserve the current rendered signature body or rebuild the signature from sender data.\n",
+      "resolution": "Preserve the current non-referral signature body and container, and remove only the current referral addition instead of rebuilding the signature from sender data. This applies to both HTML and plain-text signatures.\n",
+      "example_questions": [
+        "-  When sender eligibility turns off, should the update preserve the current rendered signature body or rebuild it?",
+        "-  Should sender-switch cleanup keep the user-visible signature content already present in the composer?",
+        "-  What part of the current signature is allowed to change when referral eligibility is lost?",
+        "-  Does sender-switch handling preserve existing signature content or reconstruct it from sender data?"
+      ]
+    },
+    {
+      "id": "conflicting_referral_query_handling_rules",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "One requirement implies referral URLs should preserve attribution details, while another implies referral URLs should be sanitized before rendering. Which query-handling rule takes precedence when constructing referral output? ",
+      "resolution": "Canonicalize referral URLs by preserving only query key `ref`, removing all other query keys and fragments, and keeping the original scheme, host, and path.\n",
+      "example_questions": [
+        "-  Which query parameters must survive referral URL sanitization?",
+        "-  When attribution and privacy rules conflict, what is the canonical referral URL form?",
+        "-  Should non-`ref` query keys remain in rendered referral URLs?",
+        "-  Should URL fragments survive referral rendering?"
+      ]
+    }
+  ]
+}

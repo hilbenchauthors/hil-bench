@@ -1,0 +1,56 @@
+{
+  "blockers": [
+    {
+      "id": "mp_auth_store_no_db_path",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements state that startup should not connect to a database when no enabled authentication method requires one, but they never specify what authentication store implementation to use in that path. The store type for the no-database path is completely unspecified.",
+      "resolution": "When `RequiresDatabase()` returns false, the authentication store must be `storageauthmemory.NewStore()`. This memory-based store is required for the no-database authentication path; using SQL-based stores, nil, or any other implementation is incorrect.",
+      "example_questions": [
+        "-  What store implementation should be used when authentication does not require a database?",
+        "-  If only JWT is enabled, which auth store backs the authentication service?",
+        "-  Should the no-database authentication path use a specific store type or a generic interface?"
+      ]
+    },
+    {
+      "id": "mp_validate_cleanup_rejects_non_db_methods",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements state that non-database authentication methods must not be managed by database-backed cleanup operations, but they never specify the exact condition `AuthenticationConfig.validate()` must check for methods with `Cleanup != nil`. The missing parameter is the `!info.RequiresDatabase` guard inside the existing validate loop: without explicitly knowing that validate() must reject cleanup schedules for non-database methods, an implementer has no basis for adding this condition, and configurations where a non-database method like JWT has an explicit cleanup schedule would silently pass validation.",
+      "resolution": "Inside `AuthenticationConfig.validate()`, within the existing loop that iterates over methods with `Cleanup != nil`, add the following check after the grace-period validation: `if info.Enabled && !info.RequiresDatabase { return fmt.Errorf(\\\"cleanup schedule configured for authentication method %q which does not require a database\\\", info.Method) }`. This rejects any configuration where an enabled non-database authentication method has a cleanup schedule explicitly configured.",
+      "example_questions": [
+        "-  Should validate() return an error if an enabled non-database method has an explicit cleanup schedule configured?",
+        "-  What condition should validate() check when iterating over methods that have Cleanup != nil?",
+        "-  Is validate() responsible for enforcing the constraint that non-database methods must not have cleanup, or is that only handled elsewhere in the configuration pipeline?"
+      ]
+    },
+    {
+      "id": "amb_should_run_cleanup_db_filter",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements state that `ShouldRunCleanup` must return `true` only for enabled methods that have cleanup configured, and that the correct handling of methods that do not require a database connection is left to the implementation. It is ambiguous whether `ShouldRunCleanup` must guard on `RequiresDatabase` internally, or whether the cleanup service's `Run` method is solely responsible for skipping non-database methods at runtime.",
+      "resolution": "`ShouldRunCleanup` must check all three conditions: `info.Enabled && info.RequiresDatabase && info.Cleanup != nil`. The `RequiresDatabase` guard must be inside `ShouldRunCleanup` itself, not delegated solely to the cleanup service's `Run` method.",
+      "example_questions": [
+        "-  Should ShouldRunCleanup also check RequiresDatabase, or only Enabled and Cleanup != nil?",
+        "-  Is it sufficient for the cleanup service's Run method to skip non-DB methods, or must ShouldRunCleanup also filter them?",
+        "-  What conditions must all be true for ShouldRunCleanup to return true"
+      ]
+    },
+    {
+      "id": "contra_cleanup_defaults_for_enabled_non_db_methods",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "One requirement says enabled authentication methods should continue receiving default cleanup schedules during configuration defaulting, while another says non-database methods must not be managed by database-backed cleanup operations. Those statements conflict for enabled JWT.",
+      "resolution": "Non-database methods take precedence over generic cleanup defaults. Configuration defaulting must not populate `cleanup` for enabled methods with `RequiresDatabase == false`; enabled database-backed methods must still receive the existing default cleanup schedule.",
+      "example_questions": [
+        "-  If enabled auth methods keep their cleanup defaults, should JWT receive one too?",
+        "-  When defaulting configuration for an enabled non-database method, should `cleanup` still be populated?",
+        "-  Which rule wins for enabled JWT: preserve generic cleanup defaults or avoid database-backed cleanup configuration entirely?"
+      ]
+    }
+  ]
+}

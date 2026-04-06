@@ -1,0 +1,56 @@
+{
+  "blockers": [
+    {
+      "id": "accepted_mapping_protocol_for_union_methods",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The operator contract requires some mapping-style operands to be accepted, but it never specifies the exact minimum capability set an operand must provide to qualify. Without that required interface definition, the implementation cannot determine the precise acceptance boundary for mapping-like inputs.",
+      "resolution": "An operand is supported by `__or__`, `__ror__`, and `__ior__` exactly when it exposes all four read-only mapping capabilities: `keys()`, `__getitem__`, `__iter__`, and `__len__`. Missing any one of these makes the operand unsupported. Example: `types.MappingProxyType({'b': 2})` is accepted. Counterexample: `KeyedBag({'b': 2})` is not accepted.",
+      "example_questions": [
+        "-  Which exact read-only capabilities must an operand provide to qualify for the union methods?",
+        "-  Should a read-only wrapper be accepted when it supports lookup, key enumeration, iteration, and length?",
+        "-  What precise boundary separates a supported mapping operand from a mapping-like key container?"
+      ]
+    },
+    {
+      "id": "replace_path_result_container_type",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The replace-path behavior fixes how values are merged, but it never specifies the exact concrete container type that must be returned for the mixed `dict` plus `VarsWithSources` case. That missing return-type requirement leaves the implementation without the required value needed to choose between a plain `dict` and a wrapper result.",
+      "resolution": "In the replace path of `combine_vars(a, b)`, the returned object is always a built-in `dict`, even when `b` is `VarsWithSources`. Example: `type(combine_vars({'a': 1}, vars_b)) is dict`. Counterexample: returning a `VarsWithSources` instance is not allowed.",
+      "example_questions": [
+        "-  What exact concrete container must `combine_vars` return in replace mode for a mixed `dict` and `VarsWithSources` input?",
+        "-  When the replace path succeeds, should the result keep the specialized wrapper or collapse to a plain `dict`?",
+        "-  Which concrete return type is required for the replace-path merged mapping?"
+      ]
+    },
+    {
+      "id": "source_metadata_update_policy",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The in-place join contract describes how values change, but it does not say how the parallel source annotations must change for retained keys, overwritten keys, and newly introduced keys. Different update rules can all preserve the visible values while leaving different metadata behind.",
+      "resolution": "For `VarsWithSources |= other`, source annotations are updated key by key: keep the existing annotation for keys untouched by `other`; replace the annotation for a key only when `other` is `VarsWithSources` and that key exists in `other.sources`; add an annotation for a new key only when `other` supplies one; never create placeholder annotations for keys coming from a plain mapping. Example: existing `{'a': 'role', 'b': 'inventory'}` updated with `VarsWithSources` carrying `{'b': 'task vars', 'c': 'task vars'}` becomes `{'a': 'role', 'b': 'task vars', 'c': 'task vars'}`. Counterexample: assigning a fabricated annotation to a key added from a plain `dict` is not allowed.",
+      "example_questions": [
+        "-  How should source annotations change for keys that are not touched during an in-place join?",
+        "-  When an in-place join overwrites an existing key, when does the incoming annotation replace the stored annotation?",
+        "-  What happens to source annotations for a newly added key if the incoming operand has no annotation for that key?"
+      ]
+    },
+    {
+      "id": "inplace_union_return_surface",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The written contract gives two incompatible instructions for the value produced by an in-place union. One requirement says the operation must preserve the receiver object so existing aliases keep observing that same object, while another requires an independent retained snapshot that does not track later mutations.",
+      "resolution": "`VarsWithSources.__ior__` returns `self` after applying the update. Example: after `original |= other`, `returned is original` is true. Counterexample: returning `self.data` or a new mapping object is not allowed. ",
+      "example_questions": [
+        "-  After an in-place join finishes, should callers keep working with the updated receiver itself or with an independently retainable post-update value?",
+        "-  Must the `|=` result preserve receiver identity for existing aliases, or should it act as a snapshot that does not track later receiver mutations?",
+        "-  Which return surface is required for `VarsWithSources.__ior__` once the update has been applied?"
+      ]
+    }
+  ]
+}

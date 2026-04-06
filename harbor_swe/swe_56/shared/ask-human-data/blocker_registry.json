@@ -1,0 +1,44 @@
+{
+  "blockers": [
+    {
+      "id": "missing_invisible_character_stripping",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "Requirements say text inputs must parse when interpretable, but do not say how to treat invisible or non-printing characters that may appear at the boundaries of imported fields.",
+      "resolution": "MUST remove leading and trailing U+FEFF (BYTE ORDER MARK) and U+200B (ZERO WIDTH SPACE) from the input string before any parsing attempt, using a single replace on both ends (e.g. /^[\\\\\\\\uFEFF\\\\\\\\u200B]+|[\\\\\\\\uFEFF\\\\\\\\u200B]+$/g), then apply String.prototype.trim() on the result. Only after that normalization should any date-parsing attempt be made. Counter-example: Do NOT attempt to parse the raw string when U+200B or U+FEFF remains at the start or end.\n",
+      "example_questions": [
+        "-  How should zero-width characters at the edges of a date string be handled?",
+        "-  Are BOM or invisible Unicode characters stripped before parsing?",
+        "-  What normalization runs on the string before parseISO or Date?"
+      ]
+    },
+    {
+      "id": "ambiguous_slash_delimited_numeric_dates",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "Slash-separated numeric dates like 15/06/1969 versus 03/12/1969 admit more than one interpretation (day/month/year vs month/day/year). The requirements do not specify disambiguation rules.",
+      "resolution": "When parseISO does not return a valid date for the same string value the function is already using for its ISO attempt, and that string matches /^\\\\d{1,2}\\\\/\\\\d{1,2}\\\\/\\\\d{4}$/ in full from first to last character, then: if the first segment is greater than 12, parse as day/month/year using date-fns parse with format 'd/M/yyyy'. If the first segment is at most 12 and the second is greater than 12, parse as month/day/year using parse with 'M/d/yyyy'. If both segments are at most 12, parse as day/month/year (European order) using parse with 'd/M/yyyy'. Validate each slash parse with isValid. If still unresolved, try new Date on that same string. Counter-example: Do NOT rely on new Date(text) alone for patterns such as 15/06/1969 or 03/06/1990. Do NOT use month-first (M/d/yyyy) as the default for ambiguous dates. Do not run this slash branch before attempting parseISO on that string.",
+      "example_questions": [
+        "-  When a slash date has both segments at most 12, is day-first or month-first the default?",
+        "-  What should happen when the first number in d/m/y is greater than 12?",
+        "-  Should 03/06/1990 be interpreted as June 3 or March 6?",
+        "-  Can 15/06/1969 be rejected as unparseable under month-first-only rules?"
+      ]
+    },
+    {
+      "id": "contradictory_unset_vs_vcard_fallback",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The problem statement prohibits substituting a fabricated calendar date when interpretation fails. The requirements state that all paths through getDateFromVCardProperty must yield a value suitable for vCard serialization, which needs a defined Date object. These two statements conflict when text cannot be parsed.",
+      "resolution": "Return new Date(0) (Unix epoch: January 1, 1970 00:00:00 UTC) as the deterministic fallback in getDateFromVCardProperty when both the structured date field and text parsing fail. This provides a valid serializable Date for callers while avoiding the misleading use of the current timestamp. guessDateFromText still returns undefined on failure; getDateValue in csvFormat still returns { text }. Counter-example: Do NOT return new Date() (current timestamp) and do NOT return undefined.\"",
+      "example_questions": [
+        "-  What specific Date value should getDateFromVCardProperty return when all parsing fails?",
+        "-  Is undefined or the current timestamp acceptable as a fallback for unparseable vCard dates?",
+        "-  How should the conflict between 'no fabricated dates' and 'must yield a defined Date' be resolved in getDateFromVCardProperty?"
+      ]
+    }
+  ]
+}

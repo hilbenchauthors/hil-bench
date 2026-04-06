@@ -1,0 +1,46 @@
+{
+  "blockers": [
+    {
+      "id": "ambiguous_default_ident_when_encrypt_bcrypt_no_ident_supplied",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements state that backward compatibility must be preserved for callers that don't pass 'ident', but also say that when 'encrypt=bcrypt' is used with no 'ident' supplied in the password lookup workflow, a default ident must be applied. It is not specified whether that default should be the library's own built-in default ident or a specific legacy-compatible value chosen by the implementation.\n",
+      "resolution": "When 'encrypt=bcrypt' is requested and no 'ident' parameter is supplied by the caller, default to ident '2a'. Do NOT fall through to the underlying library's default (which may be '2b'). Example: a bcrypt hash produced with no explicit ident must start with '$2a$', not '$2b$'.\n",
+      "example_questions": [
+        "-  What ident value should the password lookup plugin apply when the caller specifies encrypt=bcrypt but omits the ident parameter entirely?",
+        "-  When bcrypt encryption is requested without an explicit ident argument, should the implementation fall back to the underlying library's built-in default or enforce its own hardcoded default?",
+        "-  Which bcrypt version identifier is expected to appear in the hash prefix when no ident is supplied by the caller during a password lookup operation?",
+        "-  Does the password lookup plugin have a defined default ident for bcrypt, or does it delegate that decision to whichever hashing library is installed?"
+      ]
+    },
+    {
+      "id": "contradictory_bcrypt_ident_scope_passlib_vs_crypt_backend",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The requirements mandate honoring 'ident' in both hashing backends to reflect the requested variant, but also require the crypt-backed path to always derive the hash prefix from the algorithm's built-in identifier, creating a conflict about which source takes precedence.",
+      "resolution": "For the crypt-backed path, when the algorithm is bcrypt, _ident() must return the caller-supplied ident when one is provided, and when none is provided it must return the algorithm\u2019s crypt_id so the saltstring still gets the usual libc prefix; when the algorithm is not bcrypt and the caller supplies no ident, _ident() must likewise return that algorithm\u2019s crypt_id, but when the algorithm is not bcrypt and the caller does supply an ident, _ident() must return None so that value is ignored. _hash() must only prepend $<ident>$ to the saltstring when _ident() returns a non-None value; for non-bcrypt algorithms where _ident() returns None because a caller ident was supplied and discarded, the saltstring must be built without that ident prefix (and must not fall back to prepending crypt_id in that case). Example: sha256_crypt with ident='invalid' must produce saltstring $12345678, not $5$12345678.\n",
+      "example_questions": [
+        "-  How should the crypt-backed hashing path handle the ident parameter when the algorithm already has a built-in identifier associated with it?",
+        "-  If a caller supplies an ident value for bcrypt on the crypt path, should that override the algorithm's own default identifier or be combined with it?",
+        "-  When a caller supplies ident='2b' for bcrypt on the crypt path but the algorithm's built-in crypt_id is '2a', which value should appear as the hash prefix in the resulting saltstring?",
+        "-  How should the crypt backend reconcile its internal algorithm identifier with an externally supplied ident parameter for bcrypt hashing"
+      ]
+    },
+    {
+      "id": "ambiguous_ident_idempotence_scope_in_password_lookup",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirement guarantees idempotent hash reproduction across runs when 'encrypt=bcrypt' is used, but does not specify which parameters must be preserved between runs to achieve that guarantee. It is unclear whether 'ident' is assumed to be re-supplied by the caller on every run or must be independently recoverable from stored state.\n",
+      "resolution": "_format_content must write ident to disk after salt (format: password salt=X ident=Y). _parse_content is unchanged, it does not need to parse the ident field. No changes are needed in any other parsing utility. Idempotence depends on the caller re-supplying ident via params; the persisted ident is a record, not a recovery mechanism.",
+      "example_questions": [
+        "-  When the password lookup workflow persists parameters to disk for idempotence, is the salt the only value that must be saved, or must ident also be included in the stored metadata?",
+        "-  Does guaranteeing that repeated runs reproduce the same bcrypt hash require persisting ident to the on-disk file alongside salt?",
+        "-  If the on-disk password file stores only the salt, can the password lookup workflow reliably reproduce the same hash on subsequent runs when bcrypt ident is involved?",
+        "-  Is salt alone sufficient to guarantee hash reproducibility across runs in the password lookup workflow, or are additional parameters required in the persisted metadata?"
+      ]
+    }
+  ]
+}

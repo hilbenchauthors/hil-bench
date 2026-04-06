@@ -1,0 +1,48 @@
+{
+  "blockers": [
+    {
+      "id": "scrobble_limit",
+      "type": [
+        "missing parameters"
+      ],
+      "description": "The requirements state that the scrobble operation must enforce a maximum number of entries and truncate excess entries, but do not specify what that maximum number is.",
+      "resolution": "Truncate the scrobbles slice to a maximum of 80 entries before applying any sorting. If the input has more than 80 scrobbles, only the first 80 must be sent. Sorting is applied after truncation, not before. Example: a batch of 60 scrobbles must result in exactly 60 being submitted. Do NOT use any other value such as 30 or 100.",
+      "example_questions": [
+        "-  What is the maximum number of scrobbles allowed per API call?",
+        "-  How many scrobbles should be submitted in a single batch before truncating?",
+        "-  If I receive more scrobbles than the allowed batch size, how many should I keep?",
+        "-  Is there a defined upper limit on how many entries can be sent in one scrobble request?",
+        "-  I need to implement batch size enforcement for scrobbles . What is the maximum allowed per call?"
+      ]
+    },
+    {
+      "id": "scrobble_ordering",
+      "type": [
+        "ambiguous requirements"
+      ],
+      "description": "The requirements state that scrobbles must be sorted into a deterministic order before submission, but do not specify which field to sort by or in which direction.",
+      "resolution": "Sort scrobbles in descending order by their TimeStamp field (using its temporal comparison methods) before submitting to the LastFM API. Example: if input contains timestamps [300, 100, 200], they must be submitted in the order [300, 200, 100]. Do NOT sort ascending or by any other field, such as track title or artist name.",
+      "example_questions": [
+        "-  What field should scrobbles be sorted by before submission to the API?",
+        "-  Should the scrobble entries be sorted in ascending or descending order?",
+        "-  How should the deterministic ordering of scrobbles be determined before they are sent?",
+        "-  Is there a specific sort key and direction defined for ordering scrobbles before the API call?",
+        "-  When sorting scrobbles before submission, which property takes priority and in what direction?"
+      ]
+    },
+    {
+      "id": "userid_source",
+      "type": [
+        "contradictory requirements"
+      ],
+      "description": "The Problem Statement says the repository layer must derive user identity from the active request context at its own boundary, ensuring callers do not supply it, while the Requirements say operations must be explicitly directed at a specific user. These directives conflict on whether user identity is supplied by callers or determined inside the repository layer.",
+      "resolution": "Resolve the contradiction by choosing the caller-supplied identity as the single source of truth for repository operations. UserPropsRepository methods (Put, Get, Delete, DefaultGet) must take explicit userId arguments and scope all reads and writes by that userId. The repository must work the same with or without an authenticated user in context, and operations for one userId must not affect another userId. All intermediate wrapper layers that call UserPropsRepository, including sessionKeys, must also be updated to accept userId as an explicit parameter and forward it to the repository; they must NOT extract userId from the context themselves. Callers of those wrappers must pass the userId argument they already receive directly to the wrapper methods.",
+      "example_questions": [
+        "-  How should the data repository layer obtain the user identity needed to scope its read and write operations?",
+        "-  When a repository method needs to act on a specific user's data, where is that user's identity expected to come from?",
+        "-  Is there a defined convention for how user context should be passed through the data access layer?",
+        "-  Should the responsibility for knowing which user is making a request sit inside the repository itself or with the code that calls it?"
+      ]
+    }
+  ]
+}

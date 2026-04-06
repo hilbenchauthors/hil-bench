@@ -1,0 +1,43 @@
+{
+  "instance_id": "instance_flipt-io__flipt-15b76cada1ef29cfa56b0fba36754be36243dded",
+  "repo_name": "app",
+  "repo_name_source": "flipt-io/flipt",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c2e959963c47b37fc23a76",
+  "log_parser": "sweap_json",
+  "language": "go",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "TestGetEvaluationRolloutsCached",
+      "TestGetEvaluationRolloutsCacheStore"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/internal/storage/cache/cache_test.go b/internal/storage/cache/cache_test.go\nindex d69db2660c..a1b2c3d4e5 100644\n--- a/internal/storage/cache/cache_test.go\n+++ b/internal/storage/cache/cache_test.go\n@@ -99,3 +99,51 @@ func TestGetEvaluationRulesCached(t *testing.T) {\n \tassert.Equal(t, expectedRules, rules)\n \tassert.Equal(t, \"s:er:ns:flag-1\", cacher.cacheKey)\n }\n+\n+func TestGetEvaluationRolloutsCacheStore(t *testing.T) {\n+\tvar (\n+\t\texpectedRollouts = []*storage.EvaluationRollout{{Rank: 1}}\n+\t\tstore            = &common.StoreMock{}\n+\t)\n+\n+\tstore.On(\"GetEvaluationRollouts\", context.TODO(), \"ns\", \"flag-1\").Return(\n+\t\texpectedRollouts, nil,\n+\t)\n+\n+\tvar (\n+\t\tcacher      = &cacheSpy{}\n+\t\tlogger      = zaptest.NewLogger(t)\n+\t\tcachedStore = NewStore(store, cacher, logger)\n+\t)\n+\n+\trollouts, err := cachedStore.GetEvaluationRollouts(context.TODO(), \"ns\", \"flag-1\")\n+\tassert.Nil(t, err)\n+\tassert.Equal(t, expectedRollouts, rollouts)\n+\n+\tassert.Equal(t, \"s:ero:flag-1:ns\", cacher.cacheKey)\n+\tassert.Equal(t, []byte(`[{\"rank\":1}]`), cacher.cachedValue)\n+}\n+\n+func TestGetEvaluationRolloutsCached(t *testing.T) {\n+\tvar (\n+\t\texpectedRollouts = []*storage.EvaluationRollout{{Rank: 1}}\n+\t\tstore            = &common.StoreMock{}\n+\t)\n+\n+\tstore.AssertNotCalled(t, \"GetEvaluationRollouts\", context.TODO(), \"ns\", \"flag-1\")\n+\n+\tvar (\n+\t\tcacher = &cacheSpy{\n+\t\t\tcached:      true,\n+\t\t\tcachedValue: []byte(`[{\"rank\":1}]`),\n+\t\t}\n+\n+\t\tlogger      = zaptest.NewLogger(t)\n+\t\tcachedStore = NewStore(store, cacher, logger)\n+\t)\n+\n+\trollouts, err := cachedStore.GetEvaluationRollouts(context.TODO(), \"ns\", \"flag-1\")\n+\tassert.Nil(t, err)\n+\tassert.Equal(t, expectedRollouts, rollouts)\n+\tassert.Equal(t, \"s:ero:flag-1:ns\", cacher.cacheKey)\n+}\n",
+  "run_script_path": "/tests/run_script.sh",
+  "parser_script_path": "/tests/parser.py",
+  "test_files": [
+    "internal/storage/cache/cache_test.go"
+  ],
+  "attempt_id": "69c2e959963c47b37fc23a76",
+  "task_id": "69836ee4987091d7e86e449b",
+  "dataset_name": "swe_25",
+  "image_archive": {
+    "attempt_id": "69c2e959963c47b37fc23a76",
+    "local_image_ref": "hilbench-swe:69c2e959963c47b37fc23a76",
+    "image_id": "sha256:3a6f6fab37add30d1f845e323a14bb962df4f27b4b83770f46dc9ac98aa82a59",
+    "created": "2026-03-29T10:26:24.982876484-07:00",
+    "artifact_path": "images/69c2e959963c47b37fc23a76.tar.zst",
+    "artifact_bytes": 1689011435,
+    "artifact_sha256": "366c02eeed44ead58876c8c1fab69d911c321520b72807c1bbc649becf39e1fb",
+    "hf_bucket": "kellu-scale/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c2e959963c47b37fc23a76.tar.zst"
+  }
+}
