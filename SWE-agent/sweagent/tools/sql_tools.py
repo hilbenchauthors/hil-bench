@@ -18,6 +18,52 @@ from sweagent.tools.utils import generate_command_docs
 from sweagent.utils.log import get_logger
 
 
+def _expand_ansi_c_quotes(s: str) -> str:
+    """Convert bash ANSI-C $'...' quoting to POSIX-compatible quoting for shlex.
+    Used for SQL tool call parsing.
+
+    shlex.split() is POSIX-only and mishandles bash's $'...' quoting in two ways:
+      1. It treats $'foo' as literal-$ concatenated with POSIX-quoted 'foo', yielding '$foo'.
+      2. If the ANSI-C content contains \\' (escaped apostrophe), shlex raises ValueError
+         because POSIX single-quotes cannot contain a literal single-quote.
+
+    This preprocessor expands every $'...' sequence to its actual string content, then
+    re-quotes it with shlex.quote() so the result is valid POSIX for shlex.split().
+
+    Examples:
+        $'financial'              -> 'financial'
+        $'unemployment rate'      -> 'unemployment rate'
+        $'What\\'s the policy?'   -> "What's the policy?"
+    """
+    _ansi_escape_map = {
+        "n": "\n", "r": "\r", "t": "\t", "a": "\a",
+        "b": "\b", "f": "\f", "v": "\v",
+        "0": "\0", "'": "'", "\\": "\\",
+    }
+    result: list[str] = []
+    i = 0
+    while i < len(s):
+        if s[i] == "$" and i + 1 < len(s) and s[i + 1] == "'":
+            j = i + 2
+            content: list[str] = []
+            while j < len(s):
+                if s[j] == "\\" and j + 1 < len(s):
+                    content.append(_ansi_escape_map.get(s[j + 1], s[j + 1]))
+                    j += 2
+                elif s[j] == "'":
+                    j += 1
+                    break
+                else:
+                    content.append(s[j])
+                    j += 1
+            result.append(shlex.quote("".join(content)))
+            i = j
+        else:
+            result.append(s[i])
+            i += 1
+    return "".join(result)
+
+
 class SQLToolConfig(BaseModel):
     """
     Configuration for preparing SQL tools
@@ -158,7 +204,7 @@ class SQLToolHandler:
             args = [heredoc_body]
         else:
             try:
-                parts = shlex.split(action)
+                parts = shlex.split(_expand_ansi_c_quotes(action))
                 command_name = parts[0]
                 args = parts[1:]
             except (ValueError, IndexError):

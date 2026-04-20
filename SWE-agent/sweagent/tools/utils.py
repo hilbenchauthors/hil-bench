@@ -45,6 +45,28 @@ def _should_quote(value: Any, command: Command) -> bool:
     return isinstance(value, str) and command.end_name is None
 
 
+def ansi_c_quote(s: str) -> str:
+    """Quote a string using bash ANSI-C quoting ($'...').
+
+    Unlike shlex.quote() which produces single-quoted strings with literal
+    newlines, this produces a guaranteed single-line token. All embedded
+    newlines become \\n, all other control characters are similarly escaped.
+    This prevents swerex from mishandling multi-line bash commands when tool
+    arguments contain newlines (e.g. str_replace_editor with multi-line code).
+
+    Backslash must be escaped first to avoid double-escaping.
+    """
+    escaped = (
+        s.replace("\\", "\\\\")
+        .replace("'", "\\'")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+        .replace("\x00", "\\0")
+    )
+    return f"$'{escaped}'"
+
+
 def get_signature(cmd):
     """Generate a command signature from its arguments.
 

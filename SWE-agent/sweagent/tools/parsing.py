@@ -45,7 +45,7 @@ from jinja2 import Template
 from pydantic import BaseModel
 from sweagent.exceptions import FormatError, FunctionCallingFormatError
 from sweagent.tools.commands import Command
-from sweagent.tools.utils import _should_quote
+from sweagent.tools.utils import _should_quote, ansi_c_quote
 
 
 class AbstractParseFunction(ABC):
@@ -472,7 +472,7 @@ class FunctionCallingParser(AbstractParseFunction, BaseModel):
 
         def get_quoted_arg(value: Any) -> str:
             if isinstance(value, str):
-                return quote(value) if _should_quote(value, command) else value
+                return ansi_c_quote(value) if _should_quote(value, command) else value
             # See https://github.com/SWE-agent/SWE-agent/issues/1159
             if value is None:
                 return ""

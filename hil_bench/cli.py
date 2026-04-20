@@ -13,8 +13,25 @@ from .scripts.swe import create_single_instance_file, resolve_swe_input_path
 load_dotenv()
 
 
+def _validate_mode_flags(args) -> None:
+    """Enforce that --all-modes is exclusive with individual mode flags."""
+    if args.all_modes and (getattr(args, "ask_human", False) or getattr(args, "full_info", False)):
+        print(
+            "Error: --all-modes cannot be combined with --ask-human or --full-info",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
+def sql_command(args):
+    """Handle sql command with mode-flag validation."""
+    _validate_mode_flags(args)
+    run_sql_command(args)
+
+
 def swe_command(args):
     """Handle swe command."""
+    _validate_mode_flags(args)
     path = args.path.resolve()
     input_type, resolved_path, task_folder, temp_instances_file = resolve_swe_input_path(
         path, max_tasks=args.num_tasks
@@ -88,6 +105,13 @@ def main():
     sql_parser.add_argument("--config-template", default=None)
     sql_parser.add_argument("--run-name", type=str, default=None)
     sql_parser.add_argument("--batch-session-name", type=str, default=None)
+    sql_parser.add_argument(
+        "--num-tasks",
+        "-n",
+        type=int,
+        default=None,
+        help="Run only the first N SQL instances from the input instances file.",
+    )
     sql_parser.add_argument("--num-workers", "-w", type=int, default=15)
     sql_parser.add_argument("--ask-human", action="store_true")
     sql_parser.add_argument("--full-info", action="store_true")
@@ -111,7 +135,7 @@ def main():
         default=None,
         help="YAML config for ask_human judge backend/model/hosting.",
     )
-    sql_parser.set_defaults(func=run_sql_command)
+    sql_parser.set_defaults(func=sql_command)
 
     swe_parser = subparsers.add_parser("swe", help="Run SWE-agent on HIL-Bench tasks")
     swe_parser.add_argument("path", type=Path)

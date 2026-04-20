@@ -2,6 +2,7 @@ from __future__ import annotations
 import chromadb
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 import argparse
+import copy
 import json
 import os
 import re
@@ -32,6 +33,13 @@ TRAJECTORY_TIMEOUT_OBS_RE = re.compile(r"Command '\[.*\]' timed out after \d+ se
 TRAJECTORY_HICCUP_OBS = "can't answer (perhaps transient hiccup)"
 TRAJECTORY_ENV_DIED_OBS = "Environment died unexpectedly"
 TRAJECTORY_UNKNOWN_ERROR = "Exit due to unknown error"
+KB_QUERY_ERROR = "Error querying knowledge base"
+SQL_QUOTING_BUG_MARKERS = (
+    ("get_database_info", "Error: database $"),
+    ("get_table_info", "Error: table $"),
+    ("get_column_info", "Error: column $"),
+    ("get_business_info", "No business information found matching '$"),
+)
 TRAJECTORY_RERUN_OCCURRENCE_THRESHOLD_STRICT = 1
 TRAJECTORY_RERUN_OCCURRENCE_THRESHOLD_LENIENT = 3
 SWEAP_TEST_CMD = (
@@ -565,10 +573,20 @@ def extract_traj_stats(traj_path: Path) -> dict[str, Any]:
         return {}
     model_stats = data.get("info", {}).get("model_stats", {})
     steps = data.get("trajectory", [])
+    num_questions = None
+    if isinstance(steps, list):
+        num_questions = 0
+        for step in steps:
+            if not isinstance(step, dict):
+                continue
+            action = step.get("action", "")
+            if isinstance(action, str) and action.lstrip().startswith("ask_human "):
+                num_questions += 1
     return {
         "tokens_sent": model_stats.get("tokens_sent", model_stats.get("input_tokens")),
         "tokens_received": model_stats.get("tokens_received", model_stats.get("output_tokens")),
         "num_steps": len(steps) if isinstance(steps, list) else None,
+        "num_questions": num_questions,
         "cost": model_stats.get("instance_cost"),
     }
 
@@ -634,7 +652,7 @@ def parse_metrics_rows(
                         else:
                             status = "unresolved"
                         cost = sql_result.get("cost", traj_stats.get("cost"))
-                        num_steps = sql_result.get("num_steps", traj_stats.get("num_steps"))
+                        num_steps = traj_stats.get("num_steps") or sql_result.get("num_steps")
                     else:
                         eval_result = swe_eval_results.get(full_instance_id) or swe_eval_results.get(task_name) or {}
                         completed = eval_result.get("completed") if isinstance(eval_result, dict) else None
@@ -648,16 +666,18 @@ def parse_metrics_rows(
                             status = "resolved" if resolved else "unresolved"
                         inst_metrics = swe_instance_metrics.get(full_instance_id, {})
                         cost = inst_metrics.get("cost", traj_stats.get("cost"))
-                        num_steps = inst_metrics.get("num_steps", traj_stats.get("num_steps"))
+                        num_steps = traj_stats.get("num_steps") or inst_metrics.get("num_steps")
 
                     h = hil_by_instance.get(full_instance_id) or {}
                     questions = h.get("questions") or h.get("entries") or []
-                    n_questions = len(questions)
+                    n_questions = traj_stats.get("num_questions")
+                    if n_questions is None:
+                        n_questions = len(questions)
                     n_blockers = h.get("n_blockers")
                     n_blockers_discovered = len(
                         {q.get("blocker_name") for q in questions if q.get("blocker_name")}
                     )
-                    if not h and pass_hil_metrics:
+                    if n_questions is None and not h and pass_hil_metrics:
                         # When no per-instance logs file is emitted (e.g., ask_human mode with zero questions),
                         # batch_runner stores only pass-level zero HIL metrics in metrics.json.
                         n_questions = pass_hil_metrics.get("n_questions")
@@ -784,9 +804,8 @@ def summarize_rows(
         total_tokens_sent = 0.0
         total_tokens_received = 0.0
         total_questions = 0.0
-        precision_sum = 0.0
-        recall_sum = 0.0
-        f1_sum = 0.0
+        total_blockers_resolved = 0.0
+        total_blockers_present = 0.0
         for valid_passes in attempt_passes:
             num_valid = len(valid_passes)
             for k in range(1, expected_passes + 1):
@@ -803,15 +822,8 @@ def summarize_rows(
                 total_tokens_received += float(row.get("tokens_received") or 0.0)
                 total_questions += float(row.get("num_questions") or 0.0)
                 if mode == "ask_human":
-                    pass_precision = float(row.get("precision") or 0.0)
-                    pass_recall = float(row.get("recall") or 0.0)
-                    precision_sum += pass_precision
-                    recall_sum += pass_recall
-                    f1_sum += (
-                        2 * pass_precision * pass_recall / (pass_precision + pass_recall)
-                        if (pass_precision + pass_recall) > 0
-                        else 0.0
-                    )
+                    total_blockers_resolved += float(row.get("num_blockers_resolved") or 0.0)
+                    total_blockers_present += float(row.get("total_num_blockers") or 0.0)
 
         metrics: dict[str, Any] = {
             "num_included_attempts": len(attempt_passes),
@@ -836,9 +848,15 @@ def summarize_rows(
             metrics[f"pass_at_{k}"] = num_solved_by_pass_k[k] / denominator if denominator > 0 else 0.0
             metrics[f"pass_at_{k}_n"] = denominator
         if mode == "ask_human":
-            ask_precision = precision_sum / total_attempts_and_passes if total_attempts_and_passes > 0 else 0.0
-            ask_recall = recall_sum / total_attempts_and_passes if total_attempts_and_passes > 0 else 0.0
-            ask_f1 = f1_sum / total_attempts_and_passes if total_attempts_and_passes > 0 else 0.0
+            ask_precision = total_blockers_resolved / total_questions if total_questions > 0 else 0.0
+            ask_recall = (
+                total_blockers_resolved / total_blockers_present if total_blockers_present > 0 else 0.0
+            )
+            ask_f1 = (
+                2 * ask_precision * ask_recall / (ask_precision + ask_recall)
+                if (ask_precision + ask_recall) > 0
+                else 0.0
+            )
             metrics["ask_precision"] = ask_precision
             metrics["ask_recall"] = ask_recall
             metrics["ask_f1"] = ask_f1
@@ -958,13 +976,110 @@ def trajectory_has_unknown_error(trajectory: Any) -> bool:
     return TRAJECTORY_UNKNOWN_ERROR in response
 
 
+def trajectory_has_kb_query_error(trajectory: Any) -> bool:
+    """True if any trajectory step observation ended due to a knowledge base query error"""
+    if not isinstance(trajectory, list) or not trajectory:
+        return False
+    count = 0
+    for step in trajectory:
+        if not isinstance(step, dict):
+            continue
+        obs = step.get("obs", "")
+        if isinstance(obs, str) and KB_QUERY_ERROR in obs:
+            count += 1
+            if count >= TRAJECTORY_RERUN_OCCURRENCE_THRESHOLD_STRICT:
+                return True
+    return False
+
+
+def trajectory_has_sql_quoting_bug_obs(trajectory: Any) -> bool:
+    """True if any step shows an observation that is an artifact of the ANSI-C quoting bug."""
+    if not isinstance(trajectory, list):
+        return False
+    for step in trajectory:
+        if not isinstance(step, dict):
+            continue
+        act = step.get("act", "")
+        obs = step.get("obs", "")
+        if not isinstance(act, str) or not isinstance(obs, str):
+            continue
+        tool = act.split(None, 1)[0] if act.strip() else ""
+        for marker_tool, marker_obs in SQL_QUOTING_BUG_MARKERS:
+            if tool == marker_tool and obs.startswith(marker_obs):
+                return True
+    return False
+
+
 def trajectory_needs_rerun(trajectory: list[dict[str, str]]) -> bool:
     return (
         trajectory_has_timeout_obs(trajectory)
         or trajectory_has_hiccup_obs(trajectory)
         or trajectory_has_env_died_obs(trajectory)
         or trajectory_has_unknown_error(trajectory)
+        or trajectory_has_kb_query_error(trajectory)
+        or trajectory_has_sql_quoting_bug_obs(trajectory)
     )
+
+
+def _pass_needs_rerun(pass_dir: Path) -> bool:
+    """True if the pass dir is missing, empty, or contains any trajectory that needs rerun."""
+    if not pass_dir.exists():
+        return True
+    traj_files = list(pass_dir.glob("**/*.traj"))
+    if not traj_files:
+        return True
+    for traj_file in traj_files:
+        try:
+            payload = json.loads(traj_file.read_text())
+            steps = extract_public_trajectory_steps(payload)
+            if trajectory_needs_rerun(steps):
+                return True
+        except Exception:
+            return True
+    return False
+
+
+_RERUN_SKIP_DIRS = {"public_metrics", "metadata"}
+
+
+def find_passes_needing_rerun(run_dir: Path, passes: int) -> dict[tuple[str, str], list[int]]:
+    """Scan run_dir and return {(model_dir_name, mode_dir_name): [pass_nums_needing_rerun]}."""
+    result: dict[tuple[str, str], list[int]] = {}
+    if not run_dir.exists():
+        return result
+    for model_dir in sorted(run_dir.iterdir()):
+        if not model_dir.is_dir() or model_dir.name in _RERUN_SKIP_DIRS:
+            continue
+        for mode_dir in sorted(model_dir.iterdir()):
+            if not mode_dir.is_dir():
+                continue
+            bad: list[int] = []
+            for pass_num in range(1, passes + 1):
+                if _pass_needs_rerun(mode_dir / f"pass_{pass_num}"):
+                    bad.append(pass_num)
+            if bad:
+                result[(model_dir.name, mode_dir.name)] = bad
+    return result
+
+
+def merge_rerun_results(
+    original_run_dir: Path,
+    temp_run_dir: Path,
+    needs_rerun: dict[tuple[str, str], list[int]],
+) -> None:
+    """Overwrite bad pass slots in original_run_dir with matching results from temp_run_dir."""
+    for (model_name, mode_name), bad_pass_nums in needs_rerun.items():
+        for j, orig_pass_num in enumerate(bad_pass_nums):
+            src = temp_run_dir / model_name / mode_name / f"pass_{j + 1}"
+            dst = original_run_dir / model_name / mode_name / f"pass_{orig_pass_num}"
+            if not src.exists():
+                print(f"  ⚠️  Rerun result missing: {src} (pass {orig_pass_num} for {model_name}/{mode_name})")
+                continue
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            if dst.exists():
+                shutil.rmtree(dst)
+            shutil.copytree(src, dst)
+            print(f"  ✅ Merged rerun pass {orig_pass_num} for {model_name}/{mode_name}")
 
 
 def export_trajectories(results_dirs: list[Path], target_root: Path) -> int:
@@ -1128,6 +1243,16 @@ def main() -> None:
         help="Keep temporary parent directory after run completion.",
     )
     parser.add_argument("--include-partial", action="store_true", help="Include datapoints that only partially completed all passes in the final metrics (default is to only include those that completed all passes)")
+    parser.add_argument(
+        "--rerun",
+        action="store_true",
+        help=(
+            "If prior results exist for the same run name, model(s), and mode(s), only re-execute "
+            "passes whose trajectory is missing or invalid (timeout / hiccup / env-died / unknown "
+            "error). Valid existing passes are kept as-is and merged back into the original results "
+            "directory. Has no effect if no prior results exist."
+        ),
+    )
     args = parser.parse_args()
     
     run_name = args.run_name or f"{args.task_type}_run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
@@ -1164,16 +1289,79 @@ def main() -> None:
             print(f"📄 Runtime instances file: {instances_path}")
 
             sub_run_name = run_name if len(task_types) == 1 else f"{run_name}_{task_type}"
-            exit_code, run_results_dir = run_hil_cli(
-                task_type=task_type,
-                args=args,
-                instances_path=instances_path,
-                run_name=sub_run_name,
-            )
-            if exit_code != 0:
-                raise RuntimeError(f"`hil {task_type}` exited with code {exit_code}")
-            if not run_results_dir.exists():
-                raise FileNotFoundError(f"Could not resolve run output directory for {sub_run_name}")
+            existing_run_dir = output_dir / sub_run_name
+
+            if args.rerun and existing_run_dir.exists():
+                needs_rerun = find_passes_needing_rerun(existing_run_dir, args.passes)
+                if not needs_rerun:
+                    print(f"✅ All passes for {task_type.upper()} are already valid — skipping rerun.")
+                    run_results_dir = existing_run_dir
+                else:
+                    total_bad = sum(len(v) for v in needs_rerun.values())
+                    print(
+                        f"🔄 Rerun: {len(needs_rerun)} (model, mode) pair(s) have "
+                        f"{total_bad} pass slot(s) needing rerun."
+                    )
+                    max_new_passes = max(len(v) for v in needs_rerun.values())
+
+                    rerun_model_safes = {ms for (ms, _) in needs_rerun}
+                    rerun_mode_names = {mn for (_, mn) in needs_rerun}
+                    rerun_models = [
+                        m for m in args.models
+                        if m.replace("/", "_").replace(":", "_") in rerun_model_safes
+                    ] or list(args.models)
+
+                    if len(rerun_mode_names) == 1:
+                        rerun_modes = [m for m in args.modes if m in rerun_mode_names]
+                    else:
+                        rerun_modes = list(args.modes)
+
+                    rerun_args = copy.copy(args)
+                    rerun_args.passes = max_new_passes
+                    rerun_args.models = rerun_models
+                    rerun_args.modes = rerun_modes
+                    print(
+                        f"   Models: {rerun_models}  Modes: {rerun_modes}  "
+                        f"Passes (new): {max_new_passes}"
+                    )
+                    temp_run_name = (
+                        f"{sub_run_name}__rerun_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+                    )
+                    exit_code, temp_run_dir = run_hil_cli(
+                        task_type=task_type,
+                        args=rerun_args,
+                        instances_path=instances_path,
+                        run_name=temp_run_name,
+                    )
+                    if exit_code != 0:
+                        raise RuntimeError(
+                            f"`hil {task_type}` rerun exited with code {exit_code}"
+                        )
+                    if not temp_run_dir.exists():
+                        raise FileNotFoundError(
+                            f"Could not resolve rerun output directory for {temp_run_name}"
+                        )
+                    print(f"\n🔀 Merging rerun results into {existing_run_dir}")
+                    merge_rerun_results(
+                        original_run_dir=existing_run_dir,
+                        temp_run_dir=temp_run_dir,
+                        needs_rerun=needs_rerun,
+                    )
+                    shutil.rmtree(temp_run_dir, ignore_errors=True)
+                    run_results_dir = existing_run_dir
+            else:
+                exit_code, run_results_dir = run_hil_cli(
+                    task_type=task_type,
+                    args=args,
+                    instances_path=instances_path,
+                    run_name=sub_run_name,
+                )
+                if exit_code != 0:
+                    raise RuntimeError(f"`hil {task_type}` exited with code {exit_code}")
+                if not run_results_dir.exists():
+                    raise FileNotFoundError(
+                        f"Could not resolve run output directory for {sub_run_name}"
+                    )
 
             if task_type == "swe" and args.cleanup_docker:
                 removed_containers = 0

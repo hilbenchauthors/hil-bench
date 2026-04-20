@@ -77,7 +77,7 @@ class BusinessInfoServerError(Exception):
 def start_ask_human_server(
     blockers: dict | list | None = None,
     tasks_dir: Path | None = None,
-    port: int = 19521,
+    port: int = 9521,
     startup_wait: float = 2.0,
     capture_output: bool = False,
     verbose: bool = True,
@@ -196,80 +196,100 @@ def start_ask_human_server(
 
 @contextmanager
 def start_business_info_server(
-    port: int = 19531,
+    port: int = 9531,
     startup_wait: float = 2.0,
     capture_output: bool = False,
     verbose: bool = True,
     skip_warmup: bool = False,
-    ready_timeout: float = 300.0,
-    ready_poll_interval: float = 2.0,
 ) -> Iterator[BusinessInfoServer]:
     """Context manager for starting and stopping the get_business_info server."""
-    actual_port = find_available_port(port)
-    if verbose and actual_port != port:
-        print(f"⚠️  Port {port} is in use, using port {actual_port} instead")
+    # Parallel SQL workers can race when probing ports. Retry startup a few times
+    # with a fresh available port when the process exits during bootstrap.
+    max_start_attempts = 5
+    requested_port = port
+    process = None
+    actual_port = requested_port
+    last_error: Exception | None = None
 
-    cmd = [
-        sys.executable,
-        "-m",
-        "hil_bench.business_info_server",
-        "--port",
-        str(actual_port),
-    ]
-    if skip_warmup:
-        cmd.append("--skip-warmup")
+    for start_attempt in range(1, max_start_attempts + 1):
+        actual_port = find_available_port(requested_port)
+        if verbose and actual_port != requested_port:
+            print(f"⚠️  Port {requested_port} is in use, using port {actual_port} instead")
 
-    if verbose:
-        print(f"🚀 Starting get_business_info server on port {actual_port}...")
+        cmd = [
+            sys.executable,
+            "-m",
+            "hil_bench.business_info_server",
+            "--port",
+            str(actual_port),
+        ]
+        if skip_warmup:
+            cmd.append("--skip-warmup")
 
-    if capture_output:
-        process = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-    else:
-        process = subprocess.Popen(
-            cmd,
-            stdout=sys.stdout,
-            stderr=sys.stderr,
-        )
+        if verbose:
+            print(
+                f"🚀 Starting get_business_info server on port {actual_port}..."
+                f" (attempt {start_attempt}/{max_start_attempts})"
+            )
 
-    time.sleep(startup_wait)
-    if process.poll() is not None:
-        stderr_output = ""
-        if process.stderr:
-            stderr_output = process.stderr.read().decode()
-        raise BusinessInfoServerError(f"Failed to start get_business_info server: {stderr_output}")
+        if capture_output:
+            process = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        else:
+            process = subprocess.Popen(
+                cmd,
+                stdout=sys.stdout,
+                stderr=sys.stderr,
+            )
 
-    # Wait until health endpoint responds to avoid startup races.
-    # On cold start, warmup may download the embedding model and take a while.
-    server_url = f"http://localhost:{actual_port}"
-    ready = False
-    last_error = None
-    deadline = time.time() + max(1.0, ready_timeout)
-    while time.time() < deadline:
+        time.sleep(startup_wait)
         if process.poll() is not None:
+            stderr_output = ""
+            if process.stderr:
+                stderr_output = process.stderr.read().decode()
+            last_error = BusinessInfoServerError(
+                f"Failed to start get_business_info server on port {actual_port}: {stderr_output}"
+            )
+            requested_port = actual_port + 1
+            continue
+
+        # Wait until health endpoint responds to avoid startup races.
+        # On cold start, warmup may download the embedding model and take a while.
+        server_url = f"http://localhost:{actual_port}"
+        ready = False
+        health_error = None
+        for _ in range(20):
+            if process.poll() is not None:
+                break
+            try:
+                with urllib.request.urlopen(f"{server_url}/health", timeout=1.0) as response:
+                    if response.status == 200:
+                        ready = True
+                        break
+            except Exception as exc:
+                health_error = exc
+                time.sleep(5)
+
+        if ready:
             break
-        try:
-            with urllib.request.urlopen(f"{server_url}/health", timeout=1.0) as response:
-                if response.status == 200:
-                    ready = True
-                    break
-        except Exception as exc:
-            last_error = exc
-            time.sleep(max(1, ready_poll_interval))
-    if not ready:
+
         process.terminate()
         try:
-            process.wait(timeout=10)
+            process.wait(timeout=5)
         except subprocess.TimeoutExpired:
             process.kill()
             process.wait()
-        raise BusinessInfoServerError(
+        last_error = BusinessInfoServerError(
             "get_business_info server did not become ready in time"
-            + (f": {last_error}" if last_error else "")
+            + (f": {health_error}" if health_error else "")
         )
+        requested_port = actual_port + 1
+    else:
+        raise last_error or BusinessInfoServerError("Failed to start get_business_info server")
+
     if verbose:
         print(f"✅ get_business_info server started at {server_url}")
 

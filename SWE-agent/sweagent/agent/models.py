@@ -90,9 +90,9 @@ class GenericAPIModelConfig(PydanticBaseModel):
     )
     total_cost_limit: float = Field(default=0.0, description="Total cost limit.")
     per_instance_call_limit: int = Field(default=0, description="Per instance call limit.")
-    temperature: float = 0.0
+    temperature: float | None = None
     """Sampling temperature"""
-    top_p: float | None = 1.0
+    top_p: float | None = None
     """Sampling top-p"""
     api_base: str | None = None
     api_version: str | None = None
@@ -218,7 +218,7 @@ class GenericAPIModelConfig(PydanticBaseModel):
             top_p = f"{self.top_p:.2f}"
         else:
             top_p = "None"
-        temperature = f"{self.temperature:.2f}"
+        temperature = f"{self.temperature:.2f}" if self.temperature is not None else "None"
         per_instance_cost_limit = f"{self.per_instance_cost_limit:.2f}"
         return f"{name}__t-{temperature}__p-{top_p}__c-{per_instance_cost_limit}"
 
@@ -638,6 +638,19 @@ class LiteLLMModel(AbstractModel):
                 self.config.name = f"litellm_proxy/{self.config.name}"
                 self.logger.info(f"Transformed model name to: {self.config.name}")
 
+        # If the model isn't in litellm's registry yet (e.g. freshly released models),
+        # try to detect the provider via get_llm_provider. For unrecognized claude models,
+        # prepend "anthropic/" so litellm can route correctly without a registry entry.
+        if not self.config.name.startswith(("litellm_proxy/", "anthropic/", "gemini/", "openai/")):
+            try:
+                litellm.get_llm_provider(self.config.name)
+            except litellm.exceptions.BadRequestError:
+                if "claude" in self.config.name.lower():
+                    self.config.name = f"anthropic/{self.config.name}"
+                    self.logger.info(
+                        f"Model not found in litellm registry; prepended provider prefix: {self.config.name}"
+                    )
+
         if tools.use_function_calling:
             if not litellm.utils.supports_function_calling(model=self.config.name):
                 msg = (
@@ -697,6 +710,15 @@ class LiteLLMModel(AbstractModel):
         self.lm_provider = litellm.model_cost.get(self.config.name, {}).get(
             "litellm_provider", self.config.name
         )
+        # If model isn't in the cost registry, fall back to provider detection so that
+        # provider-specific logic still applies.
+        if self.lm_provider == self.config.name:
+            try:
+                _, detected_provider, _, _ = litellm.get_llm_provider(self.config.name)
+                if detected_provider:
+                    self.lm_provider = detected_provider
+            except Exception:
+                pass
         self.custom_tokenizer = None
         if self.config.custom_tokenizer is not None:
             self.custom_tokenizer = litellm.utils.create_pretrained_tokenizer(
@@ -874,15 +896,16 @@ class LiteLLMModel(AbstractModel):
         if model_name == "xai/grok-code-fast-1":
             completion_kwargs["custom_llm_provider"] = "openai"
 
-        completion_kwargs["temperature"] = (
-            self.config.temperature if temperature is None else temperature
-        )
-        completion_kwargs["top_p"] = self.config.top_p
+        effective_temperature = self.config.temperature if temperature is None else temperature
+        if effective_temperature is not None:
+            completion_kwargs["temperature"] = effective_temperature
+        if self.config.top_p is not None:
+            completion_kwargs["top_p"] = self.config.top_p
         if "claude-sonnet-4-5" in model_name:
             # can't use both temperature and top_p for claude-sonnet-4-5
             if (
-                completion_kwargs["temperature"] is not None
-                and completion_kwargs["top_p"] is not None
+                completion_kwargs.get("temperature") is not None
+                and completion_kwargs.get("top_p") is not None
             ):
                 completion_kwargs.pop("top_p")
 

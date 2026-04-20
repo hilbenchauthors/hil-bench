@@ -83,6 +83,7 @@ def run_sql_command(args):
         task_folder=task_folder,
         task_type="sql",
         num_workers=args.num_workers,
+        num_tasks=getattr(args, "num_tasks", None),
         per_instance_cost_limit=per_instance_cost_limit,
         cleanup_docker=args.cleanup_docker,
         cleanup_trajectories=False,
