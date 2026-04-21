@@ -17,7 +17,7 @@ Modes:
 
 1. Create a `uv` project venv.
 2. Copy `.env_template` to `.env` and set your provider keys.
-3. The public dataset is hosted externally on Hugging Face at [REDACTED], not committed into this repo; download or materialize the task inputs locally and pass their path to the CLI.
+3. The public dataset is hosted externally on Hugging Face at [ScaleAI/hil-bench](https://huggingface.co/datasets/ScaleAI/hil-bench), not committed into this repo; download or materialize the task inputs locally and pass their path to the CLI.
 4. In each agent config YAML, set explicit hosting mode in top-level `hosting.type`:
    - `litellm_proxy` (requires `LITELLM_BASE_URL`)
    - `provider_direct` (requires `LITELLM_BASE_URL` to be unset)
