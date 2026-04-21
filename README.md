@@ -135,7 +135,7 @@ cd harbor_swe
 bash warmup_images.sh
 ```
 
-The SWE Harbor images are hosted externally at [REDACTED].
+The SWE Harbor images are hosted externally at [ScaleAI/hil-bench-swe-images](https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images).
 
 To run a single SWE task:
 
