@@ -1,7 +1,7 @@
 {
   "blockers": [
     {
-      "id": "```json\ncollectchunks_nonpositive_chunk_size_fallback_two\n```",
+      "id": "collectchunks_nonpositive_chunk_size_fallback_two",
       "type": [
         "missing parameters"
       ],
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "```json\ncollectchunks_defensive_tight_chunks\n```",
+      "id": "collectchunks_defensive_tight_chunks",
       "type": [
         "ambiguous requirements"
       ],
@@ -31,7 +31,7 @@
       ]
     },
     {
-      "id": "```json\ncollectchunks_argument_order_conflict\n```",
+      "id": "collectchunks_argument_order_conflict",
       "type": [
         "contradictory requirements"
       ],

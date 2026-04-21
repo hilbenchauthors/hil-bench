@@ -1,5 +1,5 @@
 {
-  "default_hf_bucket": "kellu-scale/hil-bench-swe-images",
+  "default_hf_bucket": "ScaleAI/hil-bench-swe-images",
   "local_archive_root_env": "HILBENCH_SWE_IMAGE_ARCHIVE_ROOT",
   "hf_bucket_override_env": "HILBENCH_SWE_HF_BUCKET"
 }

@@ -6,6 +6,6 @@
   "artifact_path": "images/69a9e77602049c14d2793bb5.tar.zst",
   "artifact_bytes": 7064857503,
   "artifact_sha256": "ae3ec9189478e36137050c37329835394ed4fccec6b92365c2b0e0f31af900d6",
-  "hf_bucket": "kellu-scale/hil-bench-swe-images",
-  "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69a9e77602049c14d2793bb5.tar.zst"
+  "hf_bucket": "ScaleAI/hil-bench-swe-images",
+  "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69a9e77602049c14d2793bb5.tar.zst"
 }

@@ -23,8 +23,8 @@
   },
   "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
   "test_patch": "diff --git a/test/units/cli/test_doc.py b/test/units/cli/test_doc.py\nindex d93b5aa13a..9924f0618b 100644\n--- a/test/units/cli/test_doc.py\n+++ b/test/units/cli/test_doc.py\n@@ -4,7 +4,7 @@ __metaclass__ = type\n \n import pytest\n \n-from ansible.cli.doc import DocCLI\n+from ansible.cli.doc import DocCLI, RoleMixin\n \n \n TTY_IFY_DATA = {\n@@ -33,3 +33,75 @@ TTY_IFY_DATA = {\n @pytest.mark.parametrize('text, expected', sorted(TTY_IFY_DATA.items()))\n def test_ttyify(text, expected):\n     assert DocCLI.tty_ify(text) == expected\n+\n+\n+def test_rolemixin__build_doc():\n+    obj = RoleMixin()\n+    role_name = 'test_role'\n+    path = '/a/b/c'\n+    collection_name = 'test.units'\n+    entrypoint_filter = 'main'\n+    argspec = {\n+        'main': {'short_description': 'main short description'},\n+        'alternate': {'short_description': 'alternate short description'},\n+    }\n+    expected = {\n+        'path': path,\n+        'collection': collection_name,\n+        'entry_points': {\n+            'main': argspec['main'],\n+        }\n+    }\n+    fqcn, doc = obj._build_doc(role_name, path, collection_name, argspec, entrypoint_filter)\n+    assert fqcn == '.'.join([collection_name, role_name])\n+    assert doc == expected\n+\n+\n+def test_rolemixin__build_doc_no_filter_match():\n+    obj = RoleMixin()\n+    role_name = 'test_role'\n+    path = '/a/b/c'\n+    collection_name = 'test.units'\n+    entrypoint_filter = 'doesNotExist'\n+    argspec = {\n+        'main': {'short_description': 'main short description'},\n+        'alternate': {'short_description': 'alternate short description'},\n+    }\n+    fqcn, doc = obj._build_doc(role_name, path, collection_name, argspec, entrypoint_filter)\n+    assert fqcn == '.'.join([collection_name, role_name])\n+    assert doc is None\n+\n+\n+def test_rolemixin__build_doc_empty_collection():\n+    obj = RoleMixin()\n+    role_name = 'test_role'\n+    path = '/a/b/c'\n+    collection_name = ''\n+    argspec = {\n+        'main': {'short_description': 'main short description'},\n+    }\n+    fqcn, doc = obj._build_doc(role_name, path, collection_name, argspec, None)\n+    assert fqcn == role_name\n+    assert doc is not None\n+\n+\n+def test_rolemixin__build_doc_no_entry_point_filter():\n+    obj = RoleMixin()\n+    role_name = 'test_role'\n+    path = '/a/b/c'\n+    collection_name = 'test.units'\n+    argspec = {\n+        'main': {'short_description': 'main short description'},\n+        'alternate': {'short_description': 'alternate short description'},\n+    }\n+    expected = {\n+        'path': path,\n+        'collection': collection_name,\n+        'entry_points': {\n+            'main': argspec['main'],\n+            'alternate': argspec['alternate'],\n+        }\n+    }\n+    fqcn, doc = obj._build_doc(role_name, path, collection_name, argspec, None)\n+    assert fqcn == '.'.join([collection_name, role_name])\n+    assert doc == expected\n",
-  "run_script_path": "/tests/run_script.sh",
-  "parser_script_path": "/tests/parser.py",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
   "test_files": [
     "test/units/cli/test_doc.py"
   ],
@@ -39,7 +39,7 @@
     "artifact_path": "images/69bcba0cd6210e36779bc014.tar.zst",
     "artifact_bytes": 778916938,
     "artifact_sha256": "2d780fca8af8dd558fc28c1c9675ef8ede314644736b9ec84435bf713d9de2f0",
-    "hf_bucket": "kellu-scale/hil-bench-swe-images",
-    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69bcba0cd6210e36779bc014.tar.zst"
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69bcba0cd6210e36779bc014.tar.zst"
   }
 }

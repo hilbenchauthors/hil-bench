@@ -1,7 +1,7 @@
 {
   "blockers": [
     {
-      "id": "```json\nunexpected_layer_handling_policy\n```",
+      "id": "unexpected_layer_handling_policy",
       "type": [
         "contradictory requirements"
       ],
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "```json\nmax_layers_per_manifest\n```",
+      "id": "max_layers_per_manifest",
       "type": [
         "missing parameters"
       ],
@@ -31,7 +31,7 @@
       ]
     },
     {
-      "id": "```json\nfeatures_annotation_requirement_policy\n```",
+      "id": "features_annotation_requirement_policy",
       "type": [
         "ambiguous requirements"
       ],

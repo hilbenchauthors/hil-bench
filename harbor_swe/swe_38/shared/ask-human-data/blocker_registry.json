@@ -1,7 +1,7 @@
 {
   "blockers": [
     {
-      "id": "```text\nmissing_max_active_entries_limit\n```",
+      "id": "missing_max_active_entries_limit",
       "type": [
         "missing parameters"
       ],
@@ -14,7 +14,7 @@
       ]
     },
     {
-      "id": "```text\nambiguous_expired_entry_refresh_failure_behavior\n```",
+      "id": "ambiguous_expired_entry_refresh_failure_behavior",
       "type": [
         "ambiguous requirements"
       ],
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "id": "```text\ncontradiction_non_positive_lifetime_write_policy\n```",
+      "id": "contradiction_non_positive_lifetime_write_policy",
       "type": [
         "contradictory requirements"
       ],

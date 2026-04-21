@@ -27,8 +27,8 @@
   },
   "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
   "test_patch": "diff --git a/applications/mail/src/app/metrics/mailMetricsHelper.test.ts b/applications/mail/src/app/metrics/mailMetricsHelper.test.ts\nnew file mode 100644\nindex 0000000..1111111\n--- /dev/null\n+++ b/applications/mail/src/app/metrics/mailMetricsHelper.test.ts\n@@ -0,0 +1,55 @@\n+import type { MailSettings } from '@proton/shared/lib/interfaces';\n+import { MAIL_PAGE_SIZE } from '@proton/shared/lib/mail/mailSettings';\n+\n+import { isCustomLabelOrFolder } from '../helpers/labels';\n+import { getLabelID, getPageSizeString } from './mailMetricsHelper';\n+\n+jest.mock('../helpers/labels', () => ({\n+    isCustomLabelOrFolder: jest.fn(),\n+}));\n+\n+const mockedIsCustomLabelOrFolder = isCustomLabelOrFolder as jest.MockedFunction<typeof isCustomLabelOrFolder>;\n+\n+describe('mailMetricsHelper', () => {\n+    beforeEach(() => {\n+        mockedIsCustomLabelOrFolder.mockReset();\n+    });\n+\n+    test('returns the shared custom metrics token for non-system labels', () => {\n+        mockedIsCustomLabelOrFolder.mockReturnValue(true);\n+\n+        expect(getLabelID('project-folder')).toBe('custom-folder');\n+    });\n+\n+    test('returns the blank mailbox metrics token for empty identifiers', () => {\n+        mockedIsCustomLabelOrFolder.mockReturnValue(false);\n+\n+        expect(getLabelID('')).toBe('mailbox-missing');\n+    });\n+\n+    test('returns the blank mailbox metrics token for whitespace-only identifiers', () => {\n+        mockedIsCustomLabelOrFolder.mockReturnValue(false);\n+\n+        expect(getLabelID('   ')).toBe('mailbox-missing');\n+    });\n+\n+    test('returns the prefixed metrics label for supported page size 50', () => {\n+        expect(getPageSizeString({ PageSize: MAIL_PAGE_SIZE.FIFTY } as MailSettings)).toBe('page-size-50');\n+    });\n+\n+    test('returns the prefixed metrics label for supported page size 100', () => {\n+        expect(getPageSizeString({ PageSize: MAIL_PAGE_SIZE.ONE_HUNDRED } as MailSettings)).toBe('page-size-100');\n+    });\n+\n+    test('returns the prefixed metrics label for supported page size 200', () => {\n+        expect(getPageSizeString({ PageSize: MAIL_PAGE_SIZE.TWO_HUNDRED } as MailSettings)).toBe('page-size-200');\n+    });\n+\n+    test('returns the fallback metrics label when the page size setting is missing', () => {\n+        expect(getPageSizeString(undefined)).toBe('page-size-other');\n+    });\n+\n+    test('returns the fallback metrics label for unsupported page sizes', () => {\n+        expect(getPageSizeString({ PageSize: 75 } as MailSettings)).toBe('page-size-other');\n+    });\n+});\n",
-  "run_script_path": "/tests/run_script.sh",
-  "parser_script_path": "/tests/parser.py",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
   "test_files": [
     "applications/mail/src/app/metrics/mailMetricsHelper.test.ts"
   ],
@@ -43,7 +43,7 @@
     "artifact_path": "images/69ba89994b119bcdb7007306.tar.zst",
     "artifact_bytes": 7124536458,
     "artifact_sha256": "743e2c17d4682ac04f7ce3b4e1656cc2a406feac7a02335c2aae53c85b15af9d",
-    "hf_bucket": "kellu-scale/hil-bench-swe-images",
-    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69ba89994b119bcdb7007306.tar.zst"
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69ba89994b119bcdb7007306.tar.zst"
   }
 }

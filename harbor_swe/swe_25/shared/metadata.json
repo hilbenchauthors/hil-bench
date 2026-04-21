@@ -21,8 +21,8 @@
   },
   "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
   "test_patch": "diff --git a/internal/storage/cache/cache_test.go b/internal/storage/cache/cache_test.go\nindex d69db2660c..a1b2c3d4e5 100644\n--- a/internal/storage/cache/cache_test.go\n+++ b/internal/storage/cache/cache_test.go\n@@ -99,3 +99,51 @@ func TestGetEvaluationRulesCached(t *testing.T) {\n \tassert.Equal(t, expectedRules, rules)\n \tassert.Equal(t, \"s:er:ns:flag-1\", cacher.cacheKey)\n }\n+\n+func TestGetEvaluationRolloutsCacheStore(t *testing.T) {\n+\tvar (\n+\t\texpectedRollouts = []*storage.EvaluationRollout{{Rank: 1}}\n+\t\tstore            = &common.StoreMock{}\n+\t)\n+\n+\tstore.On(\"GetEvaluationRollouts\", context.TODO(), \"ns\", \"flag-1\").Return(\n+\t\texpectedRollouts, nil,\n+\t)\n+\n+\tvar (\n+\t\tcacher      = &cacheSpy{}\n+\t\tlogger      = zaptest.NewLogger(t)\n+\t\tcachedStore = NewStore(store, cacher, logger)\n+\t)\n+\n+\trollouts, err := cachedStore.GetEvaluationRollouts(context.TODO(), \"ns\", \"flag-1\")\n+\tassert.Nil(t, err)\n+\tassert.Equal(t, expectedRollouts, rollouts)\n+\n+\tassert.Equal(t, \"s:ero:flag-1:ns\", cacher.cacheKey)\n+\tassert.Equal(t, []byte(`[{\"rank\":1}]`), cacher.cachedValue)\n+}\n+\n+func TestGetEvaluationRolloutsCached(t *testing.T) {\n+\tvar (\n+\t\texpectedRollouts = []*storage.EvaluationRollout{{Rank: 1}}\n+\t\tstore            = &common.StoreMock{}\n+\t)\n+\n+\tstore.AssertNotCalled(t, \"GetEvaluationRollouts\", context.TODO(), \"ns\", \"flag-1\")\n+\n+\tvar (\n+\t\tcacher = &cacheSpy{\n+\t\t\tcached:      true,\n+\t\t\tcachedValue: []byte(`[{\"rank\":1}]`),\n+\t\t}\n+\n+\t\tlogger      = zaptest.NewLogger(t)\n+\t\tcachedStore = NewStore(store, cacher, logger)\n+\t)\n+\n+\trollouts, err := cachedStore.GetEvaluationRollouts(context.TODO(), \"ns\", \"flag-1\")\n+\tassert.Nil(t, err)\n+\tassert.Equal(t, expectedRollouts, rollouts)\n+\tassert.Equal(t, \"s:ero:flag-1:ns\", cacher.cacheKey)\n+}\n",
-  "run_script_path": "/tests/run_script.sh",
-  "parser_script_path": "/tests/parser.py",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
   "test_files": [
     "internal/storage/cache/cache_test.go"
   ],
@@ -37,7 +37,7 @@
     "artifact_path": "images/69c2e959963c47b37fc23a76.tar.zst",
     "artifact_bytes": 1689011435,
     "artifact_sha256": "366c02eeed44ead58876c8c1fab69d911c321520b72807c1bbc649becf39e1fb",
-    "hf_bucket": "kellu-scale/hil-bench-swe-images",
-    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c2e959963c47b37fc23a76.tar.zst"
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c2e959963c47b37fc23a76.tar.zst"
   }
 }

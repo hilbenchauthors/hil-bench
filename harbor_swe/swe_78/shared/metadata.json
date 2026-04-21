@@ -20,8 +20,8 @@
   },
   "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
   "test_patch": "diff --git a/internal/server/evaluation/legacy_evaluator_test.go b/internal/server/evaluation/legacy_evaluator_test.go\nindex e0fec51f..308665e8 100644\n--- a/internal/server/evaluation/legacy_evaluator_test.go\n+++ b/internal/server/evaluation/legacy_evaluator_test.go\n@@ -198,6 +198,77 @@ func Test_matchesString(t *testing.T) {\n \t\t\tvalue:     \"nope\",\n \t\t\twantMatch: true,\n \t\t},\n+\t\t// contains-strings (positive substring operator)\n+\t\t{\n+\t\t\tname: \"blocker_positive_operator_contains_strings_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue:     \"foobarbaz\",\n+\t\t\twantMatch: true,\n+\t\t},\n+\t\t{\n+\t\t\tname: \"blocker_positive_operator_contains_strings_no_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue: \"foobaz\",\n+\t\t},\n+\t\t// not-contains-strings (negative substring operator)\n+\t\t{\n+\t\t\tname: \"blocker_negative_operator_not_contains_strings_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"not-contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue:     \"foobaz\",\n+\t\t\twantMatch: true,\n+\t\t},\n+\t\t{\n+\t\t\tname: \"blocker_negative_operator_not_contains_strings_no_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"not-contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue: \"foobarbaz\",\n+\t\t},\n+\t\t// case-insensitive substring (blocker: conflicting_case_sensitivity_requirement)\n+\t\t{\n+\t\t\tname: \"blocker_case_insensitive_contains_strings_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"contains-strings\",\n+\t\t\t\tValue:    \"Bar\",\n+\t\t\t},\n+\t\t\tvalue:     \"foobar\",\n+\t\t\twantMatch: true,\n+\t\t},\n+\t\t// empty evaluated value (blocker: ambiguous_entity_id_contains_behavior)\n+\t\t{\n+\t\t\tname: \"blocker_empty_value_contains_strings_no_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue: \"\",\n+\t\t},\n+\t\t{\n+\t\t\tname: \"blocker_empty_value_not_contains_strings_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"not-contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue:     \"\",\n+\t\t\twantMatch: true,\n+\t\t},\n \t}\n \tfor _, tt := range tests {\n \t\tvar (\n",
-  "run_script_path": "/tests/run_script.sh",
-  "parser_script_path": "/tests/parser.py",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
   "test_files": [
     "internal/server/evaluation/legacy_evaluator_test.go"
   ],
@@ -36,7 +36,7 @@
     "artifact_path": "images/69c1b2144f1a847aabc9ee78.tar.zst",
     "artifact_bytes": 1923201704,
     "artifact_sha256": "3246daa2d8150cbdf2fa08808512db045a0f763a4f976618a517847c34a76b69",
-    "hf_bucket": "kellu-scale/hil-bench-swe-images",
-    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c1b2144f1a847aabc9ee78.tar.zst"
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c1b2144f1a847aabc9ee78.tar.zst"
   }
 }

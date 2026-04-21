@@ -1,7 +1,7 @@
 {
   "blockers": [
     {
-      "id": "```json\nserial_leading_zero_handling\n```",
+      "id": "serial_leading_zero_handling",
       "type": [
         "contradictory requirements"
       ],
@@ -16,7 +16,7 @@
       ]
     },
     {
-      "id": "```json\ntype_field_target_key\n```",
+      "id": "type_field_target_key",
       "type": [
         "ambiguous requirements"
       ],
@@ -31,7 +31,7 @@
       ]
     },
     {
-      "id": "```json\nconflicting_na_value_expectation\n```",
+      "id": "conflicting_na_value_expectation",
       "type": [
         "missing parameters"
       ],

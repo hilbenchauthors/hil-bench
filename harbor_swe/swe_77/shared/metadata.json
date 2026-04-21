@@ -26,8 +26,8 @@
   },
   "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
   "test_patch": "diff --git a/test/units/config/test_manager.py b/test/units/config/test_manager.py\nindex 56ce4f0..d64a7d2 100644\n--- a/test/units/config/test_manager.py\n+++ b/test/units/config/test_manager.py\n@@ -64,12 +64,12 @@ ensure_test_data = [\n ]\n \n ensure_unquoting_test_data = [\n-    ('\"value\"', '\"value\"', 'str', 'env'),\n-    ('\"value\"', '\"value\"', 'str', 'yaml'),\n-    ('\"value\"', 'value', 'str', 'ini'),\n-    ('\\'value\\'', 'value', 'str', 'ini'),\n-    ('\\'\\'value\\'\\'', '\\'value\\'', 'str', 'ini'),\n-    ('\"\"value\"\"', '\"value\"', 'str', 'ini')\n+    ('\"value\"', '\"value\"', 'str', 'default', None),\n+    ('\"value\"', '\"value\"', 'str', os.path.join(curdir, 'test.yml'), 'yaml'),\n+    ('\"value\"', 'value', 'str', cfg_file, 'ini'),\n+    (\"''value''\", \"'value'\", 'str', cfg_file, 'ini'),\n+    ('\"\"value\"\"', '\"value\"', 'str', cfg_file, 'ini'),\n+    ('\"value\"', '\"value\"', 'str', 'ini', None)\n ]\n \n \n@@ -86,9 +86,16 @@ class TestConfigManager:\n     def test_ensure_type(self, value, expected_type, python_type):\n         assert isinstance(ensure_type(value, expected_type), python_type)\n \n-    @pytest.mark.parametrize(\"value, expected_value, value_type, origin\", ensure_unquoting_test_data)\n-    def test_ensure_type_unquoting(self, value, expected_value, value_type, origin):\n-        actual_value = ensure_type(value, value_type, origin)\n+    @pytest.mark.parametrize(\"value, expected_value, value_type, origin, ft\", ensure_unquoting_test_data)\n+    def test_ensure_type_unquoting(self, value, expected_value, value_type, origin, ft):\n+        actual_value = ensure_type(value, value_type, origin, ft)\n         assert actual_value == expected_value\n \n+    def test_value_and_origin_from_ini_string_is_unquoted(self, tmp_path):\n+        cfg_path = tmp_path / 'quoted.cfg'\n+        cfg_path.write_text('[defaults]\\ninikey = \"fromini\"\\n', encoding='utf-8')\n+\n+        manager = ConfigManager(str(cfg_path), os.path.join(curdir, 'test.yml'))\n+        assert manager.get_config_value_and_origin('config_entry') == ('fromini', str(cfg_path))\n+\n     def test_resolve_path(self):\n",
-  "run_script_path": "/tests/run_script.sh",
-  "parser_script_path": "/tests/parser.py",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
   "test_files": [
     "test/integration/targets/config/files/types.env",
     "test/integration/targets/config/files/types.ini",
@@ -48,7 +48,7 @@
     "artifact_path": "images/69c236b1f424c8050d11a201.tar.zst",
     "artifact_bytes": 767034828,
     "artifact_sha256": "fb5415cd6e05a61866c87896719a2d6774f578cfe8ce08d6e13483aa2c8631cb",
-    "hf_bucket": "kellu-scale/hil-bench-swe-images",
-    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c236b1f424c8050d11a201.tar.zst"
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c236b1f424c8050d11a201.tar.zst"
   }
 }

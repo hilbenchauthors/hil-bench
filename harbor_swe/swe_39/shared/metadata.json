@@ -22,8 +22,8 @@
   },
   "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
   "test_patch": "diff --git a/persistence/album_postscan_test.go b/persistence/album_postscan_test.go\nnew file mode 100644\nindex 00000000..efacb44d\n--- /dev/null\n+++ b/persistence/album_postscan_test.go\n@@ -0,0 +1,50 @@\n+package persistence\n+\n+import (\n+\t\"testing\"\n+\n+\t\"github.com/navidrome/navidrome/conf\"\n+\t\"github.com/navidrome/navidrome/consts\"\n+\t\"github.com/navidrome/navidrome/model\"\n+)\n+\n+func TestPostScan_NormalizedMode_ZeroSongCount(t *testing.T) {\n+\tconf.Server.AlbumPlayCountMode = consts.AlbumPlayCountModeNormalized\n+\tdba := dbAlbum{Album: &model.Album{ID: \"1\", Name: \"name\", SongCount: 0, Annotations: model.Annotations{PlayCount: 50}}, Discs: \"{}\"}\n+\terr := dba.PostScan()\n+\tif err != nil {\n+\t\tt.Fatalf(\"PostScan failed: %v\", err)\n+\t}\n+\tif dba.Album.PlayCount != 0 {\n+\t\tt.Errorf(\"Expected PlayCount=0 when SongCount=0, got %d\", dba.Album.PlayCount)\n+\t}\n+}\n+\n+func TestPostScan_NormalizedMode_FloorRounding(t *testing.T) {\n+\tconf.Server.AlbumPlayCountMode = consts.AlbumPlayCountModeNormalized\n+\t// 19/4 = 4.75, floor = 4, round would give 5\n+\tdba := dbAlbum{Album: &model.Album{ID: \"1\", Name: \"name\", SongCount: 4, Annotations: model.Annotations{PlayCount: 19}}, Discs: \"{}\"}\n+\terr := dba.PostScan()\n+\tif err != nil {\n+\t\tt.Fatalf(\"PostScan failed: %v\", err)\n+\t}\n+\t// floor(4.75) = 4, round(4.75) = 5\n+\tif dba.Album.PlayCount != 4 {\n+\t\tt.Errorf(\"Expected PlayCount=4 (floor of 4.75), got %d\", dba.Album.PlayCount)\n+\t}\n+}\n+\n+func TestPostScan_NormalizedMode_CompilationAlbum(t *testing.T) {\n+\tconf.Server.AlbumPlayCountMode = consts.AlbumPlayCountModeNormalized\n+\t// Compilation album with PlayCount=20, SongCount=5\n+\t// Even though Compilation=true, normalization MUST apply: 20/5 = 4\n+\tdba := dbAlbum{Album: &model.Album{ID: \"1\", Name: \"Greatest Hits\", SongCount: 5, Compilation: true, Annotations: model.Annotations{PlayCount: 20}}, Discs: \"{}\"}\n+\terr := dba.PostScan()\n+\tif err != nil {\n+\t\tt.Fatalf(\"PostScan failed: %v\", err)\n+\t}\n+\t// Normalization must apply to compilations: 20/5 = 4\n+\tif dba.Album.PlayCount != 4 {\n+\t\tt.Errorf(\"Expected PlayCount=4 for compilation album (20/5), got %d\", dba.Album.PlayCount)\n+\t}\n+}\n",
-  "run_script_path": "/tests/run_script.sh",
-  "parser_script_path": "/tests/parser.py",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
   "test_files": [
     "persistence/album_repository_test.go"
   ],
@@ -38,7 +38,7 @@
     "artifact_path": "images/69bc770c46c091045f6a9348.tar.zst",
     "artifact_bytes": 1032480447,
     "artifact_sha256": "4788132dd4ca8782cdcbd247d7787711d83031beeca5ffa4830d5ba610e2c453",
-    "hf_bucket": "kellu-scale/hil-bench-swe-images",
-    "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69bc770c46c091045f6a9348.tar.zst"
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69bc770c46c091045f6a9348.tar.zst"
   }
 }
