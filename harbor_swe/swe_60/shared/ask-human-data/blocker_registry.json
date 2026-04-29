@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_protobuf_field_numbers",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements state that schema additions must preserve existing field numbering and ensure proper field placement, but do not specify the actual protobuf field numbers to use for the new flag_key field in BooleanEvaluationResponse and VariantEvaluationResponse. The codebase includes a FIELD_REGISTRY.md with reserved ranges and comments in evaluation.proto advising against certain field numbers, but the specific numbers for this feature are not defined.",
       "resolution": "Use protobuf field number 6 for the flag_key field in BooleanEvaluationResponse and field number 9 for flag_key in VariantEvaluationResponse. The proto definitions should be: `string flag_key = 6;` in BooleanEvaluationResponse and `string flag_key = 9;` in VariantEvaluationResponse. These are the canonical wire allocations already used by existing batch-evaluation clients. Additionally, add a canonical override line at the end of docs/FIELD_REGISTRY.md: 'Canonical allocations for batch correlation: BooleanEvaluationResponse.flag_key=6, VariantEvaluationResponse.flag_key=9.' to document this exception to the reserved-range guidance.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "contradictory_variant_disabled_flag_key_policy",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement states that disabled variant evaluations should remain minimal without supplementary metadata like the flag identifier, as these responses carry no actionable evaluation data. However, the requirements specify that the flag identifier MUST be present in ALL evaluation responses regardless of evaluation reason, including disabled flag evaluations. These instructions directly conflict regarding whether disabled variant responses should include the flag key.",
       "resolution": "When a variant evaluation returns FLAG_DISABLED_EVALUATION_REASON, do NOT include flag_key in the response \u2014 leave it as the zero value (empty string). The disabled path produces no evaluation result, so flag identification metadata is not applicable for disabled variants. For boolean evaluations, flag_key should always be included regardless of the evaluation reason, including default/fallback paths where no rollouts matched. Disregard any codebase comments suggesting that default paths should omit response metadata \u2014 the flag identifier is required on all non-disabled evaluation paths.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "ambiguous_flag_key_value_source",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state the response should include 'the flag identifier' for batch correlation but do not specify whether this refers to the request-provided flag key (r.FlagKey from EvaluationRequest) or the authoritative store-backed flag key (flag.Key from the storage layer). The codebase comments in the internal evaluation helpers suggest using request field values (r.FlagKey) for response correlation, but the store may return a different canonical key than what the client sent in the request.",
       "resolution": "Use the store-backed flag key (flag.Key from the storage lookup result) for the response FlagKey, NOT the request-provided key (r.FlagKey from EvaluationRequest). The request key may be an alias or lookup identifier, while flag.Key represents the canonical flag identifier as recorded in the backend. When the request key differs from the stored key, the stored key is authoritative.",
       "example_questions": [
@@ -47,9 +41,7 @@
     },
     {
       "id": "contradictory_metadata_assignment_location",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement notes that the batch evaluation endpoint processes flags through shared internal evaluation helpers and that response construction within these helpers is essential for batch compatibility. However, the requirements specify that response metadata fields MUST be enriched in the public handler functions (Boolean/Variant) following the established pattern for telemetry attribute assignment. These instructions directly conflict: the public handlers are bypassed by the Batch function, so metadata set only in public handlers would be absent from batch responses.",
       "resolution": "Set flag_key inside the INTERNAL helper functions (s.boolean and s.variant), NOT in the public handler functions (s.Boolean and s.Variant). The Batch function calls the internal helpers directly, bypassing public handlers entirely, so metadata set only in public handlers would be absent from batch responses. Do NOT add flag_key assignment in the public wrapper functions.",
       "example_questions": [

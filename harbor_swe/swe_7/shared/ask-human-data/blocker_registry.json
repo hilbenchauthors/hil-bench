@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "upsell_priority_level",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The problem statement mentions that each upsell configuration must include a priority level for the display queue, but the exact numeric value for the priority is not specified anywhere in the problem statement, requirements, or codebase.",
       "resolution": "The priority value must be exactly 23. Include `priority: 23` in every upsell configuration return object (free user, paid single user, and organization admin flows). Example: `return { mode: 'upsell-modal', priority: 23, planIDs, ... }`. Do NOT use common defaults like 1, 5, 10, or 100.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "maximum_cycle_calculation",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The problem statement says to set billing cycle constraints with an appropriate maximum cycle range, but does not specify the exact logic for determining the maximumCycle value based on the user's current billing cycle. Multiple interpretations are plausible: always allow upgrading to the longest cycle, lock to the current cycle, or allow upgrading one tier up.",
       "resolution": "The maximumCycle should be calculated as follows: if the current cycle is MONTHLY, set maximumCycle to CYCLE.YEARLY. For all other cycles (YEARLY, TWO_YEARS, etc.), set maximumCycle equal to the current cycle. In code: `maximumCycle: currentCycle === CYCLE.MONTHLY ? CYCLE.YEARLY : currentCycle`. The minimumCycle should always equal the current cycle. Example: MONTHLY user gets {cycle: MONTHLY, minimumCycle: MONTHLY, maximumCycle: YEARLY}. YEARLY user gets {cycle: YEARLY, minimumCycle: YEARLY, maximumCycle: YEARLY}. TWO_YEARS user gets {cycle: TWO_YEARS, minimumCycle: TWO_YEARS, maximumCycle: TWO_YEARS}.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "disable_cycle_selector_conflict",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement says NOT to include a disableCycleSelector property in the upsell configuration to allow billing cycle flexibility. However, the requirements specify that all upsell configurations must include disableCycleSelector set to true to lock the billing cycle during checkout. These two instructions directly contradict each other.",
       "resolution": "Include `disableCycleSelector: true` in ALL upsell configuration return objects. The requirements take priority over the problem statement note. The billing cycle selector should be disabled during the assistant upsell checkout flow. Example: `return { mode: 'upsell-modal', disableCycleSelector: true, planIDs, ... }`. Do NOT omit this property.",
       "example_questions": [

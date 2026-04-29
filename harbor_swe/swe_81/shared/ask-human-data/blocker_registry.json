@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "auth_salt_minimum_length",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The exact minimum salt length for token-based Subsonic authentication is not specified; security policies vary (e.g. 4, 6, 8, or 12 characters), and the correct value for this organization is not stated.\n",
       "resolution": "Token-based authentication must require `len(salt) >= 6`; a five-character salt must be rejected, and a six-character salt must be accepted when the rest of the credentials are valid.\n",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "successful_auth_login_tracking",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The requirements say to make the authentication lifecycle consistent across API surfaces, but they also say not to introduce new behavior or reporting. If a processing step exists on one API surface but not on another, does adding it to the second surface count as \"new behavior\" that should be avoided, or as a bug fix that restores intended parity?\n",
       "resolution": "Successful authentication must refresh an existing per-user activity state by calling UpdateLastLoginAt directly inside the authenticate middleware function after credentials are validated, rather than relying on a separate middleware in the router chain.",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "lookup_failure_placeholder_auth",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The task requires invalid or incomplete authentication attempts to be rejected consistently, but it does not define whether authentication may continue when user resolution yields no concrete user record, such as a failed lookup, zero-value user, empty user, or placeholder state. Multiple handling strategies are possible from the visible text.",
       "resolution": "When user lookup fails, authentication must be rejected and must not succeed through a zero-value, empty, or placeholder user state. Additionally, after successful lookup and credential validation, the authenticate middleware must verify that the resolved user has a non-empty ID; a user with an empty ID must be rejected as a placeholder state even if the lookup returned no error.",
       "example_questions": [

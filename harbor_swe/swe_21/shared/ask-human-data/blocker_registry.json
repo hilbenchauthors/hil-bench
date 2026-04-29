@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_loudness_normalization_definition",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The text requires gain values from multiple tag formats to be normalized to the application's expected loudness reference, but it does not define the exact conversion rule between the numeric representations. Multiple mathematically reasonable conversions exist, which blocks a uniquely correct implementation.",
       "resolution": "R128 gain tag values are Q7.8 fixed-point integers and must be converted to dB by dividing by 256.0, then applying a fixed +4.637 dB offset to align with the application's ReplayGain reference. ReplayGain gain tag values are already in the application's reference and must be used directly as parsed floats (no additional offset).\n",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "ambiguous_gain_processing_stage",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "Gain tags may contain multiple values for the same key. The text does not define which value should be used for gain calculation, and multiple reasonable choices exist (first value, last value, or rejecting multi-valued tags), which leads to incompatible behavior.",
       "resolution": "If a gain tag key contains multiple values, the scanner must use the last value in the list for parsing and normalization.\n",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "conflicting_compatibility_vs_new_format_support",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The requirements state that when both gain formats are present the scanner must prefer the alternative format, and also that it must prefer the ReplayGain-style value to preserve existing externally observed behavior. When both formats are present for the same logical field, these instructions cannot both be satisfied without a defined preference policy.",
       "resolution": "When both formats are present, the preference policy is field-specific: album gain must prefer ReplayGain, while track gain must prefer R128. If the preferred format for a field is absent, the scanner must use the other format. ",
       "example_questions": [

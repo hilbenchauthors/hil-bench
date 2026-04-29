@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_modal_focus_restoration_scope",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The searchForScheduled interface accepts handleShowModal(ownProps: unknown), but the exact callback key within ownProps that the modal host uses to restore focus after dismissal is not specified.",
       "resolution": "Pass { isMessage, onCloseCustomAction: () => setContainFocus?.(true) } to handleShowModal and call setContainFocus?.(false) immediately before it. The required restoration key is onCloseCustomAction \u2014 do NOT use onClose, afterClose, or any other key.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "from_spam_notification_excludes_trash",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements say getNotificationTextMoved should generate text for moves originating from Spam, but do not specify whether this applies to all destination folders or excludes Trash.",
       "resolution": "getNotificationTextMoved must check both fromLabelID === SPAM AND folderID !== TRASH for the \"not spam list\" notification. Moving from Spam to Trash is a deletion that should produce the default \"moved to Trash\" text; only non-Trash destinations get the \"not spam\" notification.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "scheduled_evaluation_scope_trash_only",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement says scheduled-move handling applies \"when moving exclusively scheduled items to Trash\", but the requirements say searchForScheduled should evaluate scheduled-selection outcomes \"for the move path being handled\", suggesting all destinations.",
       "resolution": "searchForScheduled must only evaluate scheduled items when folderID === TRASH; for all other move destinations, the function returns immediately without calling setCanUndo or showing a modal.",
       "example_questions": [

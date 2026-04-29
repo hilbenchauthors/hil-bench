@@ -202,6 +202,7 @@ def log_question(question: str, response: str, blocker_name: str | None):
 
 @mcp.tool()
 def ask_human(question: str) -> str:
+    """Ask a specific question about implementation details or data requirements when facing uncertainty. Returns guidance for known blockers or 'irrelevant question' if no match. Use only for targeted, well-formed questions about one topic at a time."""
     if not _blocker_registry:
         log_question(question, CANT_ANSWER, None)
         return CANT_ANSWER

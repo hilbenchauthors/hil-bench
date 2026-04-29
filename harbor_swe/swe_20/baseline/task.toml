@@ -16,6 +16,7 @@ timeout_sec = 1800.0
 timeout_sec = 7200.0
 
 [environment]
+docker_image = "hilbench-swe:69b17d8ea32d331e2b766dbb"
 build_timeout_sec = 1200.0
 cpus = 4
 memory_mb = 8192

@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_max_input_length",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements state that inputs longer than the documented maximum must be rejected but do not specify the maximum character count or whether length is measured on the raw string or after stripping whitespace.",
       "resolution": "Use a maximum length of 255 characters as common `CHAR` var. Measure length on the raw string with no strip: if len(str(number)) > 255, raise ValueError before parsing. Example: '10 MB' followed by 250 spaces (total 255) is accepted; 256 characters is rejected. Counter-example: do not strip leading/trailing whitespace before the length check. Code: if len(str(number)) > 255: raise ValueError(...).",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "ambiguous_natural_language_unit_matching",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements refer to natural-language unit phrasing without specifying whether spelled-out units must be singular only, may include plural forms, or should be normalized (e.g. by stripping trailing 's').",
       "resolution": "Accept only exact singular full-word tokens from the predefined VALID_UNITS mapping (e.g. 'gigabyte', 'megabyte'). Do not add plural entries and do not normalize by stripping trailing 's'. Example: '2 gigabyte' succeeds; '2 gigabytes' must raise ValueError. Counter-example: do not accept 'gigabytes' or implement rstrip('s') to match singular.",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "contradictory_unit_mode_ambiguous_token",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement contains two conflicting directives for ambiguous unit-token handling under unit_mode. In Expected Results, it says strict byte-oriented interpretation for ambiguous tokens should only be used when unit_mode is legacy, while in Requirements it says this behavior should only be used when unit_mode is strict.",
       "resolution": "For ambiguous two-character unit tokens ending in `b` or `B` where the first character is a valid size prefix (`K`, `M`, `G`, `T`, `P`, `E`, `Z`, `Y`), resolve semantics uniformly across all prefixes instead of special-casing only `mb`. Explicit uppercase forms remain non-ambiguous and keep their fixed meaning (`XB` as byte-oriented and `Xb` as bit-oriented), while lowercase or mixed-case ambiguous forms such as `kb`, `kB`, `mb`, `mB`, `gb`, and `gB` must be resolved by `unit_mode`: interpret them as bytes in `legacy` and `si`, and interpret them as bits in `strict`, `compat`, and `iec` (when returning bytes with `isbits=False`, use the bit-to-byte conversion behavior `int(round(num * (limit // 8)))`). This ensures valid abbreviated inputs like `1 Kb` are accepted and that ambiguous abbreviations like `1 kb` and `1 gb` no longer fall through to invalid-unit errors. Example: `human_to_bytes('1 kb', unit_mode='legacy') == 1024` and `human_to_bytes('1 kb', unit_mode='compat') == 128`; likewise `human_to_bytes('1 gb', unit_mode='si') == 1073741824` and `human_to_bytes('1 gb', unit_mode='iec') == 134217728`. Counter-example: do not implement mode-based ambiguity resolution only for `mb` while rejecting `kb` and `gb`.",
       "example_questions": [

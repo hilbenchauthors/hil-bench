@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "upgrade_deps_depth_limit",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The maximum dependency depth at which upgrades are applied is not specified. It is unclear whether transitive dependencies at all levels are upgraded or only direct dependencies.",
       "resolution": "Limit upgrade propagation to depth 1. Track each collection's dependency level in a `_dep_depth` dictionary initialized in `__init__` with `user_requirements` FQCNs set to depth 0. Propagate depth in `get_dependencies` by setting each new dependency's depth to parent's depth + 1. Skip upgrades for transitive dependencies beyond direct (depth > 1). Root collections are depth 0, their direct dependencies are depth 1, and anything deeper keeps the installed version.",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "upgrade_candidate_version_limit",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirement to resolve upgrades efficiently is ambiguous. Multiple valid strategies exist: (1) limit by version count, (2) limit by version age/recency, (3) use API pagination boundaries, or (4) evaluate all versions with internal optimization. The strategy and parameters are unspecified.",
       "resolution": "Use version count limiting: evaluate at most 25 candidate versions. When finding upgrade matches, slice the sorted version list to keep only the 25 most recent entries before evaluation.",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "upgrade_source_fallback_depth",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The PS implies checking all configured Galaxy servers to find the absolute latest version, but the requirements say to respect server priority and avoid querying unnecessary sources. These goals conflict when multiple servers have different versions.",
       "resolution": "Restrict to primary server only. In the `find_matches` method, iterate over `coll_versions` (the list returned by `get_collection_versions`) and keep only versions from the first server encountered in iteration order.",
       "example_questions": [

@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_auth_id_audit_display_length",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements state that authentication IDs in audit entries must be truncated to 'an appropriate prefix length per policy,' but do not specify the exact character count.\n\n\n\n\n",
       "resolution": "Use 7 characters as the authentication ID display length. Example: auth ID '01HXYZ9ABC123' becomes '01HXYZ9' in the audit payload. Implement as a constant of 7.",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "ambiguous_checker_initialization_condition",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirement states that the gRPC server initialization logic must prepare audit handling when appropriate, without defining what condition determines appropriateness, making it impossible to determine under which circumstances the token event status should be evaluated versus assumed.\n\n\n\n\n",
       "resolution": "Initialize the audit checker only when cfg.Audit.Enabled() returns true. Do NOT initialize it unconditionally or gate it on sink presence (len(sinks) > 0). If cfg.Audit.Enabled() is false, skip checker initialization entirely and tokenDeletedEnabled defaults to false.",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "contradictory_auth_method_format",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "One requirement states that the auth method in the token deletion audit payload must conform to a format required by log aggregation consumers, while another states it must conform to a format required by schema consistency, these two directives directly conflict on which representation standard should be applied.\n\n",
       "resolution": "Include BOTH fields: auth_method (short form, e.g. 'token') AND auth_method_enum (enum string, e.g. 'METHOD_TOKEN'). Apply both conditions. Example (method fields only): {\"auth_method\": \"token\", \"auth_method_enum\": \"METHOD_TOKEN\"}. Do NOT use only one form.",
       "example_questions": [

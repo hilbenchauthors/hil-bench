@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_default_value_for_max_idle_connections",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The problem statement says that the default for idle database connections should have a proper value when not configured, but it does not specify what that value should be. Without an explicit number, the agent cannot determine the correct default for MaxIdleConn in Default().",
       "resolution": "The default value for MaxIdleConn MUST be exactly 4. Example: in Default(), the struct must contain `MaxIdleConn: 4`. Correct example:\\n`databaseConfig{ MaxIdleConn: 4 }`\\nIncorrect examples: `MaxIdleConn: 0`, `MaxIdleConn: 5`, or leaving the field unset.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "missing_default_values_for_open_connections_and_connection_lifetime",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The problem statement requires adding database pool configuration fields and preserving defaults when configuration keys are absent, but it does not specify the default values for the maximum number of open connections or the connection lifetime. Without explicit values, multiple reasonable defaults could be chosen.",
       "resolution": "The Default() configuration MUST set `MaxOpenConn` to exactly 1 and `ConnMaxLifetime` to exactly `1 * time.Second`. Correct example:\\n`databaseConfig{ MaxOpenConn: 1, ConnMaxLifetime: 1 * time.Second }`\\nIncorrect examples include `MaxOpenConn: 10`, `MaxOpenConn: 0`, `ConnMaxLifetime: 30 * time.Second`, or leaving either field unset.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "missing_yaml_key_name_for_database_connection_lifetime",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements mention a connection lifetime configuration but do not clearly define which YAML key must be used to populate ConnMaxLifetime. Several possible key names exist (for example conn_max_lifetime or max_conn_lifetime), and without explicit specification the agent cannot determine the correct key to read.",
       "resolution": "The configuration loader MUST read the connection lifetime from the YAML key `db.pool_conn_ttl`. Example YAML:\\n```\\ndb:\\n  pool_conn_ttl: 30m\\n```\\nThis must map to `ConnMaxLifetime = 30 * time.Minute`. The following keys MUST NOT be used: `db.conn_max_lifetime`, `db.connection_max_lifetime`, or `db.max_conn_lifetime`. If those appear, they must be ignored.",
       "example_questions": [
@@ -47,9 +41,7 @@
     },
     {
       "id": "contradictory_pool_adjustment_when_idle_exceeds_open",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement says that when both pool limits are explicitly configured and MaxIdleConn exceeds MaxOpenConn, MaxOpenConn should be raised to equal MaxIdleConn. However, the requirements say that MaxIdleConn should be capped down to MaxOpenConn instead. These instructions conflict about which value should be adjusted when idle exceeds open.\n",
       "resolution": "When both `max_idle_conn` and `max_open_conn` are explicitly configured and `MaxIdleConn > MaxOpenConn`, set `MaxOpenConn = MaxIdleConn` (raise open to match idle). Do NOT cap `MaxIdleConn` down to `MaxOpenConn`.\nExample YAML:\n```\ndb:\n  max_idle_conn: 20\n  max_open_conn: 10\n```\nResult: `MaxIdleConn = 20`, `MaxOpenConn = 20` (open raised to match idle).\nCounter-example: capping idle down to 10 is WRONG.\n",
       "example_questions": [

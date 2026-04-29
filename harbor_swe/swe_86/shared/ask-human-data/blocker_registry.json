@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "share_availability_cache_ttl",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The feature description mentions caching availability results to reduce load on the share service but never states how long a cached result should remain valid before a fresh request is required. ",
       "resolution": "Cache the boolean result of availability checks per shareId for exactly 17 seconds (17000 milliseconds) from the moment a successful response is obtained, a cached\nresult is valid only while its age is strictly less than 17000ms, and an age of exactly 17000ms (or more) must be treated as expired.\n\nExample: calls at t=0s and t=12s for the same shareId must both reuse the cached value, while  a call at t=19s must trigger a new request, using any other window such as 10seconds, 30seconds, or an unbounded cache is incorrect. ",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "availability_deduplication_key_pattern",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements call for deduplicating repeated availability checks to avoid parallel duplicate calls but never define how to construct the key used to group calls, leaving it unclear whether deduplication is global, per share, or based on some composite pattern.",
       "resolution": "The deduplication key must be an array of length 3: ['driveShareAvailability', 'byShareId', shareId] where shareId is the exact share identifier string passed into isShareAvailable.\n\nExample: for shareId 'abc123', the key must be ['driveShareAvailability', 'byShareId', 'abc123']. \n\nCounterexample: ['isShareAvailable, 'abc123']  is invalid.",
       "example_questions": [
@@ -29,9 +25,7 @@
     },
     {
       "id": "default_share_fallback_selection_order",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The text both states that when the configured default share is unavailable the application should fallback to the most recently accessed share and insists that personal spaces must always take precedence over shared spaces, creating a conflict when the latest accessed share is shared space and there is an older personal space.",
       "resolution": "When the configured default share cannot be used, build the list of candidate fallback shares from all shares that are neither locked nor soft deleted and select exactly one according to this order: first, filter to personal spaces and, if any exists, sort them by lastAccessedAt descending and break ties by shareId ascending, then choose the first entry, if no personal space exists, fall back to non-personal spaces and apply the same lastAccessedAt-descending, shareId-ascending ordering. Treat a share as a personal space if  and only if its type is ShareType.default, add an optional lastAccessedAt?: number field to share and, if lastAccessedAt is missing, number field to  share and, if lastAccessedAt is missing, treat it as 0 for  sorting, and implement this section in userSharesState.getDefaultShareId.\n\nExample: if a personal share last accessed yesterday and a shared space last accessed one minute ago are both available, the personal share must still be selected, whereas an implementation that always picks the most recent share regardless of ownership or that always picks the lexicographically smallest shareId is incorrect.",
       "example_questions": [

@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "ignore_proxy_input_normalization",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The effective configuration relies on interpreting user-provided values that may be expressed in different forms, which can lead to different reasonable interpretations when mapping them into a boolean behavior.",
       "resolution": "For ignore_proxy, only the case-insensitive string values 'true' and 'y' must be interpreted as True. All other values must be interpreted as False, including the strings 'yes' and '1' (they must not be treated as True). Normalization for ignore_proxy must be applied to the raw value as supplied in inventory/vars, not to the value returned by get_option. The framework already coerces strings such as \"yes\" and \"1\" to boolean True before the plugin uses the value, so the plugin must capture the raw value (e.g. in set_options) and apply the strict rule (\u201conly 'true' and 'y' \u2192 True\u201d) to that raw value so that \"yes\" and \"1\" are not treated as True.",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "certificate_validation_precedence",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "Multiple supported inputs can influence certificate validation behavior, and different precedence choices can lead to materially different effective configurations.",
       "resolution": "If cert_validation is set to ignore set cert_validation to False otherwise if a certificate trust path is provided set cert_validation to that path else set cert_validation to True",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "undocumented_input_handling_conflict",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement indicates that the PSRP connection plugin may accept and apply additional connection-related inputs beyond its documented configuration surface. Then it says in expected behaviour that it may still accept and apply additional connection-related inputs but PSRP connection plugin should produce a deterministic and predictable connection configuration, which is contradictory.",
       "resolution": "Treat the documented PSRP connection plugin options as the ONLY supported inputs that may influence the effective connection configuration. Ignore any connection-related inputs provided outside the documented option set (including extra inventory vars/host vars/group vars not mapped to documented options). Do not fail the connection due to unknown/extra inputs; instead, emit a debug-level log entry indicating the ignored key(s).\n\nEmit the \u201cignored key(s)\u201d log using the Display.debug API (the Ansible debug-level method), not display.vvv, display.warning, or any other verbosity level.\n\nEmit a single debug-level log entry that includes or lists all ignored key(s) (e.g. one message containing every key in _extras that is ignored), not one log entry per key.",
       "example_questions": [

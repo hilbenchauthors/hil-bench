@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "default_preference_list",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements state that when preferences is None, the helper must use 'a suitable default ordered list of preferred locale names for reliable English-language output parsing' but do not specify the exact locale names or their order. The problem statement similarly refers only to 'a suitable ordered preference list of locale names' without specifying the exact entries.",
       "resolution": "The exact list you must use for default value is `['C.utf8', 'en_US.utf8', 'en_GB.utf8', 'C', 'POSIX']` in precisely that order. This is the only default list the function should ever use \u2014 do not add entries like `'C.UTF-8'` or `'en_US.UTF-8'`.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "locale_name_comparison_method",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state that locale name formats 'may vary across systems (e.g., C.utf8, C.UTF-8, c.utf8 may refer to the same locale)' and instruct that 'the comparison approach should handle these format variations appropriately.' This creates ambiguity about whether locale matching should use exact string comparison, case-insensitive comparison, or normalization of locale name formats. Multiple interpretations are valid.",
       "resolution": "Use exact, case-sensitive string comparison when checking whether a preferred locale exists among the locales. The correct approach is to iterate over the list with a `for` loop and, for each preference, test membership using `if pref in available:`. The Python `in` operator on a list performs exact matching, meaning `'C.utf8'` will not match `'C.UTF-8'` and `'en_US.utf8'` will not match `'en_us.utf8'`. Do not apply any lowercasing, normalization, or alias resolution before comparing.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "locale_command_environment",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The problem statement requires reliable English-language output parsing when enumerating installed locales, and the requirements say the helper must execute `module.run_command([locale, '-a'])`. However, neither document specifies which locale environment values must be forced for that subprocess invocation, even though those values determine whether the command runs under a stable English locale.",
       "resolution": "When invoking the locale binary, pass an `environ_update` dictionary to `module.run_command` that forces three environment variables to the string `'C'`. The exact call must be `module.run_command([locale, '-a'], environ_update={'LANG': 'C', 'LC_ALL': 'C', 'LC_MESSAGES': 'C'})`. Use exactly these three keys \u2014 `'LANG'`, `'LC_ALL'`, and `'LC_MESSAGES'` \u2014 and set every value to `'C'`.",
       "example_questions": [
@@ -47,9 +41,7 @@
     },
     {
       "id": "contradictory_available_locale_parsing",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement and the requirements have different criteria of how to handle the available locales from stdout: the problem statement set it to avoid any parsing, meanwhile one requirement sets that the locales must be parsed.",
       "resolution": "When `run_command` returns a zero exit code and stdout is non-empty, you must parse the available locales. Build the list with the comprehension `[line.strip() for line in out.strip().splitlines() if line.strip()]` and assign it to a variable named available. Then iterate over the preferences list and return the first preference found in available. If no preferred locale is found in the available list, the function must return `'POSIX'` as the final fallback \u2014 not `'C'`. To achieve this, initialize a variable `found = 'POSIX'` before the command call and `return found` at the very end of the function after the preference loop.",
       "example_questions": [
@@ -60,9 +52,7 @@
     },
     {
       "id": "empty_preferences_behavior",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements specify that when 'preferences is None', the helper must use a default ordered list of locales. However, the specification does not define what should happen when preferences is an explicitly empty list ([]). The behavior for an empty list versus None is ambiguous: an empty preferences list could trigger the default preference behavior or could be treated as a valid but empty list of preferences resulting in no matches.",
       "resolution": "Treat an empty preferences list identically to `None`. Use the falsy check `if not preferences:` rather than `if preferences is None:`. This way, both `None` and `[]` cause the function to assign the default preference list. Do not add any separate handling for empty lists \u2014 the single `if not preferences:` guard is all that is needed.",
       "example_questions": [

@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_when_attribute_value",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements specify that the completion task should be implicit and tagged, but do not specify what value the when attribute should have on this task object.",
       "resolution": "Set the completion task's when to the Python boolean True (not the string 'True', not a Jinja string, not None), e.g. eor_task.when = True, after the task exists as its own object so the playbook layer records that value for conditional evaluation (implicit tasks still inherit parent when if you omit this). Do that assignment explicitly; do not assume implicit or always tags alone substitute for when. Counter-example: leaving when unset or using when = 'True' can leave parent when/conditionals in effect and skip or mis-store the sentinel. Counter-example: do not treat role_complete like meta actions that are documented as rejecting when (e.g. noop-style metas); this sentinel intentionally sets when to the Python boolean True and must not be routed through the same \\\"does not support when\\\" warning path as those actions.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "ambiguous_block_context_initialization",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state that a new block containing the meta: role_complete task should be appended to the compiled block list, but do not specify how the block should obtain its execution context. Blocks require access to a loader for file operations and a variable manager for template resolution, but the requirements do not clarify whether these should be obtained from the role, the play, or through another mechanism.",
       "resolution": "On the wrapper block that will hold the role_complete task, set _loader and _variable_manager from the role instance that is compiling that block (the same role object already has both references). Example in Role.compile: eor_block._loader = self._loader; eor_block._variable_manager = self._variable_manager before you append that block to the compiled task list\u2014same method and same role task-list path where other blocks get _dep_chain/_play, not in a separate handler-only compile path. That assignment on the wrapper block is sufficient for the intended execution context; avoid calling set_loader on the completion task during compile, which can recursively propagate into the role and its dependency graph. Counter-example: sourcing loader or variable manager from the play, omitting them on the block, or initializing a second copy of the sentinel in another compile routine while the task list expects a single tail block.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "contradictory_role_reference_assignment",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement's implementation notes indicate that the _role attribute should be set directly on the task object for meta handler access. However, the requirements state that the completion task should inherit its role association from the parent block following standard task-block relationship patterns. These guidelines conflict on whether the task's _role should be explicitly assigned or obtained through block inheritance.",
       "resolution": "Assign _role on both the completion block and the completion task to the same Role instance (in Role.compile that is usually self) using explicit attribute assignment, e.g. eor_block._role = self and eor_task._role = self, after the task is tied to its block (parent / inner block list) the way your change wires them. Do not rely on Block(..., role=...) or Task(..., role=...) constructor kwargs alone: meta handling reads task._role, and constructor arguments may not populate that field the same way. Explicit eor_task._role is required because execution looks up the role on the task object, not via the block reference. Both assignments are required. Counter-example: only eor_block._role set, or constructor role= without eor_task._role set, so task._role is missing when meta runs.",
       "example_questions": [

@@ -1,3 +1,4 @@
 services:
   main:
+    pull_policy: never
     image: hilbench-swe:69bc79c1e422471cb3f56166

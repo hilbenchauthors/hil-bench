@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_encoding_type_identifier",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The problem statement and requirements indicate that encoding type identifier strings should be used to specify the content transfer encoding, but the exact string identifier for the non-base64 encoding type is not specified anywhere in the task documents. Without knowing the specific identifier string the implementation expects, the function cannot be correctly implemented",
       "resolution": "The encoding type string for the non-base64 encoding must be exactly '7or8bit' (all lowercase, no hyphens, no spaces). Example: {'multipart_encoding': '7or8bit'} is correct. Do NOT use common encoding type names like '7bit', '8bit', 'quoted-printable', 'binary', or 'raw' as identifiers.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "ambiguous_encoding_application_scope",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state that multipart_encoding allows specifying encoding for multipart body parts, but it is unclear whether this applies to all parts including inline content or only to parts that read file data from disk.\n",
       "resolution": "The multipart_encoding parameter must ONLY be applied when reading a file from disk (when filename is provided and content is NOT provided). When content is provided directly as a string, the default encoding behavior must be preserved regardless of any multipart_encoding value. Example: a mapping that provides both filename and content keys such as {'filename': 'a.txt', 'content': 'abc', 'multipart_encoding': '<encoding>'} uses the inline content path and does NOT apply the custom encoder, regardless of the multipart_encoding value specified.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "ambiguous_encoder_integration_method",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state that the encoding transformation should be applied to the MIME part after it has been constructed with the raw file data, and the interfaces state that the returned mechanism should be applied to MIME part objects after construction. However, it is ambiguous whether 'applied after construction' means invoking the encoder as a separate step on the already-constructed part, or integrating the encoder into the part's construction to ensure only the intended encoding is applied. The two approaches may produce different encoded output.",
       "resolution": "The encoder function must be passed as the _encoder keyword argument to the email.mime.application.MIMEApplication() constructor. Example: MIMEApplication(f.read(), _encoder=encoder_func). Do NOT create MIMEApplication with default encoding and then call the encoder separately, as this causes double-encoding where the payload is first base64-encoded by the default constructor and then the Content-Transfer-Encoding header is overwritten without re-encoding the payload.\n",
       "example_questions": [
@@ -47,9 +41,7 @@
     },
     {
       "id": "ambiguous_falsy_encoding_handling",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state that body field mappings may include the multipart_encoding key with no value set, with an empty value, or with the key absent entirely, and that handling must be consistent. However, it is ambiguous whether 'consistent handling' means all three cases (absent key, None, and empty string) should produce identical default behavior, or whether an empty string should be distinguished from None or an absent key since it is an explicitly provided value rather than a missing one.",
       "resolution": "When multipart_encoding is absent from the mapping or explicitly set to None, treat it as 'not specified' and apply base64 encoding as the default. When multipart_encoding is present but set to an empty string (''), treat it as an explicitly provided encoding specification, not as a synonym for 'unset'. In code, use multipart_encoding_str = value.get('multipart_encoding') followed by if multipart_encoding_str is None: multipart_encoding_str = 'base64'. Do NOT use value.get('multipart_encoding') or 'base64' because the or operator treats both None and empty string as falsy, collapsing them into the same default behavior. The distinction matters: None and missing key mean 'not specified' and should default to base64, while empty string is a value that was explicitly provided and must not be silently converted to a default.",
       "example_questions": [

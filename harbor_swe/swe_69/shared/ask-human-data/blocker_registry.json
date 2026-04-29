@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "xattr_compatibility_marker",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The current description says file XAttr payloads must remain compatible with the Drive wire format, but it does not specify which compatibility marker must be included in serialized file attributes.",
       "resolution": "Add exactly `Common.Version: 2` to every file extended-attributes payload produced by `createFileExtendedAttributes`. The field must be numeric, must live under `Common`, and must not be emitted at the root or under `Media`.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "block_sizes_zero_remainder_policy",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The expected block-size layout is unclear for exact chunk boundaries and empty files. The current wording says block sizes should follow the Drive XAttr chunk convention, but it does not define whether a zero remainder should be emitted.",
       "resolution": "Build `Common.BlockSizes` from consecutive `FILE_CHUNK_SIZE` entries plus one final remainder only when the remainder is non-zero. Do not append a trailing `0`. An empty file must produce `[]`, and a file of size `FILE_CHUNK_SIZE * 2` must produce `[FILE_CHUNK_SIZE, FILE_CHUNK_SIZE]`.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "modification_time_representation_split",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The current description says parsed results should match what downstream application code expects, while the current requirement says the parse path should preserve the serialized timestamp representation. That creates a direct conflict for how `Common.ModificationTime` should be represented across create and parse paths.",
       "resolution": "The create/write path must store `Common.ModificationTime` as an ISO-8601 UTC string with millisecond precision, for example `2009-02-13T23:31:30.000Z`. The parse/read path must return `Common.ModificationTime` as a Unix timestamp in milliseconds, for example `1234567890000`.",
       "example_questions": [

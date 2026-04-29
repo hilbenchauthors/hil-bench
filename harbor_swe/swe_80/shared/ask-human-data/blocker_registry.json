@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "delegated_missing_target_placeholder",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "Delegated execution must still render a delegated label even when delegation metadata is present but none of the delegated identity candidates yields a displayable value. The public task surface leaves that fallback delegated token unspecified.\n",
       "resolution": "When delegation metadata is present but no delegated identity can be derived, render the delegated side as unavailable. Delegation metadata is considered present whenever `_ansible_delegated_vars` exists in the result and is not `None`, even if it is an empty dict. Example: `web1 -> unavailable`. Counterexample: `web1`\n",
       "example_questions": [
@@ -16,9 +14,7 @@
     },
     {
       "id": "rendered_label_length_budget",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "Very long host names still need a compact, stable rendering rule in the shared formatter, but the public task surface does not define the exact per-side display budget or the concrete shortening formula that should be used once a name grows too long.\n",
       "resolution": "Shorten each label side independently to at most 18 visible characters. If a side exceeds 18 characters, keep the first 15 characters and append `...`. Example: `abcdefghijklmnopqrst` becomes `abcdefghijklmno...`. Counterexample: truncating the whole combined label instead of each side.\n",
       "example_questions": [
@@ -30,9 +26,7 @@
     },
     {
       "id": "delegated_identity_precedence",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "Delegated metadata may expose more than one candidate identity for the delegated side, but the public task surface does not define which candidate becomes canonical when several are present. Several reasonable precedence policies remain plausible.\n",
       "resolution": "Choose the first non-empty delegated identity in this order: `delegated_host_name`, `ansible_hostname`, `ansible_delegated_host`. No other keys, including `ansible_host`, are consulted. Trim surrounding whitespace from each candidate before testing for emptiness, and use the trimmed value as the returned identity. Example: if `delegated_host_name` is relay and `ansible_delegated_host` is `delegate.example.com`, use relay. If `ansible_delegated_host` is `delegate-host`, use delegate-host (trimmed).",
       "example_questions": [
@@ -44,9 +38,7 @@
     },
     {
       "id": "readability_vs_roundtrip_contract",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The public task surface simultaneously asks the formatter to preserve the historical raw `primary -> delegated` presentation operators recognize in normal callback output and to emit an unambiguous combined label when a rendered side itself contains delimiter-like or escape-sensitive text. Those instructions cannot both be satisfied by leaving every delegated label side unwrapped in all cases.\n",
       "resolution": "Render simple names as `primary -> delegated`. If a final label side contains ` -> `, a backslash, or a single quote, wrap that side in single quotes and escape backslashes as `\\\\` and single quotes as `\\'` before joining. Example: `db -> 'edge\\'one'`. Counterexample: leaving `db -> edge -> one` unquoted.\n",
       "example_questions": [

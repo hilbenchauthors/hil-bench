@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_namespace_key_encoding_rule",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The task allows optional namespace input to separate singleton domains, but it does not specify the exact cache-key format for combining the static type with the namespace. Different choices for type identity, whitespace normalization, blank namespace handling, and delimiters would all produce different reuse behavior.",
       "resolution": "Build `baseKey` from the static type only using `reflect.TypeOf((*T)(nil)).Elem().String()`. If a namespace string is provided, trim surrounding whitespace before building the storage key. If the trimmed namespace is empty, use `baseKey` only. If non-empty, append it using the exact delimiter `::` (two colons): `baseKey + \\\"::\\\" + trimmedNamespace`.",
       "example_questions": [
@@ -16,9 +14,7 @@
     },
     {
       "id": "ambiguous_namespace_arguments_policy",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The API allows optional namespace arguments but does not define behavior when callers pass more than one namespace argument. Reasonable implementations can ignore extras, merge values, use first/last, or reject the call, and each choice changes which singleton domain is selected and whether invalid input can silently create or reuse the wrong instance.",
       "resolution": "`GetInstance` accepts at most one namespace argument. If more than one namespace argument is supplied, it must panic immediately and must not execute the constructor or create or reuse any singleton for that call.",
       "example_questions": [
@@ -30,9 +26,7 @@
     },
     {
       "id": "contradictory_nil_pointer_caching_policy",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement says a nil pointer/interface result should allow later retries, while the requirements state nil should be cached as a valid singleton state. These instructions directly conflict on whether nil marks successful singleton construction.",
       "resolution": "For nilable result kinds (`pointer`, `interface`, `map`, `slice`, `chan`, `func`), if the constructor returns nil, that result must not be cached. This includes interface-typed constructors that return `nil` directly, such as `func() error { return nil }`. Return nil to the caller, but keep the key unresolved so a later non-nil constructor result can establish the singleton.",
       "example_questions": [

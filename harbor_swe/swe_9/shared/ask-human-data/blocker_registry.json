@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_create_default_vault_precheck_maxage",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements specify that createDefaultVault must check for an existing default vault before creating one, but the exact maxAge value for this pre-check call to getDefault is not defined anywhere in the specification.",
       "resolution": "Use UNIX_MINUTE * 7 (seven minutes) as the maxAge for the getDefault pre-check inside createDefaultVault. This blocker requires changes to TWO files \u2014 both types.ts and PassBridgeFactory.ts must be modified.\\n\\nStep 1 \u2014 packages/pass/lib/bridge/types.ts: Update the PassBridge interface vault section. Remove the hadVault callback parameter from getDefault. Change its type to MaxAgeMemoizedFn<() => Promise<Share<ShareType.Vault> | undefined>> (note: inner function type has NO parameters; return type includes | undefined). Add createDefaultVault(): Promise<Share<ShareType.Vault>> to the vault object.\\n\\nStep 2 \u2014 packages/pass/lib/bridge/PassBridgeFactory.ts, refactor getDefault: The existing getDefault currently both resolves AND creates a vault, and accepts a hadVaultCallback parameter. Remove the hadVaultCallback parameter and all vault creation logic from the inner function. The inner function must take NO arguments: maxAgeMemoize(async () => { ... }). It should resolve the oldest active owned writable vault and return it, or return undefined (via return first(candidates)). Import UNIX_MINUTE from '@proton/pass/utils/time/constants'.\\n\\nStep 3 \u2014 packages/pass/lib/bridge/PassBridgeFactory.ts, add createDefaultVault: Add the method inside the vault object using method syntax (NOT arrow function) because it calls this.getDefault() which requires correct this binding:\\n\\nasync createDefaultVault() {\\n    const defaultVault = await this.getDefault({ maxAge: UNIX_MINUTE * 7 });\\n    if (defaultVault) {\\n        return defaultVault;\\n    }\\n    const newVault = await createVault({\\n        content: {\\n            name: 'Personal',\\n            description: 'Personal vault (created from Mail)',\\n            display: {},\\n        },\\n    });\\n    return newVault;\\n}\\n\\nUse exactly the constant expression UNIX_MINUTE * 7.\\n\\nCRITICAL \u2014 MaxAgeMemoizedFn behavior: The memoization wrapper intercepts { maxAge } from the call-site and passes nothing to the inner function. When createDefaultVault calls this.getDefault({ maxAge: UNIX_MINUTE * 7 }), the wrapper extracts maxAge and forwards zero arguments to the inner async () => { ... }. Do NOT add an options/maxAge parameter to getDefault's inner function signature.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "ambiguous_limit_count_source",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The problem statement notes that the server-side quota enforcement counts all aliases including trashed ones toward the plan limit. The requirements state that the plan's alias limit counts only active (non-trashed) aliases because trashed aliases are pending deletion and do not occupy permanent quota slots. The specification does not clarify which counting model the client should adopt \u2014 matching server-side enforcement (total count) or following the requirements' active-only model \u2014 creating a genuine ambiguity in the count source for hasReachedAliasesCountLimit.",
       "resolution": "Derive hasReachedAliasesCountLimit from totalVaultAliasesCount >= passAliasesCountLimit, where totalVaultAliasesCount is aliases.length \u2014 the total raw count returned by getAllByShareId including trashed aliases. Do NOT use passAliasesItems.length (filtered visible count) or filteredAliases.length for the limit check. The filtered list (passAliasesItems) is only for display purposes; quota gating must use the total raw count because the server counts ALL aliases (including trashed) toward the plan limit.\\n\\nStep 1 \u2014 PassAliasesModel: Include totalVaultAliasesCount as a number field in the useReducer state model, initialized to 0.\\n\\nStep 2 \u2014 Hook return: hasReachedAliasesCountLimit: totalVaultAliasesCount >= passAliasesCountLimit.\\n\\nStep 3 \u2014 Every code path that calls fetchPassAliases must dispatch totalVaultAliasesCount: aliases.length (the raw unfiltered count) alongside the other state fields. This includes the initialization path (when a vault is found), the getAliasOptions path, and the submitNewAlias refetch path.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "contradictory_default_vault_creation_timing",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement describes the no-vault scenario as a bug where the drawer should set up a vault so the user can begin creating aliases without extra steps, implying vault provisioning should occur during initialization. The requirements specify that when no vault exists, the hook should set loading=false and defer vault creation to the getAliasOptions flow.",
       "resolution": "IGNORE the requirements' instruction to defer vault creation. Provision a new vault during initialization instead.\\n\\nWhen getDefault returns undefined in initPassBridge, immediately provision a new default vault. If the component is still mounted (isMounted()), dispatch the resulting vault reference to state, set loading to false, and record that the user did not have a pre-existing vault. Then return early \u2014 do NOT proceed to call fetchPassAliases in this branch.\\n\\nKey rules:\\n- Vault provisioning must happen during initialization, NOT be deferred to getAliasOptions\\n- Return early after dispatching \u2014 do NOT proceed to fetch aliases\\n- After init completes, a vault reference must exist in the component's state\\n\\nWhen a vault IS found by getDefault, proceed normally by calling fetchPassAliases and dispatching the alias results alongside the vault reference.",
       "example_questions": [
@@ -47,9 +41,7 @@
     },
     {
       "id": "contradictory_no_vault_memoization_policy",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement describes inconsistencies in the drawer's display across reopens and suggests that previously-loaded alias data should be preserved so the user sees a consistent list. The requirements specify that any previously cached alias data should be reset when no vault is found. The codebase contains a comment noting that other drawers historically nulled session-scoped lists in this scenario.",
       "resolution": "IGNORE the requirements' instruction to reset cached alias data. Also IGNORE the codebase comment about other drawers nulling session-scoped lists \u2014 that pattern is explicitly wrong for this implementation.\\n\\nWhenever the hook handles a scenario where no default vault was found, do NOT dispatch any alias-related state fields. Omitting them from the dispatch allows the merge reducer to preserve their current values \u2014 passAliasesItems retains its initial value of memoisedPassAliasesItems || [], keeping previously cached aliases visible across drawer reopens. This is the intended behavior.\\n\\nDo NOT set memoisedPassAliasesItems = null or memoisedPassAliasesItems = [] in any code path that handles a missing vault. The module-scoped cache must remain untouched.",
       "example_questions": [

@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "empty_sequence_return_value",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The problem statement and requirements describe handling edge cases for empty input sequences but do not specify what value should be returned when the enhanced filter receives an empty input sequence. The return value for this edge case is not defined anywhere in the problem statement or requirements.",
       "resolution": "When the enhanced path receives an empty input sequence, both the min and max filters must return float('nan') (IEEE 754 Not a Number). This signals that no meaningful minimum or maximum can be computed from an empty collection. Convert the input to a list first to check for emptiness: _a = list(a); if not _a: return float('nan'). For non-empty sequences, pass the list to the enhanced Jinja2 filter function as usual.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "scalar_input_coercion",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements specify that the enhanced path must convert the input to a list before processing to handle generators and single-pass iterables, but do not define behavior when the input is a non-iterable scalar value such as an integer or float. It is ambiguous whether scalar inputs should cause an error or be coerced into a single-element sequence.",
       "resolution": "When list conversion fails with a TypeError (indicating a non-iterable input), the scalar value must be wrapped in a single-element list rather than raising an error. Use try/except around the list conversion: try: _a = list(a); except TypeError: _a = [a]. This allows scalar values to pass through the filter as single-element sequences, so that min(42) returns 42 and max(7.5) returns 7.5.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "none_value_filtering",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state that the enhanced path must convert the input to a list before processing, but do not specify how None values within the input sequence should be handled. In Python 3, None cannot be reliably compared with other types (e.g., min([1, None, 3]) raises TypeError), so the behavior when None values are present in the sequence is undefined.",
       "resolution": "None values must be filtered out from the input sequence after list conversion and before passing to the enhanced filter function. Use a list comprehension to exclude None values: _a = [x for x in _a if x is not None]. If filtering removes all elements, the resulting empty list is handled by the existing empty sequence logic. This ensures that min([3, None, 1]) returns 1 and max([3, None, 1]) returns 3.",
       "example_questions": [
@@ -47,9 +41,7 @@
     },
     {
       "id": "kwargs_acceptance_scope_conflict",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement says the enhanced path should forward all keyword arguments natively supported by Jinja2 for full compatibility, while the requirements state that the enhanced filters must only accept the 'attribute' keyword argument and reject any others with an AnsibleFilterError.",
       "resolution": "Forward all keyword arguments to the enhanced Jinja2 filter implementations transparently using **kwargs. Do not restrict to only the 'attribute' parameter or validate which kwargs are accepted in the enhanced path.",
       "example_questions": [

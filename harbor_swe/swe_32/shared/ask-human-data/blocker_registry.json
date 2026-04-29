@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_maximum_timeout_ceiling",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The specs require timeout validation but do not define the exact maximum accepted timeout value.",
       "resolution": "Maximum timeout value is 7200 seconds (2 hours). Any --task-timeout value above 7200 must be rejected during validation in _play_ds. The validation error must be exactly: 'The task timeout value (%d) exceeds the maximum allowed timeout of 7200 seconds' where %d is the invalid value. Boundary examples: --task-timeout=7200 is valid; --task-timeout=7201 must be rejected. Place this rule in a shared `validate_task_timeout(value)` function in option_helpers.py (value is already an int from argparse; do not add string-to-int coercion). The console `do_timeout` must also call this function after its own basic input checks, catching any `AnsibleOptionsError` and forwarding the message via `display.error(to_text(exc))`.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "missing_minimum_timeout_threshold",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The specs do not define the exact minimum accepted timeout when timeout is enabled (non-zero).",
       "resolution": "Minimum timeout value when enabled is 5 seconds. Zero still means disabled. Positive values 1 through 4 must be rejected during validation in _play_ds, while 5 seconds is the smallest valid enabled timeout. The validation error must be exactly: 'The task timeout value (%d) is too small; enabled timeouts must be 0 (disabled) or at least 5 seconds' where %d is the invalid value. Examples: --task-timeout=0 disables timeout; --task-timeout=4 must be rejected; --task-timeout=5 is valid. Place this rule in a shared `validate_task_timeout(value)` function in option_helpers.py (value is already an int from argparse; do not add string-to-int coercion). The console `do_timeout` must also call this function after its own basic input checks, catching any `AnsibleOptionsError` and forwarding the message via `display.error(to_text(exc))`.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "ambiguous_async_timeout_interaction",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The specs require reliable handling when both timeout controls are present, but they do not define the precedence rule used to compute the single effective timeout written to the task payload.",
       "resolution": "When both task_timeout and async_val are positive (> 0), task_timeout always takes precedence regardless of poll value. If async_val is 0, use task_timeout. If task_timeout is 0 and async_val is positive, use async_val. If both are 0, the effective timeout is 0. The task payload must preserve async_val exactly as provided by the caller; only the timeout field should reflect the effective timeout calculation. Do not rewrite async_val when both mechanisms are present, regardless of poll value. Implement this logic in a `get_effective_task_timeout(task_timeout, async_val, poll)` function in option_helpers.py. The poll parameter does not affect the timeout calculation. Examples: task_timeout=125, async_val=75, poll=2 results in timeout=125 and async_val=75; task_timeout=125, async_val=75, poll=0 results in timeout=125 and async_val=75; task_timeout=325 with async_val=0 results in timeout=325; task_timeout=0 with async_val=50 results in timeout=50 and async_val=50; task_timeout=0 with async_val=0 results in timeout=0.",
       "example_questions": [
@@ -47,9 +41,7 @@
     },
     {
       "id": "contradictory_timeout_granularity_restriction",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The interfaces describe timeout as a generic positive integer, but runtime validation accepts only a stricter subset of positive values for larger timeouts. The exact acceptance rule is not defined in the public specs.",
       "resolution": "Timeout granularity restriction applies only to values from 10 to 59 seconds inclusive: any timeout in this range must be a multiple of 10 seconds. The validation error must be exactly: 'The task timeout value (%d) must be a multiple of 10 for timeouts from 10 through 59 seconds' where %d is the invalid value. Examples within this rule's scope: --task-timeout=10, 20, 30, 40, and 50 are valid; --task-timeout=11, 15, 17, 25, 33, and 59 must be rejected. Place this rule in a shared `validate_task_timeout(value)` function in option_helpers.py (value is already an int from argparse; do not add string-to-int coercion). The console `do_timeout` must also call this function after its own basic input checks, catching any `AnsibleOptionsError` and forwarding the message via `display.error(to_text(exc))`.",
       "example_questions": [

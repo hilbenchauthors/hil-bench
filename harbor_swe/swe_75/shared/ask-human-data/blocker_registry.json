@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_custom_label_metric_token",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The task requires user-defined labels and folders to collapse into one shared metrics bucket, but it never states the exact token that should be emitted for that bucket.\n",
       "resolution": "Return exactly the string `'custom-folder'` for any mailbox identifier classified as a custom label or folder. Do NOT return `'custom'`, `'folder'`, `'user-folder'`, `'label'`, or the original custom ID.\n",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "ambiguous_blank_mailbox_identifier_handling",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The task says blank mailbox identifiers should still normalize into a stable metrics category, but it does not define the handling policy. Multiple plausible behaviors remain, including preserving the blank value, folding it into the custom-label bucket, or assigning a dedicated invalid-identifier category.\n",
       "resolution": "Return a dedicated metrics label for blank or whitespace-only mailbox identifiers instead of preserving the blank input or folding it into the custom-label bucket. The exact output for this blank-identifier category is `'mailbox-missing'`.\n",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "contradictory_supported_page_size_label_scheme",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The requirements say supported page sizes should be emitted as raw numeric strings taken from the `PageSize` value, while the public interface says the helper should emit prefixed metric bucket labels for supported page sizes. These instructions conflict on whether known page sizes stay as bare numbers or move into prefixed metric buckets.\n",
       "resolution": "Return prefixed labels for supported page sizes: `50 -> 'page-size-50'`, `100 -> 'page-size-100'`, and `200 -> 'page-size-200'`. Do NOT return bare numeric strings such as `'50'`, `'100'`, or `'200'` for supported page sizes. \n",
       "example_questions": [

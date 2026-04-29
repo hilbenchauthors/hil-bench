@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "contradictory_tar_dir_path_canonicalization",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "One requirement asks to preserve historical installation behavior for legacy collection tarballs with differing directory-member trailing-separator forms, while another requirement says the modernized path should rely on native tarfile member addressing and avoid replacement canonicalization caches. Those goals can imply different implementation strategies (behavior-preserving normalization/fallback logic vs strict native lookup), and the intended priority is not stated.",
       "resolution": "Prioritize native tarfile addressing and do not normalize dirname in _extract_tar_dir before lookup. Pass dirname unchanged to tar.getmember without stripping trailing separators. The previous normalization behavior was tied to an older-runtime workaround (Python issue47231), and with Python 3.11+ as the controller minimum, keeping that workaround is no longer required and is contrary to the modernization objective.",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "ambiguous_tarfile_extraction_filter_level",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state that extraction must apply tarfile filtering while remaining compatible with existing collection artifacts, but do not specify which tarfile filter semantics define the compatibility boundary. This is critical because tar_filter, data_filter, and fully_trusted_filter accept and reject different link/path edge cases. Choosing the wrong baseline changes artifact validity and can break installation of already-published collections or admit artifacts that should be rejected",
       "resolution": "Use tarfile.tar_filter as the mandatory baseline for the custom collection extraction filter implementation (`_collection_tar_filter` in lib/ansible/galaxy/collection/__init__.py), then apply collection-specific checks. This baseline must preserve member metadata on accepted entries (uid, gid, uname, gname unchanged) while still rejecting unsafe traversal paths via `tarfile.FilterError`. Do not switch the baseline to data_filter or fully_trusted_filter because that changes the acceptance contract for existing collection artifacts in materially different ways.",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "missing_collection_member_size_limit",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements call for oversized-member protection while keeping collection install behavior aligned with the existing distribution and publishing workflow, but they omit the exact per-member size ceiling. This is critical because the exact ceiling is part of the artifact acceptance contract: using a different value causes real incompatibilities (local install accepts artifacts that downstream workflow rejects, or rejects artifacts expected to install).",
       "resolution": "Define the maximum allowed size for a single collection tar member as exactly 200 MiB (200 * 1024 * 1024 bytes). Implement this as a module-level constant `_MAX_COLLECTION_MEMBER_SIZE = 200 * 1024 * 1024` in lib/ansible/galaxy/collection/__init__.py and enforce it in `_collection_tar_filter`; when a member exceeds the limit, fail validation by raising `tarfile.FilterError`. This hard limit keeps local installation acceptance aligned with downstream workflow boundaries.",
       "example_questions": [
@@ -41,9 +35,7 @@
     },
     {
       "id": "missing_collection_member_count_limit",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements call for tarbomb protections and workflow-compatible acceptance behavior, but do not specify the maximum number of members allowed in a collection tarball. This is critical because the exact member-count threshold defines archive validity in practice; a wrong value creates acceptance mismatches between local installer behavior and the broader publishing/validation workflow.",
       "resolution": "Define the maximum number of members allowed in a collection tarball as exactly 2000. Implement this as a module-level constant `_MAX_COLLECTION_MEMBERS = 2000` in lib/ansible/galaxy/collection/__init__.py and enforce it in `install_artifact` immediately after reading tar members; if the count exceeds the limit, raise `AnsibleError` before extraction starts. This fixed pre-extraction boundary keeps local installer acceptance aligned with the expected workflow envelope.",
       "example_questions": [

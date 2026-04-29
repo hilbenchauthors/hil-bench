@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_commerce_copy_tokens",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements demand policy-approved commerce channel names and an account-navigation noun, but none of those exact tokens are provided.",
       "resolution": "Use exactly \"Google Play\" for `External.Android` and \"Apple App Store\" for `External.iOS`.\n\nIn non-delegated mode:\n- The modal title must be exactly \"Manage your subscription on {storeLabel}\" using the store label above.\n- The account-navigation noun is platform-specific:\n  - Android: exactly \"Payments & subscriptions\" (ampersand, lowercase s)\n  - iOS: exactly \"Subscriptions\" (capital S, plural)\n- The helper sentence must render the navigation noun as bold text via translator-safe rich formatting (i.e., using `ttag` `.jt` with a `<span className=\"text-bold\">...</span>` node).\n\nConstraints:\n- Do NOT use \"Google Play store\".\n- Do NOT use a single shared navigation noun across platforms.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "ambiguous_delegated_context_body_density",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "Delegated/admin mode says to keep only minimum policy-required body content, but it does not define whether that means one paragraph or a multi-paragraph instructional layout.\n",
       "resolution": "Delegated/admin mode is resolved only by body layout/content.\n\nIt must render exactly one body paragraph and must omit the secondary instructional paragraph entirely.\n\nThe single paragraph must contain the delegated ownership statement in this exact format:\n- \"Subscription for user ID: {userId} was purchased via an in-app purchase.\"\n  - Note the colon after \"ID\".\n\nNo other body paragraphs or helper lines are permitted in delegated/admin mode.\n\nThis entry does not define channel labels, navigation nouns, modal primitives, button text, or test IDs.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "conflicting_modal_primitive_source_of_truth",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The requirements simultaneously ask to preserve the prompt-style modal contract and to implement the same flow with two-section modal primitives.\n",
       "resolution": "Treat the two-section modal primitives as authoritative and implement the warning surface with:\n- `ModalTwo` + `ModalTwoHeader` + `ModalTwoContent` + `ModalTwoFooter`\n- No `Prompt` usage or wrapper\n\n`ModalTwo` must be rendered with `size=\"large\"`.\n\nThe first body paragraph must always exist and must carry `data-testid=\"InAppPurchaseModal/text\"`.\n\nThe footer must render exactly one primary action button with:\n- Label: \"Got it\"\n- `data-testid=\"InAppPurchaseModal/onClose\"`\n- It calls `onClose`\n\nFor non-eligible subscriptions (External not Android/iOS), the component must immediately call `onClose` and render nothing (return `null`).",
       "example_questions": [

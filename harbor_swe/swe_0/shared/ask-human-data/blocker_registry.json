@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "non_linux_distribution_source_precedence_on_conflict",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements state that a distribution name must be returned on non-Linux platforms but do not specify what to do when different identification mechanisms disagree, reports one label while the distribution-detection library reports another. ",
       "resolution": "On non-Linux platforms, `get_distribution()` must use `distro.id()` as the authoritative value (subject to the implementation\u2019s normalization rules) and must not prefer or fallback to `platform.system()` when the two differ.",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "non_linux_distribution_version_source",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements do not define how the distribution version should be retrieved on non-Linux platforms or which source should be considered authoritative.\n",
       "resolution": "On non-Linux platforms, `get_distribution_version()` must return the value provided by `distro.version()` exactly as returned, without parsing, formatting, or fallback logic.\n",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "non_linux_distribution_normalization",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements state that a distribution name must be returned on non-Linux platforms but do not specify whether the returned value should be normalized, formatted, or transformed, leaving the expected formatting behavior undefined.\n\n\n",
       "resolution": "On non-Linux platforms, `get_distribution()` must return the distribution identifier with only the first character capitalized, preserving the remaining characters exactly as provided by the underlying source.\n",
       "example_questions": [
@@ -42,9 +36,7 @@
     },
     {
       "id": "non_linux_distribution_detection_scope",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The problem statement refers to \u201cnon-Linux platforms\u201d but does not specify how the platform type should be determined programmatically, allowing multiple reasonable methods to classify a system as Linux or non-Linux.\n",
       "resolution": "Non-Linux platforms must be identified using the value returned by `platform.system()`, and any system whose value is not `\"Linux\"` must be treated as non-Linux.\n",
       "example_questions": [
@@ -55,9 +47,7 @@
     },
     {
       "id": "cross_platform_consistency_vs_fallback_policy",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The requirements define a specific fallback behavior when distribution information is unavailable on Linux platforms, while also stating that distribution name and version handling should follow the same general rules across all supported platforms when such information is missing. Because it is not specified whether the Linux fallback rule is intended to apply universally or remain platform-specific, the requirements allow multiple conflicting interpretations of how fallback behavior should be applied.\n\n",
       "resolution": "Fallback behavior must be applied only on Linux platforms and must not be applied on non-Linux platforms under any circumstances.\n",
       "example_questions": [

@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_positive_substring_operator_token",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The problem statement and the requirements require support for a positive substring operator (one that matches when the evaluated string includes the constraint value as a substring) but it does not specify the exact API token or identifier.",
       "resolution": "Use exactly 'contains-strings' strings for the positive operator (string includes substring).",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "missing_negative_operator_token",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The problem statement and requirements require support for a negative substring operator (one that matches when the evaluated string does not include the constraint value as a substring) but do not specify the exact API token or identifier.",
       "resolution": "Use exactly 'not-contains-strings' for the negative operator (string does not include substring).",
       "example_questions": [
@@ -31,9 +27,7 @@
     },
     {
       "id": "conflicting_case_sensitivity",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The requirements state both that substring matching must be case-insensitive for user-friendly behavior and that substring comparison must be case-sensitive according to the codebase (exact code-unit match).",
       "resolution": "Use case-insensitive comparison. Normalize case before comparing so that 'Bar' and 'bar' match the same. Example: constraint value 'Bar' must match evaluated value 'foobar' for the positive substring operator. Use strings.Contains(strings.ToLower(v), strings.ToLower(value)) or strings.EqualFold for the substring check. Counter-example: do not use raw strings.Contains(v, value) without normalizing case.",
       "example_questions": [
@@ -45,9 +39,7 @@
     },
     {
       "id": "ambiguous_entity_id_contains_behavior",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements say the substring operators apply when evaluating constraints against a string value, but do not specify what happens when the evaluated value is empty.",
       "resolution": "When the evaluated value is empty, the positive substring operator must never match (always yield no match). For the negative substring operator, when the evaluated value is empty, the constraint must match (an empty string does not contain any non-empty substring; the negative operator matches when the substring is absent). Add an explicit check: if the evaluated value is empty, return false for the positive operator before performing the substring check; the negative operator need not special-case empty, as the normal string semantics already yield match when the value is empty and the constraint value is non-empty.",
       "example_questions": [

@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_bytearray_handling",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements reference \"binary-compatible input types\" without specifying which types beyond `bytes` are included or their handling order relative to `MutableSequence`.",
       "resolution": "Add `elif isinstance(v, bytearray): v = AnsibleUnsafeBytes(bytes(v))` in `wrap_var` before the `MutableSequence` check.",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "missing_unsafe_attribute_check",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements only mention returning \"AnsibleUnsafe instances\" unchanged, but the codebase also uses `__UNSAFE__` attribute duck-typing to detect unsafe values in multiple modules.",
       "resolution": "Change the `wrap_var` guard to: `if isinstance(v, AnsibleUnsafe) or getattr(v, '__UNSAFE__', False): return v`.",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "missing_tuple_wrapping",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements reference a project type-handling policy that defines which container types require recursive wrapping, but only enumerate Mapping, MutableSequence, and Set. The complete type list defined by this policy is not provided.",
       "resolution": "Add `elif isinstance(v, tuple): v = tuple(wrap_var(item) if item is not None else item for item in v)` in `wrap_var` after the `Set` check.",
       "example_questions": [
@@ -41,9 +35,7 @@
     },
     {
       "id": "ambiguous_container_mutation_policy",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state containers should be returned with elements processed by `wrap_var`, but do not specify whether to mutate the original container or return a new object.",
       "resolution": "`wrap_var` must return new container objects: `_wrap_list` returns `type(v)(...)` and `_wrap_dict` creates and returns a new `type(v)()` instance.",
       "example_questions": [
@@ -54,9 +46,7 @@
     },
     {
       "id": "contradictory_remove_vs_deprecate_unsafeproxy",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The requirements state \"Remove UnsafeProxy class\" and also \"Ensure existing code using UnsafeProxy receives appropriate deprecation notices.\" A removed class cannot emit deprecation warnings.",
       "resolution": "Keep `UnsafeProxy` as a class (not a function). Add `if isinstance(obj, AnsibleUnsafe): return obj` in `UnsafeProxy.__new__` so that already-unsafe inputs preserve object identity.",
       "example_questions": [

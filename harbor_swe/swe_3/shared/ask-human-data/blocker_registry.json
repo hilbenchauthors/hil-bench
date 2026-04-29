@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_path_env_default_value",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The implementation constructs a minimal environment dictionary (krb5env) for the kinit subprocess including PATH, but neither the problem statement nor the requirements specify what value to use for PATH if the environment variable is not defined in the current process.",
       "resolution": "Use `os.environ.get('PATH', '')` with an empty string as the default when constructing krb5env. Example: `krb5env = dict(PATH=os.environ.get('PATH', ''), KRB5CCNAME=krb5ccname)`. Do NOT use `os.defpath` (which resolves to '/bin:/usr/bin'), do NOT use a hardcoded path like '/usr/bin:/bin', and do NOT let it raise a KeyError by accessing `os.environ['PATH']` directly.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "missing_communicate_timeout_value",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "Both the problem statement and the requirements mention that the kinit process must complete within 'an appropriate time limit,' but neither specifies the exact timeout value in seconds.",
       "resolution": "The timeout value is 30 seconds. NOT 60, NOT 45, NOT 120. The exact value to use is 30.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "ambiguous_timeout_cleanup_sequence",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state that if the kinit process exceeds the time limit it must be terminated and reported, but do not specify the exact cleanup method. There are multiple plausible approaches: (a) p.terminate() followed by p.communicate(), (b) p.kill() followed by p.communicate(), (c) p.terminate() then escalate to p.kill(), (d) p.kill() followed by p.wait(), (e) process-group signaling via os.killpg(), or various escalation patterns with or without timeouts on cleanup operations.",
       "resolution": "After subprocess.TimeoutExpired is caught, call `p.kill()` to send SIGKILL (not `p.terminate()` which sends SIGTERM), then call `p.wait()` to reap the child process. Do NOT use `p.terminate()` as kinit may not respond to SIGTERM in all configurations. Do NOT use `p.communicate()` for the cleanup step; since all input has already been sent and the output will be discarded, `p.wait()` is sufficient to reap the zombie. The required sequence is: `p.kill()` then `p.wait()`.",
       "example_questions": [
@@ -47,9 +41,7 @@
     },
     {
       "id": "contradictory_password_input_format",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement says 'the password should be sent as raw bytes without any modifications or extra characters' while the requirements state 'the password input must include proper line termination for the kinit prompt.' These two instructions contradict each other: one says no modifications, the other says add line termination.",
       "resolution": "Send the password bytes WITHOUT any appended characters. Pass only `b_password` as the subprocess stdin input. Closing stdin after writing signals EOF to kinit, which is sufficient. Do NOT append `b'\\\\n'`, `b'\\\\r\\\\n'`, or any other terminator. The problem statement is correct, not the requirements.",
       "example_questions": [

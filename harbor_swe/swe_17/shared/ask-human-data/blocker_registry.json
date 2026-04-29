@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "operational_time_bound_policy",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The problem requires bounded execution when no caller deadline is present, but omits the exact default bound value required by policy.\n\n\n",
       "resolution": "If the incoming context has no deadline, wrap it with a timeout of exactly 11 seconds (use `context.WithTimeout(ctx, 11*time.Second)`) and use that derived context for configuration source access and subsequent load stages.\n\n\n",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "typed_nil_context_input_policy",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The input contract for context-aware invocation does not define how null-like context inputs should be interpreted during argument normalization. Specifically, it does not specify whether a context slot receiving no concrete context object is invalid or should be normalized.\n\n\n",
       "resolution": "During context-aware invocation argument normalization, any nil-equivalent context input (including typed-nil values carried through interface arguments) must normalize to `context.Background()`. Loading must not fail solely due to this input shape.\n\n\n\n\n",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "conflicting_context_freshness_policy",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The requirements simultaneously demand that the caller's context propagate for cancellation support, and that each configuration loading invocation use a clean context to avoid inheriting stale deadlines from parent operations. It is unclear which policy takes precedence.",
       "resolution": "Propagate the caller's context directly without creating a fresh context. The caller's cancellation and deadline signals must be preserved and propagated end-to-end through configuration loading. Each command handler must extract context via `cmd.Context()` and pass it through `buildConfig(ctx)` into `config.Load`. The existing backward-compatible call signature (path-only) must continue to work.\n",
       "example_questions": [

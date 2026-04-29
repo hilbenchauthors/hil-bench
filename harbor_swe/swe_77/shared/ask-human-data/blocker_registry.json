@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "unquoting_depth_unspecified",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The problem statement says configuration strings should be 'properly unquoted' and the requirements state that configuration values must be 'fully cleaned of quoting artifacts' to produce 'clean values', but neither document specifies the unquoting strategy. The requirements state that processing should 'handle quoting artifacts appropriately for the source type' without specifying the strategy. Both recursive removal of all quote layers and removal of only one outer matching pair are plausible implementations, making the expected behavior ambiguous.",
       "resolution": "Remove exactly one outer pair of matching quotes per call. If a string starts and ends with the same quote character (single or double), remove only those two characters and preserve any internal or nested quotes. For example: ''value'' must become 'value' (not value), and \\\"\\\"value\\\"\\\" must become \\\"value\\\" (not value). Use the existing unquote() helper function which implements this one-layer stripping behavior.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "unquoting_file_type_scope",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements reference the origin == 'ini' detection pattern and also refer broadly to unquoting for 'file-based configuration sources.' However, the full set of file types that require unquoting is not specified \u2014 it is unclear whether only INI files require unquoting or whether other file types such as YAML should also have quotes removed.",
       "resolution": "Unquoting must apply ONLY when the source file type is 'ini'. Other file types such as 'yaml' must preserve all surrounding quotes unchanged, even when the file type is known.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "origin_vs_dedicated_filetype_detection",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The problem statement states that file-type information 'should be conveyed through a dedicated parameter rather than being inferred from the origin path.' However, the requirements state that the ensure_type function 'MUST detect the source file type using the origin parameter' and that the existing 'origin == ini' condition 'is the established detection pattern and must be preserved.' These two instructions directly conflict on whether file-type detection should use a new dedicated parameter or the existing origin parameter.",
       "resolution": "Add a dedicated file-type parameter named cfg_origin_ftype as the 4th argument to ensure_type (after origin, with default None). REMOVE both existing origin-based file-type string comparisons in ensure_type and replace each with a check on cfg_origin_ftype instead. Do NOT keep any origin-based file-type detection as a fallback or OR condition \u2014 the origin parameter must never be compared against file-type strings for unquoting decisions. In get_config_value_and_origin, initialize cfg_origin_ftype = None alongside value and origin. Refactor the config-file loading section to use a single loop over defs[config][ftype] for all file types, with per-ftype reading logic inside the loop. Set cfg_origin_ftype = ftype when a value is successfully read from a config file. Pass cfg_origin_ftype to all ensure_type calls as a keyword argument.",
       "example_questions": [

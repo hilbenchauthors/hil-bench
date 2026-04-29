@@ -1,5 +1,6 @@
 services:
   main:
+    pull_policy: never
     image: hilbench-swe:69c770dd90358046a74c30e7
     depends_on:
       ask-human:
@@ -8,6 +9,7 @@ services:
       - ask-human-metrics:/harbor_shared
 
   ask-human:
+    pull_policy: never
     image: hil-bench-harbor/ask-human:latest
     volumes:
       - ${CONTEXT_DIR:-.}/../../shared/ask-human-data:/ask-human-data:ro

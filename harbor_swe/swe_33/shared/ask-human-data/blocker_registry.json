@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_return_property_names",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements specify using 'descriptive property names' for the return object but do not specify what those exact names should be. Multiple valid naming conventions exist for the array of entities (e.g. links, items, data, results, entries, children, decryptedLinks, cachedLinks) and the status indicator (e.g. isDecrypting, loading, isLoading, pending, processing, decrypting).",
       "resolution": "Use the exact property names `cachedLinks` (array field) and `isDecrypting` (status field). `cachedLinks` comes from the requirements' domain term 'cached link data', and `isDecrypting` preserves the established status identifier already used by existing consumers. No alternative names are accepted.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "ambiguous_entity_reference_isolation",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state that the returned array must contain 'self-contained data representations' of each cached entity. It is unclear whether 'self-contained' means each entity object in the array is a complete representation (i.e., the decrypted object reference itself, which is already complete), or whether each entity must be an isolated copy that does not share its object reference with the internal store. Multiple valid interpretations exist: returning the store's own references (simpler, no overhead), returning shallow copies via spread, returning deep clones via structuredClone, or serializing/deserializing via JSON.",
       "resolution": "Each entity in the returned array must be a shallow copy \u2014 a distinct object that does not share its reference with the store's internal cache. Use object spread (`{ ...entity }`) to create each copy. Consecutive calls to the same getCached* function with identical arguments must return entity objects that are content-equal but reference-distinct. Do NOT return direct references to the store's internal objects, and do NOT use structuredClone or JSON.parse/JSON.stringify.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "contradictory_immutability_depth",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The requirements state that returned cache data must be 'protected against accidental consumer-side mutations,' but the problem statement says the returned objects should be 'plain, easily destructurable data structures that consumers can freely work with without special access constraints.' These two instructions directly conflict: one demands mutation protection while the other says no access constraints should be applied.",
       "resolution": "The requirements take precedence. Apply `Object.freeze()` to the entire returned result object so that its top-level properties become non-writable and non-configurable. Example: `return Object.freeze({ arrayProp: [...], statusProp: false })`. Do NOT leave the return value unfrozen. Do NOT use Proxy wrappers or TypeScript-only readonly types as the protection mechanism.",
       "example_questions": [

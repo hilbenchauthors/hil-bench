@@ -1,5 +1,6 @@
 services:
   main:
+    pull_policy: never
     image: hilbench-swe:69c60cc7b6a31e9900faa779
     depends_on:
       ask-human:
@@ -8,6 +9,7 @@ services:
       - ask-human-metrics:/harbor_shared
 
   ask-human:
+    pull_policy: never
     image: hil-bench-harbor/ask-human:latest
     volumes:
       - ${CONTEXT_DIR:-.}/../../shared/ask-human-data:/ask-human-data:ro
@@ -20,6 +22,7 @@ services:
       - LITELLM_API_KEY=${LITELLM_API_KEY:-}
       - LITELLM_BASE_URL=${LITELLM_BASE_URL:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
       - VLLM_BASE_URL=${VLLM_BASE_URL:-}

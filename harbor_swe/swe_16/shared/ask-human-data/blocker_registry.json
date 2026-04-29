@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "scrobble_limit",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements state that the scrobble operation must enforce a maximum number of entries and truncate excess entries, but do not specify what that maximum number is.",
       "resolution": "Truncate the scrobbles slice to a maximum of 80 entries before applying any sorting. If the input has more than 80 scrobbles, only the first 80 must be sent. Sorting is applied after truncation, not before. Example: a batch of 60 scrobbles must result in exactly 60 being submitted. Do NOT use any other value such as 30 or 100.",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "scrobble_ordering",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements state that scrobbles must be sorted into a deterministic order before submission, but do not specify which field to sort by or in which direction.",
       "resolution": "Sort scrobbles in descending order by their TimeStamp field (using its temporal comparison methods) before submitting to the LastFM API. Example: if input contains timestamps [300, 100, 200], they must be submitted in the order [300, 200, 100]. Do NOT sort ascending or by any other field, such as track title or artist name.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "userid_source",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The Problem Statement says the repository layer must derive user identity from the active request context at its own boundary, ensuring callers do not supply it, while the Requirements say operations must be explicitly directed at a specific user. These directives conflict on whether user identity is supplied by callers or determined inside the repository layer.",
       "resolution": "Resolve the contradiction by choosing the caller-supplied identity as the single source of truth for repository operations. UserPropsRepository methods (Put, Get, Delete, DefaultGet) must take explicit userId arguments and scope all reads and writes by that userId. The repository must work the same with or without an authenticated user in context, and operations for one userId must not affect another userId. All intermediate wrapper layers that call UserPropsRepository, including sessionKeys, must also be updated to accept userId as an explicit parameter and forward it to the repository; they must NOT extract userId from the context themselves. Callers of those wrappers must pass the userId argument they already receive directly to the wrapper methods.",
       "example_questions": [

@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "ambiguous_seed_input_framing",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The requirements require a deterministic combination of the seed string and the input string but do not specify how those two strings should be framed into the byte sequence that is ultimately hashed.\n",
       "resolution": "Build the message as the UTF-8 bytes of `seed`, followed by the single ASCII byte 0x1F (Unit Separator), followed by the UTF-8 bytes of `str`. Do not use raw adjacency-only concatenation (no delimiter), do not append the seed after the input, and do not use ASCII NUL (0x00) or colon (`:`) as the separator. Example: seed `alpha`, input `beta` \u2192 bytes ending with ...61 6C 70 68 61 1F 62 65 74 61. Counter-example: `[]byte(seed+str)` alone is wrong because it omits the separator.",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "missing_hasher_digest_and_auto_seed_rules",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements call for deterministic digests and automatically initialized random seeds, but they do not specify which library primitives to use for stable digests or the exact bounds of integers drawn before an auto-seed is persisted as text.",
       "resolution": "For digests: each `Hasher` must hold one `maphash.Seed` field initialized exactly once in the constructor via `maphash.MakeSeed()`, and every digest must use `maphash.Bytes(thatSeed, payload)` where `payload` is the byte slice that matches the product\u2019s seed-and-input framing rules. Do not satisfy digests with a fresh zero `maphash.Hash` on each call. For auto-seeds: obtain each new value with `random.Int64(math.MaxInt64)` from `github.com/navidrome/navidrome/utils/random`; the drawn integer must satisfy `0 <= n < math.MaxInt64`. Persist it as the string mandated for auto-generated interchange seeds elsewhere in the product brief. Counter-example: using a fresh zero `maphash.Hash` per digest is wrong; sourcing the integer from `math/rand`, `crypto/rand`, or any range other than `[0, math.MaxInt64)` is wrong.",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "contradictory_auto_seed_serialization_and_digest_scope",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The requirements require unsigned base-10 decimal serialization for interchange auto-seeds but also require lowercase hexadecimal without a `0x` prefix for the same values. They also require identical hashes when two identifiers share the same seed and input, yet require the identifier to be incorporated into the digest so different ids never collide for the same input.\n\n",
       "resolution": "Persist auto-generated seeds only as base-10 decimal digit strings (no hex). For digest scope: compute the digest only from the stored seed string and the framed input bytes; do not mix the identifier into the hashed payload. Identifiers only select which stored seed is used; different ids still yield different hashes when their stored seeds differ (e.g. after automatic initialization). Counter-example: emitting `1a2b3c` hex or hashing `id+seed+input` together is wrong.",
       "example_questions": [

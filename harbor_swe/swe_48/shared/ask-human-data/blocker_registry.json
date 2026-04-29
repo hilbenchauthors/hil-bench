@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "legacy_delegate_resolution_deprecation_version_unspecified",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements state that legacy delegation resolution must remain available but deprecated with a scheduled removal release, yet they do not specify the exact release value to encode in the deprecation warning.",
       "resolution": "Set the deprecation warning removal target to version '2.20' in the legacy delegation resolution path.",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "delegate_target_resolution_precedence_unspecified",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The current requirements call for consistent delegated target handling for templated values, but they do not define the mandatory precedence strategy when the templated delegate target is not a direct inventory host match.",
       "resolution": "Resolve delegate_to by templating first, then calling inventory.get_host(delegated_host_name), then scanning inventory.get_hosts(ignore_limits=True, ignore_restrictions=True) for a host.address match, and only then falling back to Host(name=delegated_host_name). Return exactly (delegated_vars, delegated_host_name), where delegated_vars is {'ansible_delegated_vars': {delegated_host_name: delegated_host_vars}} and delegated_host_vars includes the original inventory_hostname from the input task variables.",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "delegate_to_resolution_stage_in_execution_unspecified",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The current requirements call for one-time pre-loop delegation resolution, but they do not explicitly define the exact execution stage where delegate_to must be computed relative to task post-validation and loop item processing.",
       "resolution": "Compute delegate_to in TaskExecutor._execute at a single pre-validation point, immediately after constructing Templar and before Task.post_validate, so loop execution uses already-resolved delegation exactly once per task invocation. Implement this flow through TaskExecutor._calculate_delegate_to(templar, variables), invoked from _execute at that point, using the variable manager passed into the TaskExecutor constructor (not task lookup). ",
       "example_questions": [

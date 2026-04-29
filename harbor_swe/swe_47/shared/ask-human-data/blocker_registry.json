@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "missing_selection_state_wire_labels",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The selection-state type mandates a stable serialized form for persistence and restoration, but the exact string values assigned to the empty, partial, and complete states are unspecified. Multiple label sets could satisfy the stated constraints while producing incompatible serialized representations across existing flows.",
       "resolution": "Use the canonical serialized labels `clear` for no selection, `mixed` for partial selection, and `complete` for full selection. The implementation must emit and recognize exactly these values when serializing or restoring selection state. Implement them as `SelectionState.NONE = 'clear'`, `SelectionState.SOME = 'mixed'`, and `SelectionState.ALL = 'complete'`. Also export `serializeSelectionState` and `parseSelectionState` helpers from `useSelectionControls.ts`; `serializeSelectionState(SelectionState.NONE)` must return `'clear'`, `serializeSelectionState(SelectionState.SOME)` must return `'mixed'`, and `serializeSelectionState(SelectionState.ALL)` must return `'complete'`; `parseSelectionState('clear')` must return `SelectionState.NONE`, `parseSelectionState('mixed')` must return `SelectionState.SOME`, and `parseSelectionState('complete')` must return `SelectionState.ALL`.",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "ambiguous_checkbox_toggle_behavior",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The problem statement and the requirements do not define how the toggle-all action should behave when the current selection is partial. Clearing the current selection, selecting all items, or leaving the current selection unchanged are all plausible interpretations.",
       "resolution": "When any items are currently selected, whether partially or fully, `toggleAllSelected` must clear all selections; it should select all items only when no items are currently selected. Example: use `ids.length > 0 ? [] : [...itemIds]`; do NOT use `ids.length === itemIds.length ? [] : [...itemIds]`, which selects all when the current selection is partial.",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "contradictory_enum_definition_location",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The selection-state type is subject to two conflicting co-location constraints: one anchors it to the top-level integration layer exposed to consumers, the other anchors it to where the representation is made available across the system. These two placements do not necessarily resolve to the same module.",
       "resolution": "Define and export `SelectionState` in `hooks/useSelectionControls.ts`. Example: consumers should import it from `../hooks/useSelectionControls` or `../../hooks/useSelectionControls`; do NOT define it in `state/useSelection.tsx` and do NOT move it to a separate shared types file.",
       "example_questions": [

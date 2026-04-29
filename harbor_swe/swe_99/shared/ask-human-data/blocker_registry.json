@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "collectchunks_nonpositive_chunk_size_fallback_two",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "      \"description\": \"The Requirements define CollectChunks with a chunk size parameter but do not specify the exact fallback chunk size for non-positive n. Without an explicit numeric value, implementations may choose different behavior (panic, 1, ignore, etc.).",
       "resolution": "For any n <= 0, CollectChunks must use an effective chunk size of exactly 2. It must not panic. Example: input [10,20,30,40,50] with n=0 or n=-3 must yield [[10,20],[30,40],[50]].\"",
       "example_questions": [
@@ -17,9 +15,7 @@
     },
     {
       "id": "collectchunks_defensive_tight_chunks",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The Requirements do not define memory-safety semantics for yielded chunks. It is unclear whether CollectChunks may yield internal backing slices directly, potentially retaining larger buffers or exposing mutable aliasing behavior to callers.\n",
       "resolution": "CollectChunks must yield defensive, tight slices. Every yielded chunk must be copied into a new slice whose capacity equals its length (cap(chunk) == len(chunk)). This applies to full and final partial chunks.",
       "example_questions": [
@@ -32,9 +28,7 @@
     },
     {
       "id": "collectchunks_argument_order_conflict",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "The Problem Statement explicitly says 'the parameter ordering should be preserved' for API consistency (current signature is `CollectChunks(n int, it iter.Seq[T])`), while the Requirements say the function should be 'modernized to align with Go 1.23 iterator patterns' which conventionally use data-first argument order. These instructions conflict on whether to preserve the old order or adopt the new convention.",
       "resolution": "Prioritize the Go 1.23 data-first convention. The required signature is `CollectChunks[T any](it iter.Seq[T], n int)` with the iterator first and chunk size second. Update call sites to use this order.\n",
       "example_questions": [

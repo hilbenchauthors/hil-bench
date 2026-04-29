@@ -2,9 +2,7 @@
   "blockers": [
     {
       "id": "session_age_limit",
-      "type": [
-        "missing parameters"
-      ],
+      "type": "missing parameters",
       "description": "The requirements state that sessions should be used for restoration, but do not specify how old a session can be before it should be considered expired and ignored. Very old sessions could be a security risk or contain stale data. Without a maximum age threshold, implementations may accept sessions of any age or apply different age limits.",
       "resolution": "Sessions older than 127 days (10972800000 milliseconds) must be ignored and not considered for selection, skip entries where age exceeds the threshold; Return null if only expired sessions exist. ",
       "example_questions": [
@@ -15,9 +13,7 @@
     },
     {
       "id": "identifier_validity_rule",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The Problem statement says keys must have a suffix that satisfies an identifier-validity rule, but it does not define that rule. Different valid rules change which keys count as valid session IDs.",
       "resolution": "A suffix is valid only if it is one or more ASCII digits (0-9) and nothing else; The suffix must contain at least one digit. ",
       "example_questions": [
@@ -28,9 +24,7 @@
     },
     {
       "id": "acceptable_session_data_definition",
-      "type": [
-        "ambiguous requirements"
-      ],
+      "type": "ambiguous requirements",
       "description": "The Problem statement says session data must be acceptable for restoration, but it does not define what \u201cacceptable\u201d means. Without this, implementations can check different things and still look correct.",
       "resolution": "Session data is acceptable if there is at least one key that matches the allowed key pattern and its stored value can be read and parsed as JSON, and the parsed object has a persistedAt property whose value is a number and is finite (not NaN or Infinity). If parsing fails for a candidate entry, or the parsed value has no such persistedAt, that entry is treated as not acceptable. If no acceptable entries exist, return the absence indicator (null).",
       "example_questions": [
@@ -41,9 +35,7 @@
     },
     {
       "id": "session_selection_priority_conflict",
-      "type": [
-        "contradictory requirements"
-      ],
+      "type": "contradictory requirements",
       "description": "Requirements say 'the most recent session should be selected for restoration', but also say to ' should select one based on the session identifier value. ', implying selection by numeric value. When there are multiple valid sessions, these two criteria can produce different results, and there is no precedence rule.",
       "resolution": "Use persistedAt timestamp as the primary selection criterion (choose the session with the most recent timestamp); Use ID number as a tiebreaker only when two or more sessions have identical timestamps (choose the highest ID). ",
       "example_questions": [
