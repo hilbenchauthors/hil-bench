@@ -14,3 +14,4 @@ datasets/
 datasets--*/
 judge_config.yaml
 .check_for_update_done
+jobs/
