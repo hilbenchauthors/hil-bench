@@ -1,0 +1,56 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for molecules with \"single-bond-only classification\" that also \"contain diverse bond types,\" which presents logically contradictory requirements since single-bond-only status and diverse bond types appear mutually exclusive.",
+      "example_questions": [
+        "How can a molecule have single-bond-only classification while also containing diverse bond types?",
+        "Does single-bond-only classification mean 100% single bonds or a predominant majority of single bonds?",
+        "What percentage threshold of single bonds defines the single-bond-only classification?",
+        "When determining bond-type diversity, what exactly counts as \u2018diverse bond types\u2019 (e.g., at least two distinct bond_type values)?"
+      ],
+      "id": "single_bond",
+      "resolution": "Treat \"single-bond-only classification\" as single_ratio >= 0.80 (single bonds / total bonds) per molecule, and treat \"diverse bond types\" as COUNT(DISTINCT bond_type) >= 2 per molecule; interpret \u201calso contain diverse bond types\u201d as applying the diversity condition on top of the single-bond-only base set.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "\"Structurally complex molecules\" can be interpreted as molecules with a high total atom count, molecules with many distinct element types, molecules with a high bond-to-atom ratio, or molecules with a large number of non-hydrogen atoms.",
+      "example_questions": [
+        "Does structural complexity refer to total atom count, elemental diversity, or bond density?",
+        "What threshold determines whether a molecule qualifies as structurally complex?",
+        "Is structural complexity measured by the number of atoms in a molecule or by the number of distinct element types?",
+        "Are structurally complex molecules those exceeding a specific atom count or those with a certain number of unique elements?"
+      ],
+      "id": "structural_complexity_definition",
+      "resolution": "\"Structurally complex molecules\" refers to molecules with more than 20 atoms. Filter using: COUNT(atoms) > 20 per molecule.\n",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The business information lists multiple assessment prevalence rate methodologies (simple molecule-count ratio, atom-weighted incidence proportion, bond-frequency normalization factor, and structure-adjusted rate) without specifying which methodology applies to this analysis.",
+      "example_questions": [
+        "Which prevalence rate methodology should be used to calculate the percentage of qualifying molecules?",
+        "Should the assessment prevalence rate be computed using the simple molecular count ratio or the atom-weighted incidence proportion?",
+        "Does the assessment prevalence rate require atom-weighted calculations or a straightforward molecule count division?",
+        "Is the intended prevalence rate atom-weighted, bond-weighted, or unweighted across molecules?"
+      ],
+      "id": "calculation_method",
+      "resolution": "Use the bond-frequency normalization factor by weighting molecules by their total bond count, where total_bonds is computed as COUNT(DISTINCT bond_id) from the bond table per molecule_id: compute 100 * SUM(total_bonds) over the target subset divided by SUM(total_bonds) over the reference set, rounded to three decimals.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The molecule table's label column uses screening assessment codes (e.g., C7, M2, Q9, D4, K8, W1), but the schema does not document which codes correspond to carcinogenic outcomes, making it unclear how to filter carcinogenic molecules.",
+      "example_questions": [
+        "Which label codes should be treated as carcinogenic screening outcomes?",
+        "Which label values correspond to carcinogenic molecules?",
+        "Are carcinogenic molecules identified by a single label code or by multiple label codes? If multiple, which ones?",
+        "Which label codes represent carcinogenic outcomes?"
+      ],
+      "id": "label_classification_codes",
+      "resolution": "Treat carcinogenic molecules as those with label IN ('C7','M2','Q9').",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for \"elements that are usually used in organic compounds\", which makes it unclear which elements it refers to exactly\n",
+      "example_questions": [
+        "Which elements should I consider as an \"usually used in organic compounds\"?",
+        "Which are the elements usually used in organic compounds?",
+        "Which elements should I use to look for those usually used in organic compounds?"
+      ],
+      "id": "used_in_organic_compounds",
+      "resolution": "The elements that are usually used in organic compounds are c, h, o, p, cl, f, ca, and I.\n",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The prompt mentions \"elements that are commercially viable to obtain\", but it is not explained which elements this refers to, there is no way to know it.\n",
+      "example_questions": [
+        "What would the \"elements that are commercially viable to obtain\" be?",
+        "Which elements does \"elements that are commercially viable to obtain\" refer to?",
+        "Which elements should I consider as \"commercially viable to obtain\"?"
+      ],
+      "id": "commercially_viable_to_obtain",
+      "resolution": "The elements that are commercially viable to obtain are cu, pb, sn, and na. Using any other element would produce an incorrect result.\n",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The \"balanced chemical proportion\" term is used in the prompt and is mentioned in the business information, but the correction factor is not clear.\n",
+      "example_questions": [
+        "What exact formula and correction factor should I use when calculating the balanced chemical proportion?",
+        "How can I calculate the balanced chemical proportion exactly?",
+        "Which set of correction factors should I use when calculating the balanced chemical proportion?"
+      ],
+      "id": "balanced_chemical_proportion",
+      "resolution": "The correction factor in the balanced chemical proportion is 2 for C, 3 for O and Pb, and 1 for all other elements. For example, the balanced chemical proportion for C in the molecule C2OFH is (carbon_in_molecule/total_number_of_atoms)*correction_factor = (2/5)*2 = 4/5. Note that if the molecule did not contain C, the result would have been 0.\n",
+      "subtype": "confusing_information",
+      "type": "business info"
+    }
+  ]
+}

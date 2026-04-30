@@ -1,0 +1,14 @@
+{
+  "hf_bucket": "ScaleAI/hil-bench-sql-artifacts",
+  "db_artifact_path": "public_sql_82/european_football_2.sqlite",
+  "desc_artifact_paths": [
+    "public_sql_82/country.csv",
+    "public_sql_82/league.csv",
+    "public_sql_82/match.csv",
+    "public_sql_82/player.csv",
+    "public_sql_82/player_attributes.csv",
+    "public_sql_82/table_descriptions.csv",
+    "public_sql_82/team.csv",
+    "public_sql_82/team_attributes.csv"
+  ]
+}

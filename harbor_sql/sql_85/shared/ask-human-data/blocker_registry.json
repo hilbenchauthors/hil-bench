@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The term \u201cspecial education school\u201d is underspecified because it can reasonably include different special-education categories (e.g., public special education schools, nonpublic special education schools, district consortia special education schools). Without specifying which categories are intended, the set of eligible schools is ambiguous and materially changes the results.",
+      "example_questions": [
+        "According to which specific value should I pick the special education school?",
+        "What values define a special education school?",
+        "How can I identify a special education school?"
+      ],
+      "id": "spec_education_unclear",
+      "resolution": "Define \u201cspecial education school\u201d: Use frpm.\"Educational Option Type\" and include only these exact values:\n- Special Education School\n- Nonpublic Special Education School\n- District Consortia Special Education School\n(No substring matching; exact equality only.)",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for \u201cthe most recent SAT cycle available up to today,\u201d but the database provides no cycle/year field for SAT results, so determining what qualifies as \u201cmost recent up to today\u201d requires external information about the SAT reporting cycle / dataset release date that is not stored in the DB.",
+      "example_questions": [
+        "Which SAT year should I treat as the \u201cmost recent\u201d?",
+        "What data snapshot counts as the latest SAT cycle?",
+        "I don't have information on which is the most recent SAT cycle available. Can you provide the year that you're interested in SAT scores?"
+      ],
+      "id": "most_recent_sat_undefined",
+      "resolution": "Assume the satscores table is the most recent SAT snapshot available \u201cup to today,\u201d and that this snapshot corresponds to a SAT cycle ending on 2024-06-30. Only schools that were already open on or before 2024-06-30 are eligible to be evaluated for SAT in this task; therefore, include the filter date(schools.OpenDate) <= '2024-06-30' in addition to date(schools.OpenDate) >= '2022-01-01'.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "SAT section scores (Reading/EBRW component) are commonly on a 200\u2013800 scale, so \u201caverage < 50\u201d contradicts real-world scoring. The question uses a Reading SAT threshold of 50, which contradicts the real SAT section scoring scale (minimum ~200). ",
+      "example_questions": [
+        "Did you mean to express 50 as a percentile? SAT scores cannot range as 50 and below, but percentiles are a common way of expressing SAT score ranges.",
+        "SAT scores cannot have a value of 50 or below. The scores range on a 200 to 800 scale. Did you mean 250?",
+        "I think you meant to filter for average SAT scores under some value greater than 200, since that's the lowest an SAT score can be. What valid SAT score average are you looking for?"
+      ],
+      "id": "sat_value_impossible",
+      "resolution": "Use 450 as the intended cutoff: filter schools with AvgScrRead < 450.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": " \u201cOvercrowded\u201d is required as a filter but is not defined anywhere, and the database contains no direct capacity/overcrowding indicator.",
+      "example_questions": [
+        "How do you define an overcrowded school?",
+        "Which parameters should I use to find overcrowded schools?",
+        "What is the criteria to determine that a school is overcrowded?"
+      ],
+      "id": "school_overcrowded_undefined",
+      "resolution": "Define \u201covercrowded\u201d as:\nUse frpm.\"Enrollment (K-12)\" only (not Ages 5\u201317). For each school (CDSCode), use the most recent frpm.\"Academic Year\" available for that CDSCode. A school is \u201covercrowded\u201d if frpm.\"Enrollment (K-12)\" > 3000. If a school has no frpm record, exclude it from results (cannot evaluate overcrowding).",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question requires early level SAT reading averages, yet satscores does not have a clear definition on how to determine which scores are early level",
+      "example_questions": [
+        "How should I differentiate early level SAT scores from other scores when finding the reading scores below 50.",
+        "What indicator in the database identifies early level SAT scores?",
+        "What criteria should I consider when filtering for early level SAT scores?"
+      ],
+      "id": "dual_cds_keys",
+      "resolution": "Use rtype = 'S' as the only early level SAT rows.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for cards that have the name of a \"huge monster\", which makes it unclear which names can be considered as such exactly\n",
+      "example_questions": [
+        "Which names should I consider for a \"huge monster\"?",
+        "Which are the names to look for a \"huge monster\"?",
+        "Which names should I use to look for a \"huge monster\"?"
+      ],
+      "id": "huge_monster",
+      "resolution": "The cards that have the name of a \"huge monster\" are those that contain the words \"Dragon\", \"Colossus\", \"Cyclops\", \"Weaver\", \"Sentry\", or \"Djinn\" in their name. This can be done using: name LIKE \"%Dragon%\".\n",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The prompt mentions the \"most successful artists\", but it is not explained who they are.\n",
+      "example_questions": [
+        "Who are your most successful artists?",
+        "Which artists should I consider as your most successful artists?",
+        "Who should I consider as your most successful artists?"
+      ],
+      "id": "successful_artists",
+      "resolution": "Our most successful artists are Amy Weber, Chris Rahn, and Greg Staples. You can look for them using: artist IN ('Amy Weber', 'Chris Rahn', 'Greg Staples')\n",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The \"uniqueness\" column in the \"cards\" table contains values that are not clear yes or no, or even numeric and can not be interpreted. It is impossible to understand how to use this column to determine if a card is unique\n",
+      "example_questions": [
+        "How should I interpret the values from the \"uniqueness\" column in the \"cards\" table?",
+        "What do the values from the \"uniqueness\" column in the \"cards\" table mean?",
+        "How do I interpret the values from the \"uniqueness\" column in the \"cards\" table?"
+      ],
+      "id": "uniquenes_column",
+      "resolution": "Unique cards are those in which the \"uniqueness\" column in the \"cards\" table contains values \"1\", \"2\", \"U\", or \"P\"\n",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

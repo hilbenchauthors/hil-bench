@@ -1,0 +1,10 @@
+{
+  "csv_index": 47,
+  "dataset_name": "sql_47",
+  "hf_task_id": "public_sql_47",
+  "task_id": "6977cf5464c4667b98edc4dd",
+  "attempt_id": "697a957788e0493d8e302f7e",
+  "task_attempt_id": "6977cf5464c4667b98edc4dd_697a957788e0493d8e302f7e",
+  "database_name": "california_schools",
+  "num_blockers": 5
+}

@@ -1,0 +1,53 @@
+{
+  "blockers": [
+    {
+      "description": "The question contains contradictory requirements regarding user age. It asks for \"elderly adult users\" (which typically refers to significantly older individuals) but then specifies \"younger than 35\" (which refers to young adults). ",
+      "example_questions": [
+        "What age range defines \"elderly adult users\" in the codebase community context?",
+        "How should I handle the contradictory age requirements of \"elderly people\" (traditionally 65+), \"adults\" and \"younger than 35\"?",
+        "How should the conflicting requirements about elderly adult users being younger than 35 be resolved?"
+      ],
+      "id": "mature_younger_contradicting",
+      "resolution": "\"Elderly adult users\" in the community context refers to users who are legally adults (21 years or older) but still in the younger demographic. Therefore, filter for users aged between 21 and 35 (exclusive). Filter using: WHERE u.Age >= 21 AND u.Age < 35",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The request requires converting EURO to USD which is not in the static database.",
+      "example_questions": [
+        "What is the current real-time EUR to USD exchange rate I should use to convert the bounty amounts?",
+        "To calculate the total bounty in USD, I need today's exchange rate; is there a specific value I should apply for the EUR/USD conversion?",
+        "The database does not contain live currency data. Should I use a fixed exchange rate to convert the Euro bounty amounts to US Dollars?"
+      ],
+      "id": "eur_usd_rate",
+      "resolution": "Use a fixed exchange rate of 1.18 USD per 1 EUR for the conversion calculation.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The task requires ranking users by a \"Controversy Coefficient\" but no formula or definition for this metric exists in the business information or database schema.",
+      "example_questions": [
+        "How is the Controversy Coefficient calculated?",
+        "What is the specific formula for determining the Controversy Coefficient?",
+        "Which database columns are needed to compute the Controversy Coefficient?",
+        "Does the Controversy Coefficient rely on a ratio of UpVotes and DownVotes?"
+      ],
+      "id": "controversy_coefficient_definition",
+      "resolution": "Calculate the Controversy Coefficient using the formula: (DownVotes * 100.0) / (UpVotes + 1.0).",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The votes table uses a VoteTypeId column with integer codes, but the schema does not define which code corresponds to a \"Bounty Start\" transaction.",
+      "example_questions": [
+        "The votes table uses numeric VoteTypeId codes. Which code corresponds to a \"Bounty Start\" transaction?",
+        "I see several ID values in the VoteTypeId column; which one should I filter for to identify bounties being started?",
+        "The schema doesn't define the meaning of the VoteTypeId integers; which value represents the 'Bounty Start' transaction type?"
+      ],
+      "id": "vote_type_mapping",
+      "resolution": "A \"Bounty Start\" transaction is represented by VoteTypeId = 2.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

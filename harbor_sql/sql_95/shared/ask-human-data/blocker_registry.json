@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for the \"best\" races, which can be interpreted either by attendance, view count, sales amount, profit margin percentage, or critics score\n",
+      "example_questions": [
+        "What would you mean by \"best\" races, should I consider their attendance, view count, sales amount, profit margin percentage, or critics score?",
+        "When filtering for \"best\" races, should I use their attendance, view count, sales amount, profit margin percentage, or critics score?",
+        "What should I use to filter by \"best\" races?"
+      ],
+      "id": "best_races",
+      "resolution": "When looking for the \"best\" races, look for the races with the highest profit margin percentage (from the profit_margin_percentage in the races table).\n",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "It's unclear what is meant by \"Grade-A circuits\" as it is not defined anywhere in the schema or business information.",
+      "example_questions": [
+        "What are Grade-A circuits?",
+        "How is a Grade-A circuit determined?",
+        "What criteria define a Grade-A circuit?"
+      ],
+      "id": "grade_a_circuits",
+      "resolution": "Grade-A circuits are those that have hosted more than 30 Formula 1 races across all seasons. To achieve this, you can use: SELECT circuitId FROM races GROUP BY circuitId HAVING COUNT(*) > 30",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The business info states: \"premium track classification indicates circuits that are classified\", which is vague and confusing, and doesn't specify how to calculate track classification.",
+      "example_questions": [
+        "How should I identify circuits with non-premium track classification, by average lap speed, circuit length, safety rating, or another metric? What threshold value defines non-premium?",
+        "What does \"non-premium track classification\" mean in terms of measurable circuit characteristics? Should I filter circuits based on average fastest lap speed below a certain threshold, track width, safety features, number of corners, or another attribute to determine non-premium classification?",
+        "Should I calculate non-premium classification using average fastest lap speed, circuit safety ratings, track surface quality, or another metric, and what specific threshold distinguishes non-premium from standard circuits?"
+      ],
+      "id": "non_premium_track_classification",
+      "resolution": "Circuits with premium track classification are those where the average fastest lap speed across all races is below 190 km/h. You can do this using: AVG(CAST(res.fastestLapSpeed AS REAL)) < 190",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "It's unknown what the \"classic era\" means as it is not mentioned anywhere in the schema or business information.",
+      "example_questions": [
+        "What does the \"classic era\" term mean in Formula 1 racing? Does this refer to championship point gaps between top finishers, race win margins, qualifying performance differences, driver competitiveness ratios, or another metric, and what threshold or criteria defines seasons that qualify for this?",
+        "How should I identify \"classic era\" seasons in the Formula 1 database? Does this relate to close championship battles measured by final point differences, seasons with multiple competitive race winners, years with tight qualifying gaps, seasons with specific competitive patterns, or another competitive indicator?",
+        "What calculation or criteria defines \"classic era\" seasons? Should this identify seasons based on small championship point margins, years with high driver competitiveness, seasons with multiple title contenders, races with close finish margins, or another competitive characteristic, and what specific threshold distinguishes qualifying seasons?"
+      ],
+      "id": "classic_era",
+      "resolution": "Classic era seasons are years where the final driver's championship point gap between 1st and 2nd was fewer than 15 points. Calculate this by finding the maximum round for each year, then comparing the points of drivers in positions 1 and 2 for that final round. For example:\nuse: r.year IN (\n    SELECT DISTINCT r2.year\n    FROM driverStandings ds\n    JOIN races r2 ON ds.raceId = r2.raceId\n    WHERE ds.position <= 2\n        AND r2.round = (SELECT MAX(round) FROM races r3 WHERE r3.year = r2.year)\n    GROUP BY r2.year\n    HAVING MAX(CASE WHEN ds.position = 1 THEN ds.points END) - MAX(CASE WHEN ds.position = 2 THEN ds.points END) < 15\n)",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The circuits table has an operation_status column with numeric values and letters that can not be associated with a specific value. It's unclear which value represents the active status.",
+      "example_questions": [
+        "Which value in operation_status represents active status?",
+        "What does active status mean in the operation_status column?",
+        "Is the active status only given by the value 'Oper'?"
+      ],
+      "id": "active_status",
+      "resolution": "Active status is indicated by the values \"Disp\" or \"1\" in the operation_status column of the circuits table.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

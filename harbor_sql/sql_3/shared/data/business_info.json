@@ -1,0 +1,32 @@
+{
+  "database_name": "card_games",
+  "business_info": [
+    "Vintage edition printing refers to a specific classification used within the collectible card community to denote cards from printing styles that are considered visually distinctive and historically significant for collectors.",
+    "Card face codes sometimes include a trailing asterisk or dagger to indicate internal art rotations; these marks are purely cosmetic and have no impact on legality, rarity, or print classification.",
+    "For internal analytics, set release timing is sometimes grouped into four fuzzy buckets\u2014\"pre-classic\", \"classic\", \"transitional\", and \"hyper-modern\"\u2014based on regional launch windows and digital rollout dates rather than the printed releaseDate field.",
+    "Collector-facing marketing materials often refer to \"neo-vintage\" cards when a modern frame or border treatment deliberately echoes an older aesthetic; this term does not correspond to any specific flag or column in the database.",
+    "Some promo printings inherit their display rarity from the parent card but internally are tracked with a \"pseudo-rarity\" tier that only affects pack collation simulations and not user-visible rarity fields.",
+    "Marketing occasionally describes certain high-profile reprints as part of a \"heritage series\"; this is a narrative label and is not tied to the setType or any structured field in the sets table.",
+    "Within design retrospectives, people sometimes talk about the \"silver age border\" and \"bronze age border\" to distinguish subtle frame-era changes; there is no separate database attribute for these labels beyond the usual frameVersion and borderColor fields.",
+    "Some internal dashboards treat oversized cards and special collectibles (like box toppers or art cards) as \"non-standard printings\" and exclude them from baseline card counts, but they are still stored in the same cards table as regular tournament-playable cards.",
+    "In some reports, cards that debut in a supplemental set but later appear in a mainline expansion are informally called \"backported primes\"; this label is handled entirely in reporting logic and is not reflected as a column on either the cards or sets tables.",
+    "Legacy code paths sometimes use an obsolete flag \"isRetro\" to approximate older-looking frames; this value is derived from several layout and frameVersion combinations and should not be confused with any formal \"vintage\" or \"classic\" designation.",
+    "When reconciling paper and digital offerings, platform-specific promo identifiers might be stored in the purchaseUrls or related marketplace id columns, even for cards that share the same uuid and rules text.",
+    "Some mastery-level products include visually upgraded versions of staple cards that are informally tagged by creators as \"luxury printings\"; these are differentiated by foil treatment and frame style, not by a dedicated \"luxury\" column.",
+    "Design documents sometimes refer to an informal \"border experiment\" cycle when a set introduces multiple frame or border variants at once; these experiments are captured via combinations of layout, frameVersion, and borderColor rather than a single experiment flag.",
+    "In finance-oriented dashboards, cards printed with alternate art but identical rules text are often rolled up under a single economic \"asset\" even if they occupy multiple records in the cards table.",
+    "Early concept pitches sometimes label potential future products as \"micro-era\" or \"event-era\" releases, but these planning tags do not feed back into the sets table or any releaseDate-based grouping.",
+    "Various community articles sometimes split the game's history into \"golden\", \"silver\", and \"modern\" eras using subjective cutoffs; these fan-era labels do not match any authoritative internal timeline or data field.",
+    "Some hobby stores advertise weekly events as \"competitive\" or \"semi-competitive\" using their own wording; these labels are not synchronized with the cert_level or play_tier fields in the tournament_registry table.",
+    "Retailer play programs sometimes award in-store promos marked as \"League Edition\" or \"Champion Edition\" on the packaging; these marketing names do not appear as structured fields in the tournament_registry table.",
+    "For long-running events, community organizers might track a \"house banlist\" or \"soft-ban\" policy on their own websites or spreadsheets; these unofficial restrictions are not represented in the legalities or tournament_registry tables.",
+    "Some internal playtest events use color-coded wristbands to indicate experimental rulesets or deck-building constraints; these test-only distinctions never appear in production data such as legalities or tournament_registry.",
+    "Historical coverage articles might label certain Grand Prix or Pro Tour events as \"era-defining\" or \"format-breaking\"; such editorial tags have no counterpart in the tournament_registry schema.",
+    "Occasionally, flagship competitive seasons are branded with names like \"Masters Circuit\" or \"Arena Championship\"; this branding is managed in marketing systems and is not encoded in the competition_rank or tournament_grade fields.",
+    "Special foil variants sometimes adopt unofficial nicknames like \"galaxy foil\" or \"prismatic foil\" in community discussions; these labels are descriptive only and map onto combinations of existing foil and finish fields rather than a standalone type.",
+    "Internal rarity analyses sometimes segment print runs into \"core\", \"chase\", and \"ultra-chase\" buckets, but this segmentation is computed from print ratios and is not directly stored in the rarity column.",
+    "Occasionally, preview cards distributed at conventions are printed with placeholder collector numbers or watermarks; these preview-specific markings are not modeled as separate columns and are usually only mentioned in marketing copy.",
+    "Some limited-run sets experiment with mixed language or mixed frame treatments within a single booster display; these quirks are handled by distribution systems and are not flagged with a dedicated \"mixed\" attribute in the cards table.",
+    "Cards that feature multiple showcase styles across reprints might be casually grouped as a \"style family\" in design notes; this grouping is conceptual only and has no direct one-to-one representation in the schema."
+  ]
+}

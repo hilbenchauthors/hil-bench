@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for the schools with the \"best\" students, which can be interpreted by SAT score in each of the three fields (or their average), NumGE1500 \n",
+      "example_questions": [
+        "What do you mean by the schools with the 'best' students?",
+        "When filtering for the schools with the \"best\" students, should I use their SAT score?",
+        "What should I use to filter by the schools with the \"best\" students?"
+      ],
+      "id": "best_students_definition",
+      "resolution": "When looking for the schools with the \"best\" student, use their average SAT score in math\n",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The prompt asks for \"northern schools\", which makes it unclear which schools can be considered as such \n",
+      "example_questions": [
+        "What latitude should I consider for \"northern schools\"?",
+        "Which are the latitude values for \"northern schools\"?",
+        "Which latitude values should I use to look \"northern schools\"?"
+      ],
+      "id": "northern_schools",
+      "resolution": "The northern schools are those with a latitude over 37.7.\n",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The prompt mentions the \"legislative name\", but it is not explained what this term means.\n",
+      "example_questions": [
+        "What would the \"legislative name\" be?",
+        "What does the \"legislative name\" refer to?",
+        "What should I consider as the \"legislative name\"?"
+      ],
+      "id": "legislative_name",
+      "resolution": "The \"legislative name\" is obtained as: \"{ZIP}: {State}, {school's name}\". \nOnly include schools where Zip, State, and School name are not NULL.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The \"StatusType\" column in the \"schools\" table contains values that cannot be interpreted. It is impossible to understand how to use this column to determine whether a school is active or not.\n",
+      "example_questions": [
+        "How should I interpret the values from the \"StatusType\" column in the \"schools\" table?",
+        "What do the values from the \"StatusType\" column in the \"schools\" table mean?",
+        "How do I interpret the values from the \"StatusType\" column in the \"schools\" table?"
+      ],
+      "id": "status_col",
+      "resolution": "A school is active if the \"StatusType\" column in the \"schools\" table contains the values \"3\", \"J\", \"S\", or \"T\".",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

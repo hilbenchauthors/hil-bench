@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \"in the last few years before 2015\" lacks a precise time boundary. It's unclear whether \"few\" refers to 2 years, 3 years, or some other span leading up to 2015.",
+      "example_questions": [
+        "What specific year range defines the \"last few years before 2015\" for the Monaco Grand Prix?",
+        "Should the \"last few years\" cover 2 years, 4 years, or another time span?",
+        "Which exact seasons should be included when filtering for the Monaco Grand Prix in the years leading up to 2015?"
+      ],
+      "id": "last_few_years",
+      "resolution": "The \"last few years before 2015\" refers to the period from 2009 through 2014 (inclusive).",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The term \"critical powertrain failures\" is vague, as the status table contains many different types, and it's unclear which specific statuses qualify.",
+      "example_questions": [
+        "Which specific status values from the status table constitute critical powertrain failures?",
+        "Should critical powertrain failures include only core drivetrain components or also ancillary systems like hydraulics and electrical?",
+        "What is the complete list of status names that qualify as critical powertrain failures?"
+      ],
+      "id": "powertrain_failures",
+      "resolution": "Critical powertrain failures refer to the following statuses: 'Engine', 'Gearbox', 'Transmission', 'Hydraulics', and 'Electrical'. ",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The business information does not clarify what \"intermediate race negative performance\" means, as standardized positional metrics could refer to grid position, finishing position, or lap-by-lap position.",
+      "example_questions": [
+        "What criteria define \"intermediate race negative performance\" for driver results?",
+        "Should intermediate race negative performance be measured by lap position, final finishing position, or another metric?",
+        "How do I identify drivers with an \"intermediate race negative performance\"?"
+      ],
+      "id": "intermediate_negative_performance",
+      "resolution": "Intermediate race negative performance refers to drivers who held positions between 12 and 17 during any lap of the Monaco Grand Prix races in the specified timeframe. ",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The term \"competitive constructors\" is not defined in the business information, making it unclear which constructors qualify or what threshold determines competitiveness.",
+      "example_questions": [
+        "What criteria define a constructor as \"competitive\"?",
+        "Is competitiveness based on race wins, championship standings, or another performance metric?",
+        "What is the minimum threshold for a constructor to qualify as competitive?"
+      ],
+      "id": "competitive_constructor_definition",
+      "resolution": "Competitive constructors are those whose drivers have achieved at least 5 first-place finishes (position = 1) recorded in the results table. ",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks for the \"registry ID\", but the constructor_registry table contains multiple ID fields, and it's unclear which column represents the registry ID.",
+      "example_questions": [
+        "Which column in the constructor_registry table represents the registry ID?",
+        "Should the registry ID use F1_ID, Paddock_ID, or Stewards_ID?",
+        "Which ID field in the constructor_registry table should be returned as the registry ID?"
+      ],
+      "id": "registry_id",
+      "resolution": "The registry ID refers to the Paddock_ID column in the constructor_registry table.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

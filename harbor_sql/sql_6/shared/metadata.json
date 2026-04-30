@@ -1,0 +1,10 @@
+{
+  "csv_index": 6,
+  "dataset_name": "sql_6",
+  "hf_task_id": "public_sql_6",
+  "task_id": "6977cf5464c4667b98edc502",
+  "attempt_id": "69938672459251bfbd896187",
+  "task_attempt_id": "6977cf5464c4667b98edc502_69938672459251bfbd896187",
+  "database_name": "codebase_community",
+  "num_blockers": 3
+}

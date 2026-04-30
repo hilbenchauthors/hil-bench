@@ -1,0 +1,56 @@
+{
+  "blockers": [
+    {
+      "description": "The expression \u201cmost significant loan\" has multiple interpretation it could mean the largest loan, the higher value loan, or even the loan with the higher pay per month.",
+      "example_questions": [
+        "How would you identify the most significant loans?",
+        "Should I identify the most significant loans based on their amount or a specific value?",
+        "Which value should I use to identify significant loans?"
+      ],
+      "id": "most_significant_loan",
+      "resolution": "Identify most significant loan as the loans with the higher loan.payment.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The expression \u201caccount holders\" has multiple interpretation it could mean the owner, user, disponent or a combination of these.",
+      "example_questions": [
+        "What do you mean as account holder?",
+        "Should I use a specific type of account to identify account holders?",
+        "How should I identify account holders?",
+        "Should I consider only account owners to identify account holders, or should I use another value?"
+      ],
+      "id": "account_holders",
+      "resolution": "Consider account holders of dis.type 'OWNER' or 'DISPONENT'.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The task does not provide business information indicating what does loan risk ratio means.",
+      "example_questions": [
+        "How should I compute the loan risk ratio?",
+        "Which values should I use to calculate the loan risk ratio?",
+        "Should I use a specific formula to calculate the loan risk ratio?",
+        "What is the loan risk ratio?",
+        "About the loan risk ratio, you want to use a specific formula to calculate it?"
+      ],
+      "id": "loan_risk_ratio",
+      "resolution": "To compute the risk ratio filter by loan.status 'B' and 'D' and divide the loan.amount by the distric.A11 (average salary).",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The gender column uses non-semantic coded values that do not clearly indicate the gender they represent. The column has values for A,B,C and D and is not clear which values is for Males and which one is for female.",
+      "example_questions": [
+        "Which value in the gender field identifies female and male customers?",
+        "What does each code in the gender column represent?",
+        "How should female and male clients be identified given the coded gender values?",
+        "Considering the clients.gender columns has multiple values, how should I identify male and female clients?"
+      ],
+      "id": "multiple_genders",
+      "resolution": "Use the gender.value 'A' to filter for female clients and the gender.value 'B' to filter for male clients.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

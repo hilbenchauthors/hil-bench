@@ -1,0 +1,69 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks to exclude \"bonds formed through ionic interactions,\" but all bonds in molecular structures are covalent. Ionic bonds form lattice structures, not discrete molecular bonds, so no bonds in the database are ionic.",
+      "example_questions": [
+        "Are there any actual ionic bonds recorded in the molecular bond data, or are all bonds covalent?",
+        "How should \"bonds formed through ionic interactions\" be reinterpreted given that molecular bonds are inherently covalent?",
+        "If no ionic bonds exist in the dataset, should the filter instead target a specific subset of bonds such as highly polar bonds?",
+        "Which atoms or bond types best approximate \"ionic interactions\" within a covalent molecular structure?"
+      ],
+      "id": "ionic_bond_exclusion",
+      "resolution": "Reinterpret \"ionic interactions\" as highly polar bonds, this is, those involving hydrogen, which forms the most polar covalent bonds in organic compounds. Exclude all bonds where either endpoint atom is hydrogen (element <> 'h').",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question contains contradictory requirements regarding molecule classification. It asks for \"water-free hydrates,\" where \"water-free\" (anhydrous) means lacking water molecules while \"hydrate\" specifically refers to compounds containing water.",
+      "example_questions": [
+        "How should molecules be classified as \"anhydrous hydrates\" when the two terms are chemically contradictory?",
+        "Does \"anhydrous hydrate\" mean the molecule contains oxygen atoms but lacks O-H bonds?",
+        "What molecular criteria determine whether a compound qualifies as an \"anhydrous hydrate\"?",
+        "Should the anhydrous condition be evaluated at the molecular level or at the individual bond level?"
+      ],
+      "id": "water_free_hydrates",
+      "resolution": "Treat \"water-free hydrate\" as a molecule containing at least one oxygen atom but no O-H bonds.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The phrase \u201csignificant molecular structure\u201d supports multiple distinct interpretations, such as measuring size by total atom count, by non-hydrogen atom count, or by bond count.",
+      "example_questions": [
+        "Should \"significant molecular structure\" be measured by total atoms, non-hydrogen atoms, or bonds within the molecule?",
+        "What is the minimum size threshold for a molecular framework to qualify as \"significant\"?",
+        "Does \"significant molecular structure\" count all atoms including hydrogen, or only heavy atoms?",
+        "Is \"significant\" defined by a specific numerical cutoff, or is it relative to other molecules in the dataset?"
+      ],
+      "id": "significant_molecular_structure",
+      "resolution": "Define \"significant molecular structure\" as a molecule having at least 20 bonds in the bond table. ",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The business info states double-bond records are reportable only when \"chemically active within a molecule's oxygen participation,\" but the criteria are unclear.",
+      "example_questions": [
+        "What criteria determine whether a double bond is \"chemically active within a molecule's oxygen participation\"?",
+        "Does \"oxygen participation\" restrict reportable double bonds to a specific pair of element types at the bond endpoints?",
+        "Which element combinations at the two endpoints of a double bond satisfy the \"chemically active\" reporting convention?",
+        "Must a reportable double bond connect carbon to oxygen, or can other element pairings involving oxygen also qualify?"
+      ],
+      "id": "double_bond_record_meaning",
+      "resolution": "A double bond is reportable when bond_type = '=' and one endpoint has element = 'c' while the other has element = 'o'. ",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The business information states that phosphorus must \"play a meaningful structural role\" for a compound to qualify as a phosphorus compound, but this criterion is vague and lacks specific chemical or database-measurable criteria.",
+      "example_questions": [
+        "What criteria define phosphorus playing a \"meaningful structural role\" in a phosphorus compound?",
+        "Should meaningful phosphorus participation require minimum atom count, specific bonding patterns, or other molecular properties?",
+        "How should meaningful structural role be determined from the available database fields for phosphorus compounds?",
+        "Should the molecule's label be considered when evaluating phosphorus structural participation?"
+      ],
+      "id": "phosphorus_compounds",
+      "resolution": "A molecule qualifies when it contains at least one atom with element = 'p' and the molecule has label = '-' in the molecule table.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    }
+  ]
+}

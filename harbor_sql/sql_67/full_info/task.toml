@@ -1,0 +1,33 @@
+version = "1.0"
+
+[metadata]
+task_id = "full_info"
+task_type = "sql"
+mode = "full_info"
+database_name = "formula_1"
+task_attempt_id = "6977cf5464c4667b98edc52f_6998a9dd5c07f4e93cdf7ab0"
+tags = ["sql", "full_info", "hil-bench"]
+
+[verifier]
+timeout_sec = 300.0
+
+[agent]
+timeout_sec = 1800.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 12288
+gpus = 0
+allow_internet = true
+
+[[environment.mcp_servers]]
+name = "sql-tools"
+transport = "streamable-http"
+url = "http://sql-tools:8000/mcp"
+
+[[environment.mcp_servers]]
+name = "business-info"
+transport = "streamable-http"
+url = "http://business-info:8000/mcp"

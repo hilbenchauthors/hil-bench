@@ -1,0 +1,41 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \"routine pit stop\" is ambiguous because the `pitStops.stop_condition` column contains six distinct code values ('1' through '6'), and it is unclear which subset of these values qualifies as a \"routine\" pit stop.",
+      "example_questions": [
+        "Which `stop_condition` code values in the pitStops table should be considered \"routine\" for counting purposes?",
+        "How many of the six distinct `stop_condition` codes qualify as \"routine\" versus non-routine?",
+        "Should all `stop_condition` values be included when counting routine pit stops, or only a specific subset?"
+      ],
+      "id": "routine_pit_stop_values",
+      "resolution": "A \"routine\" pit stop is one where `pitStops.stop_condition` is '3' or '6'. Pit stops with any other stop_condition value ('1', '2', '4', or '5') are not considered routine and must be excluded. ",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The database does not define what duration qualifies as a \u201cquick pit stop,\u201d so a numeric threshold is missing. Without a specified threshold (and whether the cutoff is inclusive), the count of \u201cquick pit stops\u201d is not determinable.",
+      "example_questions": [
+        "What numeric cutoff (in pitStops.milliseconds) should define a \u2018quick pit stop\u2019?",
+        "Should the \u2018quick pit stop\u2019 threshold be inclusive (e.g., pitStops.milliseconds <= threshold) or strict (< threshold)?",
+        "If pitStops.milliseconds is NULL for a pit stop, should it be excluded from the \u2018quick pit stop\u2019 count?"
+      ],
+      "id": "quick_pit_stop_threshold_ms",
+      "resolution": "Define a \u201cquick pit stop\u201d as a pit stop with pitStops.milliseconds less than or equal to 26000 (i.e., pitStops.milliseconds <= 26000). If pitStops.milliseconds is NULL, that pit stop is not considered \u201cquick.\u201d",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The `results.fastestLapTime` column is described as \"lap performance timing delta relative to session benchmark,\" creating ambiguity about whether stored values are absolute lap clock times, session-relative offsets, gap-to-leader deltas, or normalized performance indices.",
+      "example_questions": [
+        "Does `results.fastestLapTime` store an absolute lap clock time, a session-relative offset, a gap-to-leader delta, or a normalized performance index?",
+        "Can the value in `results.fastestLapTime` for a given driver and race differ from the minimum lap time recorded in the `lapTimes` table for that same driver and race? If yes, from where should the actual fastest lap time be extracted?",
+        "If `results.fastestLapTime` contains a processed metric rather than a raw lap time, how should the driver's actual fastest lap time be determined?",
+        "What column should be used to extract the fastest lap time for each driver?"
+      ],
+      "id": "fastest_lap_time_column_meaning",
+      "resolution": "The `results.fastestLapTime` column stores a processed race-summary metric that does not correspond to any actual recorded lap time. The driver's true fastest lap time should be derived from the `lapTimes` table by selecting the `time` value with the minimum `milliseconds` for that driver and race.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

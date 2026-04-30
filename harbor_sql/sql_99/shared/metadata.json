@@ -1,0 +1,10 @@
+{
+  "csv_index": 99,
+  "dataset_name": "sql_99",
+  "hf_task_id": "public_sql_99",
+  "task_id": "6977cf5464c4667b98edc558",
+  "attempt_id": "699c90a493eeb50dc9348359",
+  "task_attempt_id": "6977cf5464c4667b98edc558_699c90a493eeb50dc9348359",
+  "database_name": "thrombosis_prediction",
+  "num_blockers": 4
+}

@@ -1,0 +1,41 @@
+{
+  "blockers": [
+    {
+      "description": "The term \"classic circuits\" is subjective and lacks a standardized definition or specific list in the database or business context, preventing the creation of a filter for the circuits table.",
+      "example_questions": [
+        "Which specific circuits are considered \"classic circuits\"?",
+        "Is there a predefined list of circuit names that count as classic?",
+        "How should I filter the circuits table to identify classic ones?"
+      ],
+      "id": "classic_circuits",
+      "resolution": "Classic circuits are defined specifically and explicitly as 'monaco', 'silverstone', 'spa', 'monza', and 'suzuka'.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The business definition of \"optimal duration window\" is vague and fails to provide the specific numerical bounds (in milliseconds) required to filter the pitStops table.",
+      "example_questions": [
+        "What is the specific time range in milliseconds for a standard pit stop?",
+        "What are the exact lower and upper time limits for the \"optimal duration window\"?",
+        "When looking for the optimal duration window for a pit stop, what values should I use in the filter?"
+      ],
+      "id": "standard_pit_stop",
+      "resolution": "A standard pit stop is defined as having a duration between 18,250 and 24,890 milliseconds.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The term \"verified constructor points\" creates an ambiguity in the schema since there are multiple tracking columns in constructorResults (logs, audit_tracking, verified_logs) but it is unclear how to calculate the verified constructor points from these columns.",
+      "example_questions": [
+        "Which column is the tracking column for verified constructor points?",
+        "Does \"verified\" imply I should use the audited records in standings or the real-time results?",
+        "Where are verified constructor points stored in the formula_1 database?",
+        "What formula should I use to calculate verified constructor points?"
+      ],
+      "id": "verified_constructor_points",
+      "resolution": "Verified constructor points should be calculated as the sum of verified_logs plus half of logs. The formula is: COALESCE(verified_logs, 0) + (logs / 2.0)",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

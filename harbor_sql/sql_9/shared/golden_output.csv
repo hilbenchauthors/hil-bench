@@ -1,0 +1,2 @@
+COUNT(DISTINCT c.client_id)
+2

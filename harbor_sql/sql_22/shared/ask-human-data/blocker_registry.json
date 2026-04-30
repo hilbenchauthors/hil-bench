@@ -1,0 +1,41 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \"the last days of the platform's operation\" does not specify a concrete start date or how many days this period covers.",
+      "example_questions": [
+        "What specific date range is considered \"the last days of the platform's operation\"?",
+        "How many days before the platform's shutdown are included in \"the last days\"?",
+        "From which start date should \"the last days of the platform's operation\" be counted?",
+        "Does \"the last days of the platform's operation\" refer to the final week, final two weeks, or final month?"
+      ],
+      "id": "last_days",
+      "resolution": "Interpret \"the last days of the platform's operation\" as the period from 2014-08-25  to 2014-09-07 (inclusive).",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The term \"active user\" is defined vaguely in the business information, the term \"actions\" is vague and does not specify which platform activities should be counted to determine the most active user.",
+      "example_questions": [
+        "What counts as an \u201caction\u201d for determining the most active user?",
+        "How should actions be counted to identify the most active user?",
+        "Should actions be counted across the whole platform or only within the last-days window?"
+      ],
+      "id": "active_user",
+      "resolution": "Treat 'actions' as rows in postHistory with a non-null, positive UserId. The most active users are those with the highest total count of such rows across the entire database (do not restrict this count to the 'last days' date range)",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "Comment volume can be interpreted using multiple comment-related metrics available in the schema, and there is no guidance on which metric should be treated as the authoritative count for comparing posts in this question.",
+      "example_questions": [
+        "How should the number of comments for a post be determined?",
+        "Which data source should be used to obtain comment counts for posts?",
+        "What is the correct way to measure how many comments a post has received?"
+      ],
+      "id": "comment_count_source",
+      "resolution": "The number of comments for a post is determined by the VerifiedCommentCount column from the posts table.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

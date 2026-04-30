@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question mentions \"overall rating\" twice with mutually exclusive conditions (\u2264 80 and between 82-90). Player_Attributes contains several rating-like columns (overall_rating, potential, international_reputation, overall_performance), making it ambiguous which column the second \"overall rating\" refers to.",
+      "example_questions": [
+        "Do both \"overall rating\" mentions refer to the same column, or to different attributes?",
+        "How should the contradictory overall rating requirements (\u2264 80 vs 82-90) be reconciled?",
+        "Does \"overall rating between 82 and 90\" refer to overall_rating or potential?"
+      ],
+      "id": "rating_contradiction",
+      "resolution": "The first \"overall rating no more than 80\" refers to overall_rating. The second \"overall rating between 82 and 90\" refers to the potential column. Filter using: WHERE pa.overall_rating <= 80\n  AND pa.potential BETWEEN 82 AND 90\n",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for players with \"elite shooting capabilities,\" but this term is not defined anywhere in the business information.",
+      "example_questions": [
+        "Which specific attributes define \"elite shooting capabilities\" for filtering players?",
+        "What numeric threshold qualifies a player as having elite shooting capabilities?",
+        "Should elite shooting be measured by individual attributes, averages, or combined scores?"
+      ],
+      "id": "elite_definition",
+      "resolution": "Elite shooting capabilities are defined as having an average of finishing, heading_accuracy, volleys, and curve greater than 75. Calculate using: WHERE (pa.finishing + pa.heading_accuracy + pa.volleys + pa.curve) / 4.0 > 75",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks for players with \"low injury risk,\" but the Player table's injury_prone column uses opaque coded values (Q1, Q2, Q3, Q4, Outlier) with no documentation explaining which code indicates low risk.",
+      "example_questions": [
+        "Which injury_prone code value indicates low injury risk?",
+        "What does the code 'Q3' represent in the Player table's injury_prone column?",
+        "How should low injury risk be identified from the injury_prone coded values?"
+      ],
+      "id": "injury_risk",
+      "resolution": "Players with low injury risk have injury_prone = 'Q3'. Filter using: WHERE p.injury_prone = 'Q3'",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

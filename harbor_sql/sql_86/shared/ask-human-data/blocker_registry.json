@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "It is unclear which play formats count as \u201ccompetitive formats.",
+      "example_questions": [
+        "Which formats should be considered \u201ccompetitive formats\u201d?",
+        "Do competitive formats include Commander or only Standard/Modern/Pioneer/Legacy?",
+        "What exact competitive formats should I filter for?"
+      ],
+      "id": "competitive_formats",
+      "resolution": "\"Competitive formats\" are modern and legacy.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The prompt asks for the \"best\" cards, which can be interpreted either by power, life, or whether they are foil for example\n",
+      "example_questions": [
+        "What would you mean by \"best\" cards, should I consider their power or life?",
+        "When looking for \"best\" cards, should I use their power or if they are foil?",
+        "What should I use to look for \"best\" cards?"
+      ],
+      "id": "best_meaning",
+      "resolution": "When looking for the \"best\" cards order using their power in a way that does not consider non-numeric values.\n",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "\u201cLast few years before 2021\u201d does not specify an exact time frame, and could mean several years before 2021.",
+      "example_questions": [
+        "What is the exact cutoff date for the last few years before 2021?",
+        "What date range defines the last few years before 2021?",
+        "What time window should I use for the last few years before 2021?"
+      ],
+      "id": "last_few_years",
+      "resolution": "\"Last few years before 2021\" means cards released between the dates 2015-01-01 and 2020-12-31 (inclusive).",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The term \"collector's grade classification\" is not defined in the business information, and it is unclear which values can be used to determine what qualifies for collector's grade.",
+      "example_questions": [
+        "What does \"Collector's grade classification\" mean?",
+        "Which value defines \"Collector's grade classification\" cards?",
+        "How should \"Collector's grade classification\" cards be identified?"
+      ],
+      "id": "collector_grade_classification",
+      "resolution": "\"Collector's grade classification\" is a card that contains an etched frame. cards.frameEffects LIKE '%etched%'",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The term \"proper number of channels\" is not clearly defined. The availability column contains values, but it's unclear which value corresponds to \"proper\".",
+      "example_questions": [
+        "What does \"available on the proper number of channels\" mean in terms of availability values?",
+        "Which availability values correspond to a \"proper number\"?",
+        "How should I identify which values represent \"proper number of channels\" cards?"
+      ],
+      "id": "proper_number_of_channels",
+      "resolution": "A card is available on the proper number of channels if cards.availability = 'double'",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

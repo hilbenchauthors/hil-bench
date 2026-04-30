@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for schools with \"institutional email domains\" but it is unclear which email domain suffixes qualify as institutional domains.",
+      "example_questions": [
+        "Which email domain suffixes should be considered as \"institutional\" domains?",
+        "Should domains ending in .org, .net, or .edu be included as institutional email addresses?",
+        "Are only .k12.ca.us domains considered institutional, or should other educational domains be included?"
+      ],
+      "id": "institutional_email_domains",
+      "resolution": "Institutional email domains refer to the administrator email addresses (AdmEmail1 column) that end in .k12.ca.us only.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The question mentions \"literacy index\" but does not specify how this metric should be calculated from the available SAT score data.",
+      "example_questions": [
+        "How should the literacy index be calculated from the SAT score data?",
+        "Should the literacy index be a sum, average, or weighted combination of score components?",
+        "Which SAT score columns should be included in the literacy index calculation, and what weighting should be applied?"
+      ],
+      "id": "literacy_index_definition",
+      "resolution": "Literacy index is calculated using the formula: (AvgScrRead / 2) + AvgScrWrite. ",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks for schools that \"offer mixed classes\" but the Virtual column contains codes (A, B, C, D, E) without clear definitions, making it unclear which values represent mixed instruction.",
+      "example_questions": [
+        "What does \"mixed classes\" mean in the context of the Virtual column?",
+        "Which values in the Virtual column (A, B, C, D, E) correspond to mixed instruction formats?",
+        "Can you give me some more insights into how mixed classes are encoded in the database?"
+      ],
+      "id": "mixed_classes_definition",
+      "resolution": "Mixed classes refer to schools with Virtual column values B, C, or D only.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

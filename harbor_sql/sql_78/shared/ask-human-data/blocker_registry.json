@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for locally funded schools whose disparity is above the locally funded average, but also states that some schools below the average should be eligible. This creates conflicting eligibility criteria: should eligibility include only schools above the locally funded average, or should it also include some below-average schools, and if so, which ones?",
+      "example_questions": [
+        "Should eligibility include only locally funded schools whose disparity is above the locally funded average, or should some locally funded schools below that locally funded average also be eligible?",
+        "If some locally funded schools below the locally funded average are eligible, what rule determines which below-average disparities qualify?",
+        "Should multiple locally funded schools be included if they share the same closest-below-average disparity value?"
+      ],
+      "id": "above_and_below_average_eligibility",
+      "resolution": "Treat a school as eligible if its disparity is at least the locally funded average, OR if it is the locally funded school whose disparity is the closest value strictly below the locally funded average. If multiple schools tie for being closest below the average, include all tied schools.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The term \u201cdisparity\u201d is confusing because the question does not specify how it should be computed when comparing K\u201312 enrollment to enrollment ages 5\u201317. It could reasonably refer to an absolute difference, a ratio, a percentage difference, or another comparison metric.",
+      "example_questions": [
+        "How should disparity be calculated when comparing K\u201312 enrollment with ages 5\u201317 enrollment?",
+        "Should disparity between K\u201312 enrollment and ages 5\u201317 enrollment be calculated as an absolute difference, a ratio, or a percentage difference?",
+        "Is there a defined formula that should be used to measure disparity between K\u201312 enrollment and ages 5\u201317 enrollment?"
+      ],
+      "id": "disparity_calculation_method",
+      "resolution": "Compute disparity as the ratio between K\u201312 enrollment and ages 5\u201317 enrollment using floating-point division. Exclude rows where either enrollment value is NULL or where the ages 5\u201317 enrollment value is zero.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "Enrollment values needed to compute disparity appear in multiple plausible sources (e.g., enrollment_metrics, enrollment_metrics_certified, and frpm), and the schema does not specify which source should be treated as authoritative for K\u201312 enrollment and ages 5\u201317 enrollment in this calculation.",
+      "example_questions": [
+        "Which enrollment data source should be used to obtain enrollment values when computing disparity?",
+        "If enrollment values appear in multiple tables, which table should be considered authoritative for disparity calculations?",
+        "Should enrollment values used to calculate disparity come from general enrollment records or from certified enrollment records?"
+      ],
+      "id": "data_source_table_for_disparity",
+      "resolution": "Use enrollment_metrics_certified as the authoritative data source.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

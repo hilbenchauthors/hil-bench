@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "It is unclear what time period \"the first few months of 2011\" refers to.",
+      "example_questions": [
+        "What time period does the first few months of 2011 cover?",
+        "How many months are included in the first few months of 2011?",
+        "What is the exact date range for the first few months of 2011?"
+      ],
+      "id": "first_few_months",
+      "resolution": "The first few months of 2011 refers to January and February  2011 only. Filter where Date >= '2011-01-01' AND b.Date < '2011-03-01'",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "It's unclear which specific tags are considered \"specialized\", as there is no definition of which tags qualify as specialized, all special tags, or only select?",
+      "example_questions": [
+        "Which tags are considered specialized?",
+        "How do I identify a specialized tag?",
+        "Which tags qualify as a specialized tag?"
+      ],
+      "id": "specialized_tags",
+      "resolution": "Specialized tags refer to posts tagged with: regression, hypothesis-testing, mathematical-statistics, bayesian,  or statistical-significance. Use: p.Tags LIKE '%<regression>%' OR p.Tags LIKE '%<hypothesis-testing>%' OR p.Tags LIKE '%<bayesian>%' OR p.Tags LIKE '%<mathematical-statistics>%' OR p.Tags LIKE '%<statistical-significance>%'",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "It is unclear how eligible for mentorship recognition is measured, as the business information is vague as it doesn't mention what the criteria is.",
+      "example_questions": [
+        "What criteria determines if a user is eligible for mentorship recognition?",
+        "How is eligibility for mentorship recognition defined?",
+        "What makes a user eligible for mentorship recognition?"
+      ],
+      "id": "eligible_for_mentorship_recognition",
+      "resolution": "Users eligible for mentorship recognition are those who have earned the Teacher, Enlightened, or Guru badge at any point in their history. Filter using:  SELECT DISTINCT UserId \n    FROM badges \n    WHERE Name IN ('Teacher', 'Enlightened', 'Guru')",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The user_status table contains three columns with coded values, and it is unclear which column and which value should be used to identify \"active contributors\".",
+      "example_questions": [
+        "Which value identifies an active contributor?",
+        "How do I identify that a user is an active contributor?",
+        "What value represents a user that is an active contributor?"
+      ],
+      "id": "active_contributors",
+      "resolution": "Active contributors are identified using the activity_level column in the user_status table with the value 'Frequent'. Filter using: JOIN user_status us ON u.Id = us.Id WHERE us.activity_level = 'Frequent'",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

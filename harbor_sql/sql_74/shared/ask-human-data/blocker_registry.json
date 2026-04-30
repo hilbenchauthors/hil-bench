@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question references \"the IUPAC recognition of element 120 (Unbinilium),\" but element 120 has never been synthesized or officially recognized by IUPAC.",
+      "example_questions": [
+        "Element 120 (Unbinilium) has never been recognized by IUPAC. What year should I use for 'after the IUPAC recognition of element 120'?",
+        "Since element 120 does not exist yet, what specific date or year should be referred?",
+        "The IUPAC has not officially recognized element 120. Should I use the year of the most recent element recognitions (e.g., 2016 for elements 113\u2013118) or a different reference year?"
+      ],
+      "id": "iupac_element_recognition",
+      "resolution": "Element 120 (Unbinilium) has no official IUPAC recognition date and to resolve this, use the year 2011 (the period of notable synthesis attempts at JINR) as the reference point for this event. Treat the phrase \"after the IUPAC recognition of element 120\" as meaning \"year >= 2011\".",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question asks about \"priority compounds,\" but the business information does not define what makes a compound a \"priority\" compound. The tier_code column has five possible values (T1\u2013T5), and it is unclear which tier code(s) correspond to \"priority.\"",
+      "example_questions": [
+        "What does 'priority compounds' mean? Which tier_code value(s) in the molecule table correspond to priority compounds?",
+        "The business information mentions tier codes but does not define 'priority compounds.' Which specific tier_code should I filter by?",
+        "Are priority compounds identified by a specific tier_code (T1, T2, T3, T4, or T5), or by some combination of codes?"
+      ],
+      "id": "priority_compounds_definition",
+      "resolution": "Interpret \"priority compounds\" as molecules classified under tier_code = 'T2' in the molecule table.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question filters molecules \"evaluated after\" a certain year, but the molecule table has four year columns, initial_screening_year, formal_review_year, classification_year, and publication_year,  with no clear indication of which one represents when a molecule was \"evaluated.",
+      "example_questions": [
+        "The molecule table has four year columns (initial_screening_year, formal_review_year, classification_year, publication_year). Which column should I use for 'evaluated after'?",
+        "Does 'evaluated after' refer to the initial screening, the formal review, the classification, or the publication year of the molecule?",
+        "Which of the four year-related columns in the molecule table corresponds to when a molecule was 'evaluated'?"
+      ],
+      "id": "evaluation_year_column_ambiguity",
+      "resolution": "Interpret \"evaluated after\" as referring to the classification_year column in the molecule table.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for \"short players\" but this term can be interpreted in multiple ways. It is unclear whether \"short\" refers to players below average height, players below a specific height threshold (such as 170cm, 175cm, or 180cm), or the shortest players in the dataset (bottom percentile).",
+      "example_questions": [
+        "What does \"short players\" mean in terms of height? Should I filter for players below 170cm, 175cm, 180cm, or use another threshold?",
+        "How should I define \"short players\"?",
+        "The question mentions \"short players\" but doesn't specify the height threshold. Should I use height < 170, height < 175, height < 180, or another value to identify short players?"
+      ],
+      "id": "short_players_multiple_interpretations",
+      "resolution": "Short players refers to players with height less than 173cm. Filter for players where height < 173.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for players in \"Western European leagues\" but this geographic term is not precisely defined. It is unclear which specific countries or leagues qualify as Western European, as different definitions may include or exclude countries like the United Kingdom, Germany, Belgium, Netherlands, and others.\n\n\n",
+      "example_questions": [
+        "What does \"Western European leagues\" mean? Which specific countries should be included - Spain, Italy, France, Portugal, Germany, England, or others?",
+        "Does Western European leagues include only Spain, Italy, France, and Portugal, or should I also include England, Germany, Belgium, and Netherlands?",
+        "The question references \"Western European leagues\" but doesn't specify which countries qualify. Should I filter for leagues from Spain/Italy/France/Portugal only, or include additional Western European countries?"
+      ],
+      "id": "western_european_leagues_underspecified",
+      "resolution": "Western European leagues refers to leagues from Spain, Italy, France, and Portugal. Filter for leagues where the country name is in ('Spain', 'Italy', 'France', 'Portugal').",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"strong volley and dribbling scores\" as \"player performance metrics demonstrating elevated technical proficiency levels in ball striking and ball manipulation capabilities, reflecting superior skill execution standards relative to baseline assessment criteria,\" but this definition is vague and does not specify the actual threshold values or numeric criteria for determining strong scores.",
+      "example_questions": [
+        "The business information describes strong volley and dribbling scores as \"elevated technical proficiency levels\" but doesn't provide specific thresholds. What numeric values define \"strong\" - scores above 60, 70, 80, or another threshold?",
+        "What does \"superior skill execution standards relative to baseline assessment criteria\" mean in terms of actual volley and dribbling score values? Should I filter for scores > 70, > 75, > 80, or use a different threshold?",
+        "The definition mentions \"elevated technical proficiency levels\" for volley and dribbling without specifying numeric thresholds. What score values should I use to identify players with strong volley and dribbling scores?"
+      ],
+      "id": "strong_volley_dribbling_scores_vague",
+      "resolution": "Strong volley and dribbling scores means volley score > 75 AND dribbling score > 77. Filter for players where volleys > 75 AND dribbling > 77.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The Player_Attributes table contains multiple rating columns (Rating1, Rating2, Rating3, Rating4, Rating5, Rating6, Rating7) all described as \"player performance assessment metric,\" but the table definition does not clearly explain what each rating represents or which rating column should be used for filtering by overall rating. The table's multi-rating structure with seven similar columns is confusing and makes it unclear which column captures the player's overall FIFA rating.\n",
+      "example_questions": [
+        "The Player_Attributes table has three rating columns (Rating1, Rating2, Rating3) all described as \"player performance assessment metric.\" Which rating column represents the overall rating?",
+        "What is the difference between Rating1, Rating2, and Rating3 in the Player_Attributes table? Which one should I use to identify players' overall FIFA ratings?",
+        "The Player_Attributes table contains Rating1, Rating2, and Rating3 with identical vague descriptions. To filter by overall rating, which rating column should I use?"
+      ],
+      "id": "player_attributes_rating_columns_unclear",
+      "resolution": "Rating2 represents the player's overall adjusted FIFA rating. Use Rating2 to filter and display players' overall adjusted ratings. \n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

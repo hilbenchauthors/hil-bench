@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for cards with negative mana cost, which contradicts the fundamental rules of Magic: The Gathering where mana costs cannot be negative values. This creates ambiguity about what the user actually wants.",
+      "example_questions": [
+        "What does \"negative mana cost\" mean in the context of Magic: The Gathering?",
+        "Can you clarify what a negative mana cost refers to for Magic cards?",
+        "How is negative mana cost defined in Magic card terminology?"
+      ],
+      "id": "negative_mana_cost_cards",
+      "resolution": "Cards with negative mana cost should be interpreted as artifact cards with convertedManaCost = 0. Filter by convertedManaCost = 0 AND types LIKE '%Artifact%'.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for reserved list cards that have been reprinted, which presents contradicting requirements. Cards on the Magic: The Gathering Reserved List are by definition never reprinted, as that is the purpose of the Reserved List policy.",
+      "example_questions": [
+        "What does it mean for a Reserved List card to have been reprinted in Magic: The Gathering?",
+        "Can you explain the relationship between Reserved List status and reprint history?",
+        "How are Reserved List designation and reprint status related?"
+      ],
+      "id": "reserved_list_reprinted_cards",
+      "resolution": "Reserved list cards that have been reprinted refers to reprinted cards from the Reserved List era (pre-2010). Join cards with sets (cards.setCode = sets.code) and filter by isReprint = 1 AND sets.releaseDate < '2010-01-01' AND isPromo = 0. Do not filter by isReserved flag.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The term \"premium foil variants\" is not operationally defined in the business context, making it unclear which specific card attributes or combinations qualify a foil card as \"premium\" versus standard foil printings.",
+      "example_questions": [
+        "What defines a \"premium foil variant\" in Magic: The Gathering?",
+        "Can you explain what makes a foil card a premium variant?",
+        "What characteristics identify premium foil variants?"
+      ],
+      "id": "premium_foil_variants",
+      "resolution": "Premium foil variants are defined as cards where hasFoil = 1 AND rarity = 'mythic'. These represent the highest tier of collectible foil cards with mythic rarity.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The cards table contains three columns (collector_value_1, collector_value_2, collector_value_3) with similar descriptions mentioning different weight factors (standard, premium, base), making it unclear how these values should be combined or which formula to use for calculating the highest collector value metric.",
+      "example_questions": [
+        "What does \"highest collector value\" refer to for Magic cards?",
+        "Can you clarify how collector value is measured for Magic cards?",
+        "What constitutes the collector value of a Magic card?"
+      ],
+      "id": "highest_collector_value_metric",
+      "resolution": "The highest collector value is calculated using a weighted formula: (collector_value_1 * 2 + collector_value_2 * 3 + collector_value_3) / 6. Order results by this calculated value in descending order to show highest values first.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

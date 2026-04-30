@@ -1,0 +1,41 @@
+{
+  "blockers": [
+    {
+      "description": "The question references molecules that \"currently meet the size threshold for enhanced regulatory review,\" but this threshold is set by regulatory bodies, changes periodically, and is not available anywhere in the database or business information.",
+      "example_questions": [
+        "What is the current size threshold (in atom count) for enhanced regulatory review?",
+        "Does the 'size threshold' refer to atom count, bond count, molecular weight, or some other metric?",
+        "Is the size threshold currently 20, 25, 30, 40, 50, or some other number of atoms?"
+      ],
+      "id": "current_regulatory_size_threshold",
+      "resolution": "The size threshold for enhanced review is defined as molecules containing 34 or more atoms. In your SQL, calculate this by counting unique atom_id records per molecule_id (e.g., COUNT(DISTINCT a.atom_id) >= 34).",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"meaningful number of double bonds\" using qualitative language (\"notable unsaturated character,\" \"significant presence\") that cannot be directly translated into a numeric SQL threshold.",
+      "example_questions": [
+        "What specific numeric threshold defines a 'meaningful number' of double bonds?",
+        "Should 'meaningful' be interpreted as an absolute count (e.g., \u22656) or a ratio of double bonds to total bonds (e.g., >25%)?",
+        "Does 'significant presence relative to structural complexity' mean we should normalize by molecule size or total bond count?"
+      ],
+      "id": "meaningful_double_bonds_threshold",
+      "resolution": "A \"meaningful number\" of double bonds is defined as 11 or more. Specifically, filter for bond_type = '=' and ensure the count per molecule is at least 11 (e.g., COUNT(DISTINCT b.bond_id) >= 11).",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The number of connections for molecules \"having at least 6 connections.\" While the 'connected' table is the correct source, its definition \"linking two atom identifiers\" does not specify its topological data model (for example, direct graph, undirected graph, or multigraph). It is ambiguous how a \"connection\" is mapped to the columns. \"6 connections\" could mean 6 total arrows, 6 distinct 'bond_id', or 6 distinct source 'atom_id'. This lack of clear schema definition creates a large search space.",
+      "example_questions": [
+        "Which specific column (such as 'atom_id', 'atom_id2', or 'bond_id') should be distinctly counted to calculate the \"at least 6 connections\" metric?",
+        "Does the \"connected\" table schema represent an undirected or directed graph, and how does that affect the calculation for the 6 connections threshold?",
+        "Should the aggregate total rows per molecule be in the \"connected\" table or count distinct values from one of the identifier columns?",
+        "When counting \"connections\" using the connected table, does a single physical connection correspond to one row or multiple rows in the database, and which field uniquely identifies the connection we need to count?"
+      ],
+      "id": "ambiguous_connected_table_granularity",
+      "resolution": "Use the connected table as the authoritative source for structural connections, as it acts as a directed edge list in this schema. Since the connected table represents a directed graph where each connection is defined by a unique source atom, calculate the connection count by counting unique atom_id per molecule (e.g., COUNT(DISTINCT c.atom_id) >=6).",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

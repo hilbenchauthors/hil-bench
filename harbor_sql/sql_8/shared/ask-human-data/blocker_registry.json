@@ -1,0 +1,55 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for posts about \u201ctime series concepts\u201d but does not specify the exact matching rule to identify them. Multiple related tags could reasonably be used, and different choices change which users rank in the top 10.",
+      "example_questions": [
+        "Which exact tag set should be treated as time series concepts?",
+        "Should posts about time series concepts be identified using tags only, or should the post title/body text also count?",
+        "Should tags related to time series concepts (for example, forecasting or ARIMA) be included, or only one specific tag?",
+        "Should the matching rule include multiple related tags, and which exact ones?"
+      ],
+      "id": "time_series",
+      "resolution": "Treat \u201cposts about time series concepts\u201d as questions whose tags include any of <time-series>, <forecasting>, <arima>, and answers whose parent question is one of those matching questions. Match using tags only (via the parent question), not title/body text.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The question requires converting bounty amounts from EUR to USD using today's EUR/USD exchange rate, which is a real-time value not available in the database. A specific exchange rate must be provided for a deterministic USD total.",
+      "example_questions": [
+        "What EUR/USD exchange rate should be used for today\u2019s conversion?",
+        "What exact numeric EUR/USD rate should be used to convert the bounty amounts to USD?",
+        "Should the EUR/USD rate be based on a live mid-market quote, today\u2019s close, or another reference rate?",
+        "As of what reference moment should today\u2019s EUR/USD exchange rate be taken?"
+      ],
+      "id": "euro_dollar",
+      "resolution": "Use 1 EUR = 1.1806 USD as today\u2019s EUR/USD exchange rate.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The question references \u201csenior-tier members,\u201d but the business information does not define what qualifies a user for this status. Multiple platform attributes could plausibly be used to determine senior-tier status.",
+      "example_questions": [
+        "What exactly does \"senior-tier member\" mean on this platform?",
+        "What exact threshold must a user meet to be considered senior-tier?",
+        "Is senior-tier based on total authored posts, account tenure, reputation, or something else?",
+        "Should the senior-tier definition ignore tags and dates, or include additional restrictions?"
+      ],
+      "id": "senior_member_definition",
+      "resolution": "Treat a senior-tier member as a user who has authored at least 100 posts total, counted as COUNT(*) over posts where posts.OwnerUserId = users.Id, with no tag/date/post-type restrictions.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The schema indicates that certain badge names can reflect trust/verification statuses, but it does not specify which badges.Name value corresponds to a \u201cverified\u201d account. Several trust-related badge names exist, so the correct filter value cannot be inferred from the schema alone.",
+      "example_questions": [
+        "Which badge name indicates that a user is verified on this platform?",
+        "What is the exact badge name that represents verified status?",
+        "Does verified status correspond to one badge name or multiple badge names, and if multiple, what are the exact names?"
+      ],
+      "id": "verified_status",
+      "resolution": "Treat \u201cverified\u201d users as those who have received the badge where badges.Name = 'Custodian'. Filter users by requiring at least one row in badges with badges.UserId = users.Id and badges.Name = 'Custodian'.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "csv_index": 11,
+  "dataset_name": "sql_11",
+  "hf_task_id": "public_sql_11",
+  "task_id": "6977cf5464c4667b98edc52d",
+  "attempt_id": "698ce066acd51572bf9887d9",
+  "task_attempt_id": "6977cf5464c4667b98edc52d_698ce066acd51572bf9887d9",
+  "database_name": "formula_1",
+  "num_blockers": 3
+}

@@ -1,0 +1,55 @@
+{
+  "blockers": [
+    {
+      "description": "The term \"European races\" is underspecified because it could refer to races held in geographically European countries, races in transcontinental countries like Turkey, Russia, or Azerbaijan, or specifically the race named \"European Grand Prix\" which exists in the database.",
+      "example_questions": [
+        "Which countries should be considered \"European\" when filtering European race?",
+        "Does \"European races\" include races held in Turkey, Russia, or Azerbaijan, given their transcontinental location?",
+        "Are European races defined by the circuit's country location, or does it refer specifically to the race named \"European Grand Prix\"?",
+        "Could you provide the exact list of countries whose races qualify as European for this analysis?"
+      ],
+      "id": "european_races_definition",
+      "resolution": "European races refer to races held at circuits located in Spain, UK, Italy, Monaco, Germany, Belgium, Hungary, France, Austria, Netherlands, and Portugal.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The phrase \"modern era of Formula 1\" does not define a specific start year, as it could refer to various commonly referenced periods such as post-2006 (V8 era), post-2010, or post-2014 (turbo-hybrid era)",
+      "example_questions": [
+        "What specific year does the \"modern era\" of Formula 1 begin for this analysis?",
+        "Does \"modern era\" refer to the turbo-hybrid era starting in 2014, or a different time period?",
+        "Could you define the exact year range that constitutes the modern era of Formula 1?",
+        "Is the modern era of Formula 1 meant to cover from 2014 onward, from 2010, or some other starting point?"
+      ],
+      "id": "modern_era_timeframe",
+      "resolution": "The modern era of Formula 1 refers to the period from 2014 onward (the turbo-hybrid era)",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"most popular constructors\" as those with \"strong fan engagement and global brand recognition,\" but this definition is vague and unmeasurable from the database. ",
+      "example_questions": [
+        "What is the list of constructors that qualify as having strong fan engagement and global brand recognition?",
+        "Which specific constructors are considered the most popular for this analysis?",
+        "How should \"most popular constructors\" be identified from the constructors table?"
+      ],
+      "id": "leading_constructors_definition",
+      "resolution": "The most popular constructors are Ferrari, McLaren, Red Bull, Mercedes, Williams, and Renault. Filter using: c.name IN ('Ferrari', 'McLaren', 'Red Bull', 'Mercedes', 'Williams', 'Renault').",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The constructor_race_performance table contains avg_speed, top_speed, and performance_score columns per constructor per race, while the results table contains fastestLapSpeed per driver per race. The question asks for \"average top speed\" per constructor, which could plausibly map to constructor_race_performance.avg_speed, constructor_race_performance.top_speed, a derivation using constructor_race_performance.performance_score, or an average of results.fastestLapSpeed grouped by constructor. The table definitions do not clarify which metric corresponds to \"average top speed\" or whether the values are equivalent.",
+      "example_questions": [
+        "The question asks for \"average top speed\"; does that correspond to avg_speed, top_speed, or performance_score in constructor_race_performance, or should it be computed from results.fastestLapSpeed?",
+        "Does the avg_speed column in constructor_race_performance represent the same value as averaging fastestLapSpeed from the results table by constructor?",
+        "The constructor_race_performance table description says it stores aggregated speed metrics per constructor; is that the intended data source, or should speed be computed from per-driver data in the results table?",
+        "Which specific column across the database represents the \"top speed\" referenced in the question: constructor_race_performance.avg_speed, constructor_race_performance.top_speed, or results.fastestLapSpeed?"
+      ],
+      "id": "overlapping_speed_data",
+      "resolution": "The fastestLapSpeed column in the results table records the fastest lap speed in km/h for each driver in a race. Compute the average top speed per constructor by averaging the fastestLapSpeed values from the results table grouped by constructor.\nBefore averaging, exclude rows where fastestLapSpeed IS NULL OR fastestLapSpeed = '' OR fastestLapSpeed = '\\N'",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

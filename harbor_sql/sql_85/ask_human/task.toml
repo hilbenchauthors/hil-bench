@@ -1,0 +1,38 @@
+version = "1.0"
+
+[metadata]
+task_id = "ask_human"
+task_type = "sql"
+mode = "ask_human"
+database_name = "california_schools"
+task_attempt_id = "6977cf5464c4667b98edc4e1_698be8391ac982890ccc44f9"
+tags = ["sql", "ask_human", "hil-bench"]
+
+[verifier]
+timeout_sec = 300.0
+
+[agent]
+timeout_sec = 1800.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 2
+memory_mb = 4096
+storage_mb = 12288
+gpus = 0
+allow_internet = true
+
+[[environment.mcp_servers]]
+name = "sql-tools"
+transport = "streamable-http"
+url = "http://sql-tools:8000/mcp"
+
+[[environment.mcp_servers]]
+name = "business-info"
+transport = "streamable-http"
+url = "http://business-info:8000/mcp"
+
+[[environment.mcp_servers]]
+name = "ask-human"
+transport = "streamable-http"
+url = "http://ask-human:8000/mcp"

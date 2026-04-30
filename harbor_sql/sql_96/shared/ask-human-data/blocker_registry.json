@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "Question asks for a filter of cards in a release date in which the card game was not invented yet (Magic was released by Wizards of the Coast in 1993).",
+      "example_questions": [
+        "What should be considered the filter for originalReleaseDate since there is no data regarding the year of 1991?",
+        "1991 is an invalid year for Wizards of the Coast's Magic card game release date, since it was launched in 1993. What value should be used instead?",
+        "What date should be used for filtering in originalReleaseDate if the requested year is inconsistent?"
+      ],
+      "id": "unexistent_past_release_date",
+      "resolution": "Consider cards with a null original release date",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question expects cards with life values being higher than 4 while also being lesser than zero.",
+      "example_questions": [
+        "You asked for cards with negative life but also with a life greater than 4, what should I do?",
+        "You asked for cards with negative life but also with a life greater than 4, what should I consider for life values?",
+        "A card can not have life greater than 4 while also having negative life. What do you want me to filter for?"
+      ],
+      "id": "contradicting_life_values",
+      "resolution": "Only consider cards with null life.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The prompt asks for cards whose names reference a forest animal, but the exact values for which to filter for are not clear.\n",
+      "example_questions": [
+        "Which exact names should I look for when looking for cards whose names reference a forest animal?",
+        "Which names reference a forest animal?",
+        "What are the names to look for when looking for cards whose names reference a forest animal?"
+      ],
+      "id": "forest_animals",
+      "resolution": "To look for cards whose names reference a forest animal, look for names containing the exact words \"wolf\", \"rat\", \"spider\", \"bear\", or \"beetle\". Nothing more, and do not look for plural names.\n",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The prompt mentions cards that are \"very powerful\", but it is not explained what values can be considered as \"very\".\n",
+      "example_questions": [
+        "What would the power of very powerful cards be?",
+        "What power values should I use to look for very powerful cards?",
+        "What should I consider as very powerful cards? Cards with a power over 4?"
+      ],
+      "id": "very_powerful",
+      "resolution": "The \"very powerful\" cards are those with a power greater than 5.\n",
+      "subtype": "missing_information",
+      "type": "business info"
+    }
+  ]
+}

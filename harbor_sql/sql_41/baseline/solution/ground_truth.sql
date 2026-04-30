@@ -1,0 +1,5 @@
+SELECT DISTINCT p.ID, p.SEX
+FROM Patient p
+INNER JOIN Laboratory l ON p.ID = l.ID
+WHERE l.LDH > 500
+  AND p.Date3 BETWEEN '1990-01-01' AND '1997-12-31';

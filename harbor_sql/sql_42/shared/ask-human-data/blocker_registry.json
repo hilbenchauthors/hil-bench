@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \"in the early years of our site\" is ambiguous because it can be interpreted as many possible years.",
+      "example_questions": [
+        "How are the early years of the site defined?",
+        "What exact years are the early years of the site defined?",
+        "Which years should I consider as the early years of the site?"
+      ],
+      "id": "early_years_definition",
+      "resolution": "The early years of the site means dates from 2009-02-02 to 2012-02-02 (inclusive).",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The prompt asks for angry posts, but the exact words for which to filter for are not clear.\n",
+      "example_questions": [
+        "Which exact words should I look for when looking for angry posts?",
+        "Which words would be present in an angry post?",
+        "What are the words to look for when looking for angry posts?"
+      ],
+      "id": "angry_posts",
+      "resolution": "To look for angry posts, look for posts containing the words \"bad\", \"horrible\", \"hate\", or \"terrible\" in the title. If these words appear in any other section of the post is irrelevant\n",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The prompt requires the use of the average number of posts per day on Reddit at present, which can not be known unless searched for\n",
+      "example_questions": [
+        "What is the average number of posts per day on Reddit at present?",
+        "What value should I use as the average number of posts per day on Reddit at present?",
+        "Could you provide the average number of posts per day on Reddit at present?"
+      ],
+      "id": "reddit_posts",
+      "resolution": "The average number of posts per day on Reddit at present is 1.5 million",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The term \u201cengagement\u201d is not defined in the provided business information, and several plausible interpretations exist in the database, so it is unclear how engagement should be measured.",
+      "example_questions": [
+        "Which database metric represents \u2018engagement\u2019?",
+        "When evaluating engagement, should I use score, views, comments, favorites, or a different measure?",
+        "What is the intended definition of engagement in terms of the available post fields?"
+      ],
+      "id": "engagement_definition",
+      "resolution": "A post's engagement is calculated as the score multiplied by the number of views.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The \"impact\" column in the \"posts\" table contains values that are not numeric and can not be interpreted. It is impossible to understand how to use this column to calculate the average impact of posts.\n",
+      "example_questions": [
+        "How should I interpret the non-numeric values in the \"impact\" column in the \"posts\" table?",
+        "What do the non-numeric values in the \"impact\" column in the \"posts\" table mean?",
+        "How do I interpret the non-numeric values in the \"impact\" column in the \"posts\" table?"
+      ],
+      "id": "impact_column",
+      "resolution": "The non-numeric values in the \"impact\" column in the \"posts\" table should be considered as 200 for the value \"A\", 2000 for the value \"B\", and 20000 for the value \"C\". Numeric values remain as before and can be used to calculate the average impact.\n",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

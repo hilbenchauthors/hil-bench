@@ -1,0 +1,10 @@
+{
+  "hf_bucket": "ScaleAI/hil-bench-sql-artifacts",
+  "db_artifact_path": "public_sql_93/california_schools.sqlite",
+  "desc_artifact_paths": [
+    "public_sql_93/frpm.csv",
+    "public_sql_93/satscores.csv",
+    "public_sql_93/schools.csv",
+    "public_sql_93/table_descriptions.csv"
+  ]
+}

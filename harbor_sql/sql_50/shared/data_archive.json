@@ -1,0 +1,12 @@
+{
+  "hf_bucket": "ScaleAI/hil-bench-sql-artifacts",
+  "db_artifact_path": "public_sql_50/toxicology.sqlite",
+  "desc_artifact_paths": [
+    "public_sql_50/atom.csv",
+    "public_sql_50/bond.csv",
+    "public_sql_50/bond_record.csv",
+    "public_sql_50/connected.csv",
+    "public_sql_50/molecule.csv",
+    "public_sql_50/table_descriptions.csv"
+  ]
+}

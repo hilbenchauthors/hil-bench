@@ -1,0 +1,33 @@
+{
+  "database_name": "european_football_2",
+  "business_info": [
+    "The larger the birthday value, the younger the person is, and vice versa.",
+    "For internal discussions, analysts sometimes refer to a player's \"micro-peak\" as the single season with their highest observed overall_rating_3, regardless of injuries or minutes played. This is different from any formal definition of career peak used in models or reports.",
+    "Scouting reports sometimes mention a \"late bloom index\" for players who reach high overall ratings after age 27; this is a qualitative tag only and is not stored as a numeric column in the database.",
+    "Internal performance dashboards may show a player's \"form peak\" as the rolling 10-match average of their match ratings, but this metric is derived from the Match event logs and not directly kept as a column anywhere.",
+    "The term \"career plateau\" is loosely used in monthly reports to describe players whose overall_rating_3 hasn't changed by more than 1 point over at least three consecutive seasons, but there is no automated flag for this in the database.",
+    "Some analysts like to segment a player's career into \"early\", \"prime\", and \"twilight\" phases using age buckets (e.g., <24, 24-29, 30+), but these labels are not stored as fields and can vary slightly between projects.",
+    "In some experimental models, a synthetic \"market_index\" is calculated from overall_rating_3, potential, and age to approximate transfer value, but this index is never written back to the production database tables.",
+    "The expression \"contract peak\" is occasionally used in negotiation memos to refer to the years where a player draws the highest combined salary and bonuses, which does not necessarily coincide with their on-pitch performance peak.",
+    "HR sometimes talks about a player's \"engagement peak\" in internal surveys, meaning the period where they reported the highest satisfaction and commitment scores; these survey results are stored outside the football statistics database.",
+    "Player_Attributes snapshots can be treated as season-level approximations even though the exact date may fall mid-season; analysts often group them by season string in the Match table when building longitudinal views.",
+    "There is no standardized definition of \"man of the match\" in this dataset; some internal analyses approximate it by picking the player with the highest match rating, while others use a combination of goals, assists, and key passes.",
+    "Analysts sometimes compute an ad-hoc \"consistency score\" as the inverse of the standard deviation of a player's match ratings in a season, but this is a derived metric and not part of the core schema.",
+    "The Player_Career_Stats table was designed mainly for reporting, so it can contain summary columns that are not directly comparable to the snapshot-level attributes in Player_Attributes even if the names are similar.",
+    "When multiple rating columns exist (overall, potential, form, etc.), exploratory analyses often try several alternatives rather than assuming a single canonical column; documentation may lag behind current best practices.",
+    "For older seasons, gaps in player attributes may exist due to missing source files; common workarounds include forward-filling from the nearest previous snapshot or dropping affected players from longitudinal studies.",
+    "Finance teams occasionally refer to a player's \"contracted value\" as the sum of remaining guaranteed salary payments; this is a legal/accounting concept and is not tied to any rating or performance point system in the football database.",
+    "Some strategic planning documents use a notional \"club net worth\" concept, where each player is assigned a hypothetical dollar value based on age and rating bands; this is a scenario-planning exercise and its inputs are not stored in the statistics schema.",
+    "In sponsorship decks, marketing sometimes presents an \"off-pitch value\" score that blends social media reach, shirt sales, and media mentions; this value is computed outside the core football database and cannot be reconstructed from its tables.",
+    "The concept of \"asset value\" of a player in finance presentations may approximate the expected transfer fee, but it is typically based on third-party market valuations and not on any single rating column from this database.",
+    "When internal exercises require mapping performance points to money (e.g., 1 point = X dollars), the conversion factor X is usually defined ad-hoc for that exercise and does not represent any real contractual or market relationship.",
+    "There is no official \"career peak\" label stored in Player_Career_Stats; where needed, analysts derive peak periods algorithmically, and different teams may adopt different heuristics depending on the study.",
+    "Some retrospective studies define a player's \"prime window\" as the contiguous span of seasons where their overall_rating_3 stays within 3 points of their absolute maximum rating, but this convention is not universal across departments.",
+    "In some ad-hoc scripts, analysts average overall_rating_1, overall_rating_2, and overall_rating_3 to get a single composite rating, but this practice is not standardized and can over-smooth genuine performance swings.",
+    "Legacy ETL jobs populated overall_rating_1 and overall_rating_2 from older vendor feeds; in newer feeds, overall_rating_3 is considered the most up-to-date series, but all three are retained for backward compatibility.",
+    "Potential ratings were originally intended to represent a 2\u20133 year projection, but in practice they sometimes lag behind reality if scouting updates are infrequent for lower-profile players.",
+    "Even though overall_rating_3 and potential share the same 0\u2013100 scale, they come from slightly different scouting models and are not guaranteed to be directly comparable across eras.",
+    "Age-related analysis often relies on approximating a player's age from the birthday text field, so different teams may choose different reference dates (season start, match date, snapshot date) when calculating \"age at peak\".",
+    "Birthdays are stored as text timestamps from the original API without normalization to calendar seasons; any age-band logic therefore needs to parse and compare dates carefully."
+  ]
+}

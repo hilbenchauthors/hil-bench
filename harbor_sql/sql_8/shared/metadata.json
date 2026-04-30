@@ -1,0 +1,10 @@
+{
+  "csv_index": 8,
+  "dataset_name": "sql_8",
+  "hf_task_id": "public_sql_8",
+  "task_id": "6977cf5464c4667b98edc500",
+  "attempt_id": "699cb57e0c4be152e4fd2ad0",
+  "task_attempt_id": "6977cf5464c4667b98edc500_699cb57e0c4be152e4fd2ad0",
+  "database_name": "codebase_community",
+  "num_blockers": 4
+}

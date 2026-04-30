@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for \"reactive metals\" without specifying which metallic elements should be included. \"Reactive metals\" could refer to alkali metals (Na, K, Li), alkaline earth metals (Ca, Mg), transition metals, or a broader set of metallic elements. The specific element values in the 'element' column are not clarified.",
+      "example_questions": [
+        "Which specific element symbols in the 'element' column should be considered \"reactive metals\"?",
+        "Should \"reactive metals\" include only alkali metals (Na, K), or also alkaline earth metals (Ca, Mg)?",
+        "Should \"reactive metals\" include transition metals such as Cu or Zn, or only highly reactive metals like Na and K?"
+      ],
+      "id": "reactive_metals_definition",
+      "resolution": "\"Reactive metals\" should be interpreted as alkali metals, specifically sodium (Na) and potassium (K), which are the most chemically reactive metallic elements due to their single valence electron. The query should filter for molecules containing either of these elements.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The term \"organic compounds\" is not precisely defined in the question. While organic typically refers to carbon-based molecules, it's unclear whether any molecule containing carbon qualifies, or if stricter criteria apply such as requiring carbon-hydrogen bonds, excluding inorganic carbon compounds, or having a minimum carbon atom count.",
+      "example_questions": [
+        "Should \"organic compounds\" require the presence of at least one carbon-hydrogen (C-H) bond?",
+        "Is it sufficient for \"organic compounds\" to contain only carbon atoms without hydrogen?",
+        "Should \"organic compounds\" exclude molecules that have carbon but no hydrogen, such as carbonates or metal carbides?"
+      ],
+      "id": "organic_compounds_definition",
+      "resolution": "\"Organic compounds\" are molecules that contain at least one carbon-hydrogen (C-H) bond. This definition excludes purely inorganic carbon compounds while focusing on the characteristic C-H bonding of organic chemistry.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The requirements \"hydrocarbon compounds,\" \"containing reactive metals,\" and \"contain heteroatoms\" are contradictory. By chemical definition, hydrocarbons contain only hydrogen and carbon atoms. Both reactive metals (Na, K) and heteroatoms (O, N, S, Cl) are elements other than H and C. A compound cannot be a hydrocarbon (only H and C) while simultaneously containing reactive metals or other heteroatoms.",
+      "example_questions": [
+        "Does \"hydrocarbon compounds\" mean molecules composed exclusively of hydrogen and carbon with no other elements?",
+        "Can a compound be classified as a hydrocarbon if it contains reactive metals or other heteroatoms in addition to hydrogen and carbon?",
+        "If \"hydrocarbon\" and \"contain heteroatoms\" contradict each other, which definition should take priority?"
+      ],
+      "id": "hydrocarbon_with_heteroatoms_contradiction",
+      "resolution": "Prioritize \"hydrocarbon compounds\" over \"containing reactive metals\" and \"contain heteroatoms\". The query should filter for molecules containing exclusively hydrogen and carbon atoms, with no other elements present. The conditions requiring reactive metals and heteroatoms should be ignored to resolve the contradiction.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The business information identifies the label column as the source for carcinogenicity, but it is confusing because it does not specify which value indicates a positive carcinogenic result.",
+      "example_questions": [
+        "Which value in the label column indicates a carcinogenic compound?",
+        "Does a '+' or '-' in the label column mean the molecule is carcinogenic?",
+        "Does a '+' or '-' in the label column mean the molecule is carcinogenic?"
+      ],
+      "id": "business_info_confusing_info_carcinogenic_label",
+      "resolution": "A molecule is considered carcinogenic if the label column contains the value '+', which represents a positive test result",
+      "subtype": "confusing_information",
+      "type": "business info"
+    }
+  ]
+}

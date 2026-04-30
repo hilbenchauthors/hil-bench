@@ -1,0 +1,54 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for teams that finished \"both at the top and bottom of the table\" simultaneously, which is logically impossible as a team cannot occupy two mutually exclusive positions at the same time.",
+      "example_questions": [
+        "Did you mean teams that finished at the top OR bottom of the table?",
+        "Should I return only top-positioned teams, only bottom-positioned teams, or both separately?",
+        "The requirement of teams that finished \"both at the top and bottom\" is contradictory. Which position should I prioritize?"
+      ],
+      "id": "top_bottom_contradiction",
+      "resolution": "Only look for the top-3 positions (ranks 1-3).",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The term \"table\" is ambiguous and can be interpreted as home table (only home matches), away table (only away matches), or overall standings (combined home and away results). Each interpretation yields different team rankings.",
+      "example_questions": [
+        "Should the table include home matches only, away matches only, or both?",
+        "Are you asking for the overall league standings or home/away-specific standings?",
+        "Which table format should be used to determine team positions?",
+        "Do you want combined results or separated home/away performance?"
+      ],
+      "id": "table_standings_scope",
+      "resolution": "Interpret \"table\" as the home standings table, considering only matches played at home venue to calculate points, goals, and positions.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The term \"high offensive performance\" lacks specific criteria. No threshold value, metric definition (goals scored, shots on target, possession in attacking third), or comparison baseline (league average, historical data) is provided.",
+      "example_questions": [
+        "Should the offensive performance from the England league include home and/or away matches?",
+        "I'm not sure how high offensive performance should be defined. Do you have a criteria or definition for this?",
+        "How should I identify teams with high offensive performance?",
+        "What metrics are you looking for exactly for offensive performances, and what would define it as high?"
+      ],
+      "id": "high_offensive_performance_threshold",
+      "resolution": "Define \"high offensive performance\" as teams with 35 or more goals scored in matches during the season, based on available goal data in the Match table. Apply high offensive performance filter before any ranking.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question requires ranking teams by \u201ctop-tier competitive status,\u201d but this is a business-specific metric that is not defined anywhere.",
+      "example_questions": [
+        "How should \"top-tier competitive status\" be calculated from the available data?",
+        "What fields or formula define a team's competitive tier classification?",
+        "What are the threshold values or criteria for determining tier levels?"
+      ],
+      "id": "top_tier_competitive_status_definition",
+      "resolution": "The \"Top-tier competitive status\" should be calculated as the relative ranking based on goals scored then ranked by  goal difference and then by match points Final tie break should be by alphabetical order.",
+      "subtype": "missing_information",
+      "type": "business info"
+    }
+  ]
+}

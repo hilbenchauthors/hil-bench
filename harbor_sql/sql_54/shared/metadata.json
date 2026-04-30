@@ -1,0 +1,10 @@
+{
+  "csv_index": 54,
+  "dataset_name": "sql_54",
+  "hf_task_id": "public_sql_54",
+  "task_id": "6977cf5464c4667b98edc514",
+  "attempt_id": "699d085c42cbf46ab971d73a",
+  "task_attempt_id": "6977cf5464c4667b98edc514_699d085c42cbf46ab971d73a",
+  "database_name": "european_football_2",
+  "num_blockers": 3
+}

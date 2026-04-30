@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \u201cpermitted in 2024 in at least one official play format\u201d depends on which legalities.format values are considered \u201cofficial play formats\u201d as of a specific date, and that mapping is not encoded in the schema. Without looking for that information online, it is imposible to tell.",
+      "example_questions": [
+        "What exact formats should be treated as official from 2024?",
+        "Which exact legalities.format values should be treated as \u201cofficial play formats\u201d in 2024?",
+        "What formats were official and legal in 2024?"
+      ],
+      "id": "official_formats_as_of_today",
+      "resolution": "Interpret \u201cofficial play formats\u201d as exactly the following legalities.format values: ('standard','pioneer','modern'). Interpret \u201cpermitted\u201d as: there exists at least one row in legalities where status = 'Legal' and format is in that list.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The business rule defines \u201cobtainable\u201d using a \u201cmarketplace-related identifier,\u201d but the cards table contains multiple plausible marketplace identifier fields (such as tcgplayerProductId, cardKingdomId, cardKingdomFoilId, mcmId) and the rule does not specify which fields count or how to treat empty/whitespace-only values.",
+      "example_questions": [
+        "Which exact cards columns should be accepted as \u201cmarketplace-related identifiers\u201d for the \u201cobtainable\u201d definition (provide an explicit list)?",
+        "For each accepted marketplace identifier column, should empty/whitespace-only values be treated as missing (require TRIM(column) <> '')?",
+        "Should \u201cobtainable\u201d be satisfied if any one accepted marketplace identifier column is present, or must multiple identifiers be present?"
+      ],
+      "id": "obtainable_marketplace_identifier_field",
+      "resolution": "Obtainable cards are those in which at least one of the following cards fields is present:\ncards.tcgplayerProductId is NOT NULL and TRIM(cards.tcgplayerProductId) <> '', OR\ncards.cardKingdomId is NOT NULL and TRIM(cards.cardKingdomId) <> '', OR\ncards.cardKingdomFoilId is NOT NULL and TRIM(cards.cardKingdomFoilId) <> '', OR\ncards.mcmId is NOT NULL and TRIM(cards.mcmId) <> ''.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The cards table has columns named color, card_color, color_final, color_id_verified, color_derived, and print_color, which makes it impossible to know how to obtain a card's color\n",
+      "example_questions": [
+        "How can I obtain a card's color?",
+        "How should I obtain a card's color?",
+        "Which column can I use to obtain a card's color?"
+      ],
+      "id": "color_unsure",
+      "resolution": "The card's color is given by the color_id_verified column from the cards table\n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}
