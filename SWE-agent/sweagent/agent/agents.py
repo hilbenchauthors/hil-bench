@@ -1049,11 +1049,25 @@ class DefaultAgent(AbstractAgent):
         execution_t0 = time.perf_counter()
         run_action: str = self.tools.guard_multiline_input(step.action).strip()
         try:
-            step.observation = self._env.communicate(
-                input=run_action,
-                timeout=self.tools.config.execution_timeout,
-                check="raise" if self._always_require_zero_exit_code else "ignore",
-            )
+            try:
+                step.observation = self._env.communicate(
+                    input=run_action,
+                    timeout=self.tools.config.execution_timeout,
+                    check="raise" if self._always_require_zero_exit_code else "ignore",
+                )
+            except TimeoutError as e:
+                # aiohttp's HTTP timeout (600s) fires before BashAction.timeout (3600s)
+                # for long-running commands (e.g. `grep -R` on repos with node_modules).
+                # TimeoutError() has no message, so it falls through to the generic
+                # "unknown error" handler without this conversion.
+                # Note: CommandTimeoutError IS a subclass of TimeoutError (via SwerexException
+                # -> RuntimeError -> TimeoutError), so we must re-raise native ones as-is
+                # to preserve their message; only plain TimeoutError (aiohttp) is converted.
+                if isinstance(e, CommandTimeoutError):
+                    raise  # native SweRex timeout: re-raise as-is for outer handler
+                raise CommandTimeoutError(
+                    "HTTP timeout waiting for command output (command exceeded 600s HTTP limit)"
+                ) from e
         except CommandTimeoutError:
             self._n_consecutive_timeouts += 1
             if self._n_consecutive_timeouts >= self.tools.config.max_consecutive_execution_timeouts:
