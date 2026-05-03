@@ -1,5 +1,10 @@
-version = "1.0"
-
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-swe_10-full_info"
+description = ""
+authors = []
+keywords = []
 [metadata]
 task_id = "full_info"
 task_type = "swe"
@@ -7,19 +12,23 @@ mode = "full_info"
 repo_name = "ansible/ansible"
 task_attempt_id = "69b37d1c972ca8745b4e8f67__69c3f3301734592b5a14a3b9"
 image_name = "hilbench-swe:69c3f3301734592b5a14a3b9"
-tags = ["swe", "full_info", "hil-bench"]
-
+tags = [ "swe", "full_info", "hil-bench",]
 [verifier]
 timeout_sec = 1800.0
 
+[verifier.env]
 [agent]
 timeout_sec = 7200.0
-
 [environment]
-docker_image = "hilbench-swe:69c3f3301734592b5a14a3b9"
 build_timeout_sec = 1200.0
+docker_image = "hilbench-swe:69c3f3301734592b5a14a3b9"
+os = "linux"
 cpus = 4
 memory_mb = 8192
 storage_mb = 16384
 gpus = 0
 allow_internet = true
+mcp_servers = []
+
+[environment.env]
+[solution.env]

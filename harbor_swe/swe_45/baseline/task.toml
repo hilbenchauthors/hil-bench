@@ -1,5 +1,10 @@
-version = "1.0"
-
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-swe_45-baseline"
+description = ""
+authors = []
+keywords = []
 [metadata]
 task_id = "baseline"
 task_type = "swe"
@@ -7,19 +12,23 @@ mode = "baseline"
 repo_name = "navidrome/navidrome"
 task_attempt_id = "69836ee4987091d7e86e448f__69c6a3d5874d3d3ac0297c55"
 image_name = "hilbench-swe:69c6a3d5874d3d3ac0297c55"
-tags = ["swe", "baseline", "hil-bench"]
-
+tags = [ "swe", "baseline", "hil-bench",]
 [verifier]
 timeout_sec = 1800.0
 
+[verifier.env]
 [agent]
 timeout_sec = 7200.0
-
 [environment]
-docker_image = "hilbench-swe:69c6a3d5874d3d3ac0297c55"
 build_timeout_sec = 1200.0
+docker_image = "hilbench-swe:69c6a3d5874d3d3ac0297c55"
+os = "linux"
 cpus = 4
 memory_mb = 8192
 storage_mb = 16384
 gpus = 0
 allow_internet = true
+mcp_servers = []
+
+[environment.env]
+[solution.env]

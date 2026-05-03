@@ -1,5 +1,10 @@
-version = "1.0"
-
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-swe_68-ask_human"
+description = ""
+authors = []
+keywords = []
 [metadata]
 task_id = "ask_human"
 task_type = "swe"
@@ -7,17 +12,17 @@ mode = "ask_human"
 repo_name = "ansible/ansible"
 task_attempt_id = "69839e79db8f5e922c44f807__69c42201029d24509a863611"
 image_name = "hilbench-swe:69c42201029d24509a863611"
-tags = ["swe", "ask_human", "hil-bench"]
-
+tags = [ "swe", "ask_human", "hil-bench",]
 [verifier]
 timeout_sec = 1800.0
 
+[verifier.env]
 [agent]
 timeout_sec = 7200.0
-
 [environment]
-docker_image = "hilbench-swe:69c42201029d24509a863611"
 build_timeout_sec = 1200.0
+docker_image = "hilbench-swe:69c42201029d24509a863611"
+os = "linux"
 cpus = 4
 memory_mb = 8192
 storage_mb = 16384
@@ -27,3 +32,7 @@ allow_internet = true
 name = "ask-human"
 transport = "streamable-http"
 url = "http://ask-human:8000/mcp"
+args = []
+
+[environment.env]
+[solution.env]
