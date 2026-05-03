@@ -1,0 +1,52 @@
+{
+  "instance_id": "instance_ansible__ansible-748f534312f2073a25a87871f5bd05882891b8c4-v0f01c69f1e2528b935359cfe578530722bca2c59",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c42201029d24509a863611",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 5,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_dnf_variant_detection_via_realpath_to_dnf5",
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_dnf_variant_detection_via_realpath_to_non_dnf5",
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_amazon_dnf_variant_detection_via_realpath_to_dnf5",
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_microdnf_fallback_returns_dnf_when_dnf_missing",
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_returns_unknown_when_only_secondary_binaries_exist",
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_amazon_microdnf_fallback_returns_dnf_when_dnf_missing",
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_non_integer_major_version_detects_via_binary",
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_other_redhat_v8_without_dnf_returns_unknown",
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_other_redhat_v8_detects_dnf5_via_realpath",
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_fedora_lt23_yum_absent_detects_via_dnf_binary",
+      "test/units/module_utils/facts/system/test_pkg_mgr.py::test_amazon_lt2022_yum_absent_detects_via_dnf_binary"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/module_utils/facts/system/test_pkg_mgr.py b/test/units/module_utils/facts/system/test_pkg_mgr.py\nnew file mode 100644\nindex 0000000000..7a615f1bba\n--- /dev/null\n+++ b/test/units/module_utils/facts/system/test_pkg_mgr.py\n@@ -0,0 +1,126 @@\n+# unit tests for ansible system pkg_mgr fact collector\n+# -*- coding: utf-8 -*-\n+\n+from __future__ import (absolute_import, division, print_function)\n+__metaclass__ = type\n+\n+from units.compat.mock import Mock, patch\n+\n+from ansible.module_utils.facts.system.pkg_mgr import PkgMgrFactCollector\n+\n+\n+def _make_exists(*existing_paths):\n+    def _exists(path):\n+        return path in existing_paths\n+    return _exists\n+\n+\n+def _make_realpath(mapping):\n+    def _realpath(path):\n+        return mapping.get(path, path)\n+    return _realpath\n+\n+\n+def _collect(collected_facts, exists_fn, realpath_fn):\n+    with patch('ansible.module_utils.facts.system.pkg_mgr.os.path.exists', side_effect=exists_fn):\n+        with patch('ansible.module_utils.facts.system.pkg_mgr.os.path.realpath', side_effect=realpath_fn):\n+            return PkgMgrFactCollector().collect(module=Mock(), collected_facts=collected_facts)\n+\n+\n+def test_dnf_variant_detection_via_realpath_to_dnf5():\n+    facts = _collect(\n+        {'ansible_distribution': 'Fedora', 'ansible_distribution_major_version': '38', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/dnf'),\n+        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),\n+    )\n+    assert facts['pkg_mgr'] == 'dnf5'\n+\n+\n+def test_dnf_variant_detection_via_realpath_to_non_dnf5():\n+    facts = _collect(\n+        {'ansible_distribution': 'Fedora', 'ansible_distribution_major_version': '39', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/dnf', '/usr/bin/dnf5'),\n+        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf-3', '/usr/bin/dnf5': '/usr/bin/dnf-3'}),\n+    )\n+    assert facts['pkg_mgr'] == 'dnf'\n+\n+\n+def test_amazon_dnf_variant_detection_via_realpath_to_dnf5():\n+    facts = _collect(\n+        {'ansible_distribution': 'Amazon', 'ansible_distribution_major_version': '2023', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/dnf'),\n+        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),\n+    )\n+    assert facts['pkg_mgr'] == 'dnf5'\n+\n+\n+def test_microdnf_fallback_returns_dnf_when_dnf_missing():\n+    facts = _collect(\n+        {'ansible_distribution': 'Fedora', 'ansible_distribution_major_version': '38', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/microdnf'),\n+        _make_realpath({'/usr/bin/microdnf': '/usr/bin/dnf5'}),\n+    )\n+    assert facts['pkg_mgr'] == 'dnf'\n+\n+\n+def test_returns_unknown_when_only_secondary_binaries_exist():\n+    facts = _collect(\n+        {'ansible_distribution': 'Rocky', 'ansible_distribution_major_version': '8', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/dnf-3', '/usr/bin/dnf5'),\n+        _make_realpath({}),\n+    )\n+    assert facts['pkg_mgr'] == 'unknown'\n+\n+\n+def test_amazon_microdnf_fallback_returns_dnf_when_dnf_missing():\n+    facts = _collect(\n+        {'ansible_distribution': 'Amazon', 'ansible_distribution_major_version': '2023', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/microdnf'),\n+        _make_realpath({'/usr/bin/microdnf': '/usr/bin/dnf5'}),\n+    )\n+    assert facts['pkg_mgr'] == 'dnf'\n+\n+\n+def test_non_integer_major_version_detects_via_binary():\n+    facts = _collect(\n+        {'ansible_distribution': 'Fedora', 'ansible_distribution_major_version': 'rawhide', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/dnf'),\n+        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),\n+    )\n+    assert facts['pkg_mgr'] == 'dnf5'\n+\n+\n+def test_other_redhat_v8_without_dnf_returns_unknown():\n+    facts = _collect(\n+        {'ansible_distribution': 'Rocky', 'ansible_distribution_major_version': '8', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/yum', '/usr/bin/dnf5'),\n+        _make_realpath({}),\n+    )\n+    assert facts['pkg_mgr'] == 'unknown'\n+\n+\n+def test_other_redhat_v8_detects_dnf5_via_realpath():\n+    facts = _collect(\n+        {'ansible_distribution': 'Rocky', 'ansible_distribution_major_version': '8', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/dnf'),\n+        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),\n+    )\n+    assert facts['pkg_mgr'] == 'dnf5'\n+\n+\n+def test_fedora_lt23_yum_absent_detects_via_dnf_binary():\n+    facts = _collect(\n+        {'ansible_distribution': 'Fedora', 'ansible_distribution_major_version': '22', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/dnf'),\n+        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),\n+    )\n+    assert facts['pkg_mgr'] == 'dnf5'\n+\n+\n+def test_amazon_lt2022_yum_absent_detects_via_dnf_binary():\n+    facts = _collect(\n+        {'ansible_distribution': 'Amazon', 'ansible_distribution_major_version': '2021', 'ansible_os_family': 'RedHat'},\n+        _make_exists('/usr/bin/dnf'),\n+        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),\n+    )\n+    assert facts['pkg_mgr'] == 'dnf5'\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "test/units/module_utils/facts/system/test_pkg_mgr.py"
+  ],
+  "attempt_id": "69c42201029d24509a863611",
+  "task_id": "69839e79db8f5e922c44f807",
+  "dataset_name": "swe_68",
+  "image_archive": {
+    "attempt_id": "69c42201029d24509a863611",
+    "local_image_ref": "hilbench-swe:69c42201029d24509a863611",
+    "image_id": "sha256:77eeb1e04002c961c6b28514b78856d563ca642c6633e312559efc43019ff4d1",
+    "created": "2026-03-29T11:09:40.858257653-07:00",
+    "artifact_path": "images/69c42201029d24509a863611.tar.zst",
+    "artifact_bytes": 781940626,
+    "artifact_sha256": "c0d4c7f30de6aa2a12522c82b818b830aab6acf495423bdc6e02c725f58559c4",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c42201029d24509a863611.tar.zst"
+  }
+}

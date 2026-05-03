@@ -1,0 +1,38 @@
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-swe_51-ask_human"
+description = ""
+authors = []
+keywords = []
+[metadata]
+task_id = "ask_human"
+task_type = "swe"
+mode = "ask_human"
+repo_name = "navidrome/navidrome"
+task_attempt_id = "698648c3283d42a760567547__69af9047352d3e1ddd448e1f"
+image_name = "hilbench-swe:69af9047352d3e1ddd448e1f"
+tags = [ "swe", "ask_human", "hil-bench",]
+[verifier]
+timeout_sec = 1800.0
+
+[verifier.env]
+[agent]
+timeout_sec = 7200.0
+[environment]
+build_timeout_sec = 1200.0
+docker_image = "hilbench-swe:69af9047352d3e1ddd448e1f"
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true
+[[environment.mcp_servers]]
+name = "ask-human"
+transport = "streamable-http"
+url = "http://ask-human:8000/mcp"
+args = []
+
+[environment.env]
+[solution.env]

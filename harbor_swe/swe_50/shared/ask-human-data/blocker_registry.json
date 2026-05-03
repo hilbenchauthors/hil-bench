@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "id": "unspecified_mime_detection_precedence_and_fallback_chain",
+      "type": "ambiguous requirements",
+      "description": "The spec says MIME detection should be simplified and should use file type and extension, but it does not define the exact evaluation order or fallback behavior. This leaves the authoritative source unclear when file metadata and extension suggest different values.",
+      "resolution": "Use a strict three-step chain in this exact order: 1) `input.type` when it is a non-empty string, 2) extension lookup from `input.name`, 3) the literal default `'application/octet-stream'`. The 3-step precedence chain must be implemented in the Drive app parser (applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.ts). Do not read file bytes and do not run content-sniffing checks. Example: a file named `photo.jxl` with `type: ''` must resolve to `image/jxl`; a file named `photo.jpg` with `type: 'image/png'` must stay `image/png` because step 1 wins. Counter-example: resolving by extension first, or returning `''`/`undefined` instead of `'application/octet-stream'`, is invalid.",
+      "example_questions": [
+        "-  What is the exact priority order between browser-provided file type and extension mapping?",
+        "-  How should MIME be resolved when the file type value exists but the filename extension indicates another format?",
+        "-  Should I always fall back to a fixed default MIME value when both primary sources are empty?",
+        "-  Which detection path is expected when input metadata is missing for modern image files?",
+        "-  Does MIME detection require any byte-content analysis after this simplification?"
+      ]
+    },
+    {
+      "id": "missing_safari_version_threshold_and_validation",
+      "type": "missing parameters",
+      "description": "Both the problem statement and requirements specify that isHEICSupported and isJXLSupported should gate on a Safari version with native format decoding support, but neither document states the specific minimum version number to compare against, nor specifies how the version string obtained from the browser should be validated before comparison (e.g., whether beta suffixes, whitespace-padded values, or other non-numeric formats should be accepted or rejected).",
+      "resolution": "The minimum Safari version threshold is `17`. Use the `Version` utility class (already imported in the file) with `isGreaterThanOrEqual('17')`, not the manual major-version extraction pattern from `isWebpSupported`. Guard with a truthiness check before instantiation: `version && new Version(version).isGreaterThanOrEqual('17')`. When version is falsy the expression short-circuits to a falsy value, treating the format as unsupported (fail-closed). Before passing the version string to the `Version` constructor, validate that it consists strictly of digits separated by dots using the regex `/^\\\\d+(\\\\.\\\\d+)*$/`. Non-conforming strings (e.g., beta suffixes like `'17.0b1'`, whitespace-padded values like `' 17.4 '`) must cause the gate to return false without attempting version comparison. Do not trim or normalize the version string before validation. Example: `'17'`, `'17.4'`, `'18.0'` all pass; `'16.9'` fails; `'17.0b1'`, `' 17.4 '`, `undefined`, `''` -> false.",
+      "example_questions": [
+        "-  What is the minimum Safari version required for native HEIC and JXL format decoding support?",
+        "-  Which specific Safari version introduced the image format capabilities that the gate functions should check against?",
+        "-  Should the gate accept version strings that contain non-numeric characters such as beta suffixes or leading/trailing whitespace?",
+        "-  What version number should be passed to the comparison method when checking Safari compatibility for modern image formats?"
+      ]
+    },
+    {
+      "id": "conflicting_jxl_ios_support_directive",
+      "type": "contradictory requirements",
+      "description": "The problem statement says to add conditional support for HEIC/JXL formats on macOS/iOS Safari, while the requirements state that JXL should be desktop-only and must return false on iOS Safari. These two directives conflict on whether JXL is enabled on iOS.",
+      "resolution": "The problem statement is authoritative: JXL should be supported on iOS Safari alongside HEIC, not restricted to desktop only. Do not add any desktop-only or iOS-exclusion logic to `isJXLSupported` that does not equally apply to `isHEICSupported`. Both functions should evaluate the same platform and browser conditions.",
+      "example_questions": [
+        "-  The problem statement says to support JXL on macOS/iOS Safari, but the requirements say JXL should be desktop-only. Which directive should I follow?",
+        "-  Should isJXLSupported return false on iOS Safari even though the problem statement includes iOS in the support scope?",
+        "-  When the problem statement and requirements disagree on JXL platform support, which takes precedence?"
+      ]
+    }
+  ]
+}

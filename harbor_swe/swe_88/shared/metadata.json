@@ -1,0 +1,44 @@
+{
+  "instance_id": "instance_protonmail__webclients-708ed4a299711f0fa79a907cc5847cfd39c0fc71",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69bf06133a898fd53bda22c9",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "packages/components/containers/offers/operations/summer2023/test/eligibility.test.ts | should restrict eligibility to the single phased-launch target app",
+      "packages/components/containers/offers/operations/summer2023/test/eligibility.test.ts | should enforce the campaign-mandated cooling-off threshold",
+      "packages/components/containers/offers/operations/summer2023/test/eligibility.test.ts | should not deny eligibility when no prior subscription timestamp is recorded"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/packages/components/containers/offers/operations/summer2023/test/eligibility.test.ts b/packages/components/containers/offers/operations/summer2023/test/eligibility.test.ts\nnew file mode 100644\nindex 0000000000..a1b2c3d4e5\n--- /dev/null\n+++ b/packages/components/containers/offers/operations/summer2023/test/eligibility.test.ts\n@@ -0,0 +1,59 @@\n+import { APPS } from '@proton/shared/lib/constants';\n+import { ProtonConfig, UserModel } from '@proton/shared/lib/interfaces';\n+\n+import isEligible from '../eligibility';\n+\n+describe('summer-2023 offer', () => {\n+    const buildUser = (overrides: Partial<UserModel> = {}) =>\n+        ({\n+            isFree: true,\n+            canPay: true,\n+            isDelinquent: false,\n+            ...overrides,\n+        }) as UserModel;\n+\n+    const buildConfig = (APP_NAME: ProtonConfig['APP_NAME']) =>\n+        ({\n+            APP_NAME,\n+        }) as ProtonConfig;\n+\n+    const SECONDS_PER_DAY = 86400;\n+    const nowUnix = Math.floor(new Date('2026-03-13T10:00:00.000Z').getTime() / 1000);\n+\n+    beforeEach(() => {\n+        jest.useFakeTimers().setSystemTime(new Date('2026-03-13T10:00:00.000Z'));\n+    });\n+\n+    afterEach(() => {\n+        jest.useRealTimers();\n+    });\n+\n+    it('should restrict eligibility to the single phased-launch target app', () => {\n+        const user = buildUser();\n+        const oldEnough = nowUnix - 91 * SECONDS_PER_DAY;\n+\n+        expect(isEligible({ user, protonConfig: buildConfig(APPS.PROTONMAIL), lastSubscriptionEnd: oldEnough })).toBe(false);\n+        expect(isEligible({ user, protonConfig: buildConfig(APPS.PROTONCALENDAR), lastSubscriptionEnd: oldEnough })).toBe(true);\n+        expect(isEligible({ user, protonConfig: buildConfig(APPS.PROTONVPN_SETTINGS), lastSubscriptionEnd: oldEnough })).toBe(false);\n+    });\n+\n+    it('should enforce the campaign-mandated cooling-off threshold', () => {\n+        const user = buildUser();\n+        const protonConfig = buildConfig(APPS.PROTONCALENDAR);\n+        const exactlyAtCutoff = nowUnix - 90 * SECONDS_PER_DAY;\n+        const oneSecondBeforeCutoff = exactlyAtCutoff - 1;\n+        const oneSecondAfterCutoff = exactlyAtCutoff + 1;\n+\n+        expect(isEligible({ user, protonConfig, lastSubscriptionEnd: exactlyAtCutoff })).toBe(false);\n+        expect(isEligible({ user, protonConfig, lastSubscriptionEnd: oneSecondBeforeCutoff })).toBe(true);\n+        expect(isEligible({ user, protonConfig, lastSubscriptionEnd: oneSecondAfterCutoff })).toBe(false);\n+    });\n+\n+    it('should not deny eligibility when no prior subscription timestamp is recorded', () => {\n+        const user = buildUser();\n+        const protonConfig = buildConfig(APPS.PROTONCALENDAR);\n+\n+        expect(isEligible({ user, protonConfig })).toBe(true);\n+        expect(isEligible({ user, protonConfig, lastSubscriptionEnd: 0 })).toBe(true);\n+    });\n+});\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "packages/components/containers/offers/operations/summer2023/eligibility.test.ts"
+  ],
+  "attempt_id": "69bf06133a898fd53bda22c9",
+  "task_id": "6978fa4d0df9703f1e96f3ee",
+  "dataset_name": "swe_88",
+  "image_archive": {
+    "attempt_id": "69bf06133a898fd53bda22c9",
+    "local_image_ref": "hilbench-swe:69bf06133a898fd53bda22c9",
+    "image_id": "sha256:e38251c2fc7fd405128c1e2992c84abfa6621579358b140d87a3770f0e5f11e3",
+    "created": "2026-03-25T22:18:00.707855649-07:00",
+    "artifact_path": "images/69bf06133a898fd53bda22c9.tar.zst",
+    "artifact_bytes": 8336441307,
+    "artifact_sha256": "45e5d9079792c30444da98d1a1c5135ee8fa3b22ca17f565dd3e962aa0fc6e04",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69bf06133a898fd53bda22c9.tar.zst"
+  }
+}

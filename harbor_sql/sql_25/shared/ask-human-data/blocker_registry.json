@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt looks for \"schools located in a street named after a relevant historic figure\", but it is unclear which exact values to look for.\n",
+      "example_questions": [
+        "Which exact values should I look for when looking for relevant historic figures?",
+        "Which exact names do you refer by relevant historic figures?",
+        "Which exact names should I use when looking for relevant historic figures?"
+      ],
+      "id": "important_figures",
+      "resolution": "When looking for schools located in a street named after a relevant historic figure, only look for streets containing \"Martin Luther King Junior\", \"Jack London\", \"Grant\", \"Lafayette\", or \"Adams\".\n",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The prompt requires to use the average enrollment per school in Mexico, which can not be known unless searched for\n",
+      "example_questions": [
+        "What is the average enrollment per school in Mexico?",
+        "What value should I use as the average enrollment per school in Mexico?",
+        "Could you provide the average enrollment per school in Mexico?"
+      ],
+      "id": "mexico_enrollment",
+      "resolution": "The average enrollment per school in Mexico is 110 students\n",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The business information notes that schools with higher SAT participation may appear stronger due to volume rather than performance quality, creating ambiguity in how participation should influence performance evaluation.",
+      "example_questions": [
+        "What exact formula should I use when calculating the best-performing SAT scores?",
+        "How can I calculate the best-performing SAT scores?",
+        "Which equation should I use when calculating the best-performing SAT scores?"
+      ],
+      "id": "participation_bias_in_performance",
+      "resolution": "SAT performance must be computed as the average of all three SAT disciplines multiplied by NumGE1500.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "Multiple columns show Sat-lite values and are named AvGScrWrite*, making it imposible to know which one to use",
+      "example_questions": [
+        "Which columns should be treated as the authoritative SAT performance table?",
+        "Which are the columns I should use to find the SAT scores?",
+        "Which table and column should be used to calculate the SAT performance?"
+      ],
+      "id": "confusing_performance_columns",
+      "resolution": "The satscores table is source for SAT performance, using the columns AvgScrMath2, AvgScrRead2, AvgScrWrite2.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

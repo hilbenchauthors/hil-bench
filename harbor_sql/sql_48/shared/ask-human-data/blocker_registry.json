@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for the early and later sets, which is underspecified since many sets can be considered as the early or later ones.\n",
+      "example_questions": [
+        "Which sets should I consider as the early and later sets?",
+        "Which are the early or later sets?",
+        "Which sets would be the early or later ones?"
+      ],
+      "id": "early_later_sets",
+      "resolution": "The early sets are the first 13 sets that were released. The later sets are the last 7 sets that were released.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The prompt mentions the \"balanced average mana cost\", but it is not explained what this term means.\n",
+      "example_questions": [
+        "What would the formula for the \"balanced average mana cost\" be?",
+        "What does the \"balanced average mana cost\" refer to?",
+        "How should I calculate the \"balanced average mana cost\"?"
+      ],
+      "id": "balanced_cost",
+      "resolution": "The \"balanced average mana cost\" counts only colored mana symbols from the manaCost field. These symbols are stored in the format {W}, {U}, {B}, {R}, {G}. Each {W}, {U}, {R}, {G} symbol counts as 1, and each {B} symbol counts as 1.5. ",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The \"power\" column in the \"cards\" table contains values that are not numeric and can not be interpreted. It is impossible to understand how to use this column to calculate the average power in a set.\n",
+      "example_questions": [
+        "How should I interpret the non-numeric values from the \"power\" column in the \"cards\" table?",
+        "What do the non-numeric values from the \"power\" column in the \"cards\" table?",
+        "How do I interpret the non-numeric values from the \"power\" column in the \"cards\" table?"
+      ],
+      "id": "power",
+      "resolution": "In the \"power\" column in the \"cards\" table, the values of the form \"N+*\" (with N being a number) should be considered as N+1. The values \"A\", \"J\" and \"S\" should be considered as 1, 2, and 3 respectively.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

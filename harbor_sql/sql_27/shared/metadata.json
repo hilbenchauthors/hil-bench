@@ -1,0 +1,10 @@
+{
+  "csv_index": 27,
+  "dataset_name": "sql_27",
+  "hf_task_id": "public_sql_27",
+  "task_id": "6977cf5464c4667b98edc531",
+  "attempt_id": "698dfedbccba4bc7691c5202",
+  "task_attempt_id": "6977cf5464c4667b98edc531_698dfedbccba4bc7691c5202",
+  "database_name": "formula_1",
+  "num_blockers": 4
+}

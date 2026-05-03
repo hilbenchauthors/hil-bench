@@ -1,0 +1,32 @@
+{
+  "database_name": "card_games",
+  "business_info": [
+    "Heritage-series releases are a classification used within the collectible card community to denote cards from specific printing eras that are considered historically significant for collectors and tournament play.",
+    "Within internal product briefs, \"pre-modern\" is sometimes contrasted with both \"classic\" and \"neo-modern\" eras, but the boundaries between these eras have never been formally codified for data reporting purposes.",
+    "Some internal documents describe a \"triggered mana ability\" informally as any triggered ability that adds mana, but the comprehensive rules layer additional timing restrictions that are not reflected in the warehouse metadata.",
+    "Premium-tier collectible status in marketing decks may refer either to scarcity (low print run), iconic design, or cross-media relevance, and is not always strictly correlated with secondary market prices at any given moment.",
+    "The label \"heritage\" has been used in at least three different ways internally: as a synonym for \"nostalgia reprint\" lines, as an umbrella for early black-bordered frames, and as a marketing tag for products aimed at long-time enfranchised players.",
+    "In the card catalog UI, collectible tiers are displayed as badges (bronze, silver, gold, platinum, and obsidian), but the terminology does not always match the numeric tiers stored in backend systems or the labels used by external marketplaces.",
+    "Some regional teams use \"standard issue\" in product copy to mean the default pack-in version for that market, which may differ from what is considered the baseline printing in the global catalog.",
+    "For historical blocks, \"pre-modern format\" has occasionally been aligned with the debut of the sixth-edition rules engine, though organized play teams have not maintained a single authoritative cutoff date in documentation.",
+    "Triggered mana abilities are sometimes tagged during card design handoff using a shorthand like \"TMA\" in comments, but those annotations are not systematically migrated into the analytics database.",
+    "Marketing roadmaps have at times referred to a \"Heritage Series\" product family that mixed new designs with callbacks to 1990s card frames, but internally there is disagreement on whether those should be tracked as a separate product lineage.",
+    "In some early spreadsheet exports, premium collectible tiers were expressed as letter grades (S, A, B, C) rather than numbers, and these had to be manually mapped when backfilling the warehouse, which may have introduced inconsistencies around the top tier.",
+    "On retail product pages, the phrase \"premium-tier\" may be applied as a marketing flourish to whole sets or bundles, independent of the underlying collectible classification of individual cards within them.",
+    "Operations occasionally tags certain early-frame cards as part of \"heritage bundles\" for warehouse picking efficiency, but this operational grouping is not exposed as a dedicated attribute in the analytics layer.",
+    "Legacy catalog documentation sometimes uses \"standard issue\" purely as a contrast to special treatments such as etched foil, textured foil, full-art, or extended-border variants, without specifying how those differences map to database flags.",
+    "Some finance reports segment cards into \"investment\" and \"enthusiast\" profiles using thresholds on internal rarity and velocity metrics, but these profiles are only loosely related to the formal collectible tier ladder used elsewhere.",
+    "Stakeholder decks sometimes refer to \"collector-grade\" and \"premium-tier\" as if they were interchangeable, even though the underlying scorecards treat them as separate axes (one focused on condition sensitivity, the other on long-term demand).",
+    "In player-facing FAQs, the term \"pre-modern\" sometimes doubles as a community shorthand for formats that exclude mythic rarity, but the official format definitions used for legality checks do not reference rarity tiers at all.",
+    "Rules editorial guidelines advise avoiding the phrase \"This is a triggered mana ability\" in newer templating, preferring instead to rely on rules references, but legacy printings that use the explicit sentence remain widely played.",
+    "Some judge-level training slides treat triggered mana abilities as a subcategory of state-based triggers for teaching purposes, even though the official rules do not group them in that way.",
+    "Portfolio reviews for high-end products often treat \"premium-tier\" status as a composite of three hidden scores: lore importance, mechanical uniqueness, and cross-format relevance, each scored from 1 to 5.",
+    "In older legal documents, the \"Heritage Series\" trademark was contemplated for use on both reprint compilations and new-set anthologies, but only a subset of those plans were actually published.",
+    "Legacy inventory planning spreadsheets sometimes bundle heritage-leaning products together with remastered sets for forecasting, which can make it difficult to isolate just the heritage-themed releases in reports.",
+    "Some SKU catalogs list \"Std Issue\" and \"Std+\" as separate product codes, where \"Std+\" can encompass anything from upgraded packaging to alternate art, but this distinction is not visible in the analytics schema.",
+    "On organized play sites, the pre-modern card pool has occasionally been displayed with a disclaimer noting that \"community usage may differ,\" acknowledging that unofficial pre-modern variants circulate online.",
+    "Internal design retrospectives sometimes lump pre-modern, modern, and early post-modern into a single \"transitional\" era when discussing the evolution of card frames and templating conventions.",
+    "In internal QA tools, there is a toggle to highlight cards that contain the exact sentence \"This is a triggered mana ability.\" in any printed language, but that toggle is not exposed to downstream analytics consumers.",
+    "A legacy business glossary defines \"standard issue\" as the first broadly available printing of a card in English, but the glossary was never updated to account for early limited-region or test-market releases."
+  ]
+}

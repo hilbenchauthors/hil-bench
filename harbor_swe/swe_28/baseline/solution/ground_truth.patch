@@ -1,0 +1,268 @@
+diff --git a/lib/ansible/modules/async_wrapper.py b/lib/ansible/modules/async_wrapper.py
+index 7ba8271ef6..831538f2a4 100644
+--- a/lib/ansible/modules/async_wrapper.py
++++ b/lib/ansible/modules/async_wrapper.py
+@@ -31,11 +31,119 @@ syslog.syslog(syslog.LOG_NOTICE, 'Invoked with %s' % " ".join(sys.argv[1:]))
+ # pipe for communication between forked process and parent
+ ipc_watcher, ipc_notifier = multiprocessing.Pipe()
+ 
++DIAGNOSTIC_INLINE_BYTE_CAP = 15360
++TRUNCATED_HEAD_TEMPLATE = '[truncated_head_bytes={0}] '
++DIAGNOSTIC_FIELDS = frozenset(('stderr', 'exception', 'msg', 'outdata', 'data', 'stdout', 'traceback'))
++
++job_path = None
++job_id = None
++
+ 
+ def notice(msg):
+     syslog.syslog(syslog.LOG_NOTICE, msg)
+ 
+ 
++def _escaped_json_length(value):
++    escaped_json = json.dumps(to_text(value, errors='surrogate_or_strict'))
++    # Strip surrounding quotes to measure just the serialized field value bytes.
++    return len(to_bytes(escaped_json[1:-1], errors='surrogate_or_strict'))
++
++
++def _cap_inline_diagnostic(value):
++    text_value = to_text(value, errors='surrogate_or_strict')
++    if _escaped_json_length(text_value) <= DIAGNOSTIC_INLINE_BYTE_CAP:
++        return text_value
++
++    low = 0
++    high = len(text_value)
++    best_value = text_value
++
++    while low <= high:
++        mid = (low + high) // 2
++        dropped_head = to_bytes(text_value[:mid], errors='surrogate_or_strict')
++        marker = TRUNCATED_HEAD_TEMPLATE.format(len(dropped_head))
++        candidate = marker + text_value[mid:]
++        candidate_size = _escaped_json_length(candidate)
++
++        if candidate_size <= DIAGNOSTIC_INLINE_BYTE_CAP:
++            best_value = candidate
++            high = mid - 1
++        else:
++            low = mid + 1
++
++    return best_value
++
++
++def _normalize_diagnostic_payload(payload):
++    if not isinstance(payload, dict):
++        return payload
++
++    normalized = dict(payload)
++    for field in DIAGNOSTIC_FIELDS:
++        if field in normalized and normalized[field] is not None:
++            normalized[field] = _cap_inline_diagnostic(normalized[field])
++    return normalized
++
++
++def _append_history_event(info):
++    if not job_path:
++        return
++
++    event_name = None
++    if info.get('started') == 1 and info.get('finished') == 0:
++        event_name = 'started'
++    elif info.get('finished') == 1:
++        if info.get('timed_out'):
++            event_name = 'timeout'
++        elif info.get('failed'):
++            event_name = 'failed'
++        else:
++            event_name = 'finished'
++
++    if not event_name:
++        return
++
++    history_event = {
++        'event': event_name,
++        'ts_ms': int(time.time() * 1000),
++        'ansible_job_id': info.get('ansible_job_id'),
++    }
++    if info.get('child_pid') is not None:
++        history_event['child_pid'] = info.get('child_pid')
++
++    history_path = '%s.history' % job_path
++    with open(history_path, 'a') as history_file:
++        history_file.write(json.dumps(history_event, separators=(',', ':')))
++        history_file.write('\n')
++
++
++def end(res=None, exit_msg=0):
++    if res is not None:
++        normalized = _normalize_diagnostic_payload(res)
++        print(json.dumps(normalized))
++        sys.stdout.flush()
++    sys.exit(exit_msg)
++
++
++def jwrite(info):
++    if not job_path:
++        raise RuntimeError('job_path is not initialized')
++
++    normalized = _normalize_diagnostic_payload(info)
++    if job_id is not None:
++        normalized['ansible_job_id'] = job_id
++    tmp_job_path = job_path + '.tmp'
++
++    try:
++        with open(tmp_job_path, 'w') as jobfile:
++            jobfile.write(json.dumps(normalized))
++        os.rename(tmp_job_path, job_path)
++        _append_history_event(normalized)
++    except Exception as e:
++        notice('jwrite failed: %s' % to_text(e))
++        raise
++
++
+ def daemonize_self():
+     # daemonizing code: http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66012
+     try:
+@@ -45,7 +153,7 @@ def daemonize_self():
+             sys.exit(0)
+     except OSError:
+         e = sys.exc_info()[1]
+-        sys.exit("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
++        raise RuntimeError("fork #1 failed: %d (%s)" % (e.errno, e.strerror))
+ 
+     # decouple from parent environment (does not chdir / to keep the directory context the same as for non async tasks)
+     os.setsid()
+@@ -59,7 +167,7 @@ def daemonize_self():
+             sys.exit(0)
+     except OSError:
+         e = sys.exc_info()[1]
+-        sys.exit("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
++        raise RuntimeError("fork #2 failed: %d (%s)" % (e.errno, e.strerror))
+ 
+     dev_null = open('/dev/null', 'w')
+     os.dup2(dev_null.fileno(), sys.stdin.fileno())
+@@ -127,13 +235,9 @@ def _make_temp_dir(path):
+ 
+ 
+ def _run_module(wrapped_cmd, jid, job_path):
+-
+-    tmp_job_path = job_path + ".tmp"
+-    jobfile = open(tmp_job_path, "w")
+-    jobfile.write(json.dumps({"started": 1, "finished": 0, "ansible_job_id": jid}))
+-    jobfile.close()
+-    os.rename(tmp_job_path, job_path)
+-    jobfile = open(tmp_job_path, "w")
++    globals()['job_path'] = job_path
++    globals()['job_id'] = jid
++    jwrite({"started": 1, "finished": 0, "ansible_job_id": jid})
+     result = {}
+ 
+     # signal grandchild process started and isolated from being terminated
+@@ -173,7 +277,9 @@ def _run_module(wrapped_cmd, jid, job_path):
+ 
+         if stderr:
+             result['stderr'] = stderr
+-        jobfile.write(json.dumps(result))
++        result['ansible_job_id'] = jid
++        result['finished'] = 1
++        jwrite(result)
+ 
+     except (OSError, IOError):
+         e = sys.exc_info()[1]
+@@ -185,7 +291,8 @@ def _run_module(wrapped_cmd, jid, job_path):
+             "stderr": stderr
+         }
+         result['ansible_job_id'] = jid
+-        jobfile.write(json.dumps(result))
++        result['finished'] = 1
++        jwrite(result)
+ 
+     except (ValueError, Exception):
+         result = {
+@@ -196,22 +303,23 @@ def _run_module(wrapped_cmd, jid, job_path):
+             "msg": traceback.format_exc()
+         }
+         result['ansible_job_id'] = jid
+-        jobfile.write(json.dumps(result))
+-
+-    jobfile.close()
+-    os.rename(tmp_job_path, job_path)
++        result['finished'] = 1
++        jwrite(result)
+ 
+ 
+ def main():
++    global job_path
++    global job_id
++
+     if len(sys.argv) < 5:
+-        print(json.dumps({
++        end({
+             "failed": True,
+             "msg": "usage: async_wrapper <jid> <time_limit> <modulescript> <argsfile> [-preserve_tmp]  "
+                    "Humans, do not call directly!"
+-        }))
+-        sys.exit(1)
++        }, 1)
+ 
+     jid = "%s.%d" % (sys.argv[1], os.getpid())
++    job_id = jid
+     time_limit = sys.argv[2]
+     wrapped_module = sys.argv[3]
+     argsfile = sys.argv[4]
+@@ -237,12 +345,11 @@ def main():
+     try:
+         _make_temp_dir(jobdir)
+     except Exception as e:
+-        print(json.dumps({
++        end({
+             "failed": 1,
+             "msg": "could not create: %s - %s" % (jobdir, to_text(e)),
+             "exception": to_text(traceback.format_exc()),
+-        }))
+-        sys.exit(1)
++        }, 1)
+ 
+     # immediately exit this process, leaving an orphaned process
+     # running which immediately forks a supervisory timing process
+@@ -272,10 +379,8 @@ def main():
+                     continue
+ 
+             notice("Return async_wrapper task started.")
+-            print(json.dumps({"started": 1, "finished": 0, "ansible_job_id": jid, "results_file": job_path,
+-                              "_ansible_suppress_tmpdir_delete": not preserve_tmp}))
+-            sys.stdout.flush()
+-            sys.exit(0)
++            end({"started": 1, "finished": 0, "ansible_job_id": jid, "results_file": job_path,
++                 "_ansible_suppress_tmpdir_delete": not preserve_tmp}, 0)
+         else:
+             # The actual wrapper process
+ 
+@@ -311,6 +416,14 @@ def main():
+                         os.killpg(sub_pid, signal.SIGKILL)
+                         notice("Sent kill to group %s " % sub_pid)
+                         time.sleep(1)
++                        jwrite({
++                            "failed": 1,
++                            "finished": 1,
++                            "timed_out": 1,
++                            "ansible_job_id": jid,
++                            "child_pid": sub_pid,
++                            "msg": "timed out waiting for module completion (pid=%s, timeout=%s)" % (sub_pid, time_limit)
++                        })
+                         if not preserve_tmp:
+                             shutil.rmtree(os.path.dirname(wrapped_module), True)
+                         sys.exit(0)
+@@ -333,11 +446,10 @@ def main():
+     except Exception:
+         e = sys.exc_info()[1]
+         notice("error: %s" % e)
+-        print(json.dumps({
++        end({
+             "failed": True,
+             "msg": "FATAL ERROR: %s" % e
+-        }))
+-        sys.exit(1)
++        }, 1)
+ 
+ 
+ if __name__ == '__main__':

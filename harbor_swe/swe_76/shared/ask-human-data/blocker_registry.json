@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "id": "missing_namespace_key_encoding_rule",
+      "type": "missing parameters",
+      "description": "The task allows optional namespace input to separate singleton domains, but it does not specify the exact cache-key format for combining the static type with the namespace. Different choices for type identity, whitespace normalization, blank namespace handling, and delimiters would all produce different reuse behavior.",
+      "resolution": "Build `baseKey` from the static type only using `reflect.TypeOf((*T)(nil)).Elem().String()`. If a namespace string is provided, trim surrounding whitespace before building the storage key. If the trimmed namespace is empty, use `baseKey` only. If non-empty, append it using the exact delimiter `::` (two colons): `baseKey + \\\"::\\\" + trimmedNamespace`.",
+      "example_questions": [
+        "-  How should the static type and namespace be combined into the internal singleton key?",
+        "-  Which type-derived value should be used as the base key before any namespace is appended?",
+        "-  If the namespace is blank after trimming, should it behave the same as having no namespace at all?",
+        "-  What exact delimiter should separate the type portion from the namespace portion of the key?"
+      ]
+    },
+    {
+      "id": "ambiguous_namespace_arguments_policy",
+      "type": "ambiguous requirements",
+      "description": "The API allows optional namespace arguments but does not define behavior when callers pass more than one namespace argument. Reasonable implementations can ignore extras, merge values, use first/last, or reject the call, and each choice changes which singleton domain is selected and whether invalid input can silently create or reuse the wrong instance.",
+      "resolution": "`GetInstance` accepts at most one namespace argument. If more than one namespace argument is supplied, it must panic immediately and must not execute the constructor or create or reuse any singleton for that call.",
+      "example_questions": [
+        "-  What should happen if a caller provides more than one namespace argument?",
+        "-  Should extra namespace values be ignored, merged into one key, or rejected outright?",
+        "-  Is passing two namespace strings considered valid input for this API?",
+        "-  If too many namespace values are supplied, should the constructor still run or must the call fail before any lookup or creation?"
+      ]
+    },
+    {
+      "id": "contradictory_nil_pointer_caching_policy",
+      "type": "contradictory requirements",
+      "description": "The problem statement says a nil pointer/interface result should allow later retries, while the requirements state nil should be cached as a valid singleton state. These instructions directly conflict on whether nil marks successful singleton construction.",
+      "resolution": "For nilable result kinds (`pointer`, `interface`, `map`, `slice`, `chan`, `func`), if the constructor returns nil, that result must not be cached. This includes interface-typed constructors that return `nil` directly, such as `func() error { return nil }`. Return nil to the caller, but keep the key unresolved so a later non-nil constructor result can establish the singleton.",
+      "example_questions": [
+        "-  When a pointer constructor returns nil, should the singleton be considered initialized or still unresolved?",
+        "-  Should a later non-nil constructor call be allowed to create the singleton after an earlier nil return?",
+        "-  Do nil results behave differently for pointer/interface types versus plain value types?",
+        "-  Which rule should win when the problem statement and requirements disagree about caching nil?"
+      ]
+    }
+  ]
+}

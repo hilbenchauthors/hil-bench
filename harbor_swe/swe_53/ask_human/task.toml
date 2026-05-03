@@ -1,0 +1,38 @@
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-swe_53-ask_human"
+description = ""
+authors = []
+keywords = []
+[metadata]
+task_id = "ask_human"
+task_type = "swe"
+mode = "ask_human"
+repo_name = "ansible/ansible"
+task_attempt_id = "69836ee4987091d7e86e44cf__69b36ee2b942b424365e6b40"
+image_name = "hilbench-swe:69b36ee2b942b424365e6b40"
+tags = [ "swe", "ask_human", "hil-bench",]
+[verifier]
+timeout_sec = 1800.0
+
+[verifier.env]
+[agent]
+timeout_sec = 7200.0
+[environment]
+build_timeout_sec = 1200.0
+docker_image = "hilbench-swe:69b36ee2b942b424365e6b40"
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true
+[[environment.mcp_servers]]
+name = "ask-human"
+transport = "streamable-http"
+url = "http://ask-human:8000/mcp"
+args = []
+
+[environment.env]
+[solution.env]

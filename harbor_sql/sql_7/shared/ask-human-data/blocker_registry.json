@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for balances in EUR, but the database stores all monetary amounts in USD. Converting to EUR requires a current USD-to-EUR exchange rate, which is real-time information not available in the database.",
+      "example_questions": [
+        "What is the current USD to EUR exchange rate?",
+        "What exchange rate should I use to convert USD amounts to EUR?",
+        "How do I convert the USD balances to EUR?"
+      ],
+      "id": "exchange_rate_usd_eur",
+      "resolution": "The current USD to EUR exchange rate is 0.78. Multiply USD amounts by 0.78 to convert to EUR.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"dependable track record\" using vague qualitative language (\"prudent financial management,\" \"adequate reserves\") that cannot be directly translated into precise SQL filters.",
+      "example_questions": [
+        "What specific criteria define a \"dependable track record\"?",
+        "What numeric thresholds determine \"prudent financial management\" and \"adequate reserves\"?",
+        "How exactly should I measure whether an account has a dependable track record?"
+      ],
+      "id": "dependable_track_record",
+      "resolution": "An account has a dependable track record if: (1) the average balance across all its transactions exceeds 50,000 USD, AND (2) the account has more than 250 total transactions. Both conditions must be met.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The district table has columns A2 through A16 with opaque names and no descriptive metadata, making it impossible to determine which column represents the district's assessment tier or what threshold qualifies as \"high.\"\n",
+      "example_questions": [
+        "Which column in the district table represents the district assessment tier?",
+        "What defines a \"high\" assessment tier and which column should I use?",
+        "How should I determine if a district has a high assessment tier?"
+      ],
+      "id": "district_assessment_column",
+      "resolution": "The district assessment tier corresponds to column A9 in the district table. A district has a high assessment tier when its A9 value exceeds 6. Join the district table to the account table using account.district_id = district.district_id.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

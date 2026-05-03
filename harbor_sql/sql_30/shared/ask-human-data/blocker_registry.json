@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for the \"biggest\" players, which can be interpreted either by height, weight, or fame\n",
+      "example_questions": [
+        "What would you mean by \"biggest\" player, should I consider their\rheight or weight?",
+        "When filtering for \"biggest\", should I use their height or weight?",
+        "What should I use to filter by \"biggest\"\rplayer?"
+      ],
+      "id": "biggest",
+      "resolution": "When looking for the \"biggest\" players, use their weight\n",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The prompt asks for \"the golden years of football\", which makes it unclear which years can be considered as such \n",
+      "example_questions": [
+        "Which years should I consider as golden years?",
+        "Which are the golden years of footbal?",
+        "Which years should I use as golden years of footbal?"
+      ],
+      "id": "golden_years",
+      "resolution": "The golden years of football are from 1980 to 1990 inclusive.\n",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The prompt mentions \"over the last year\", which can be interpreted as from the last 365 days or the previos calendar year\n",
+      "example_questions": [
+        "What exact start and end dates do you consider for \"over the last year\"?",
+        "What do you consider as \"over the last year\"? Calendar year or the last 365 days?",
+        "Should I consider \"over the last year\" as the last calendar year or the last 365 days?"
+      ],
+      "id": "last_year",
+      "resolution": "When looking if a team gave a press conference over the last year, use the previous calendar year. strftime ('%Y', Team.last_press_conference_date) = '2025'\n",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The \"condensed body shape\" is used in the prompt and is mentioned as a weighted proportion between height and weight by business information, but the weights are not specified.\n",
+      "example_questions": [
+        "What formula should I use when calculating the condensed body shape?",
+        "How can I calculate the condensed body shape?",
+        "Which set of weights should I use when calculating the condensed body shape?"
+      ],
+      "id": "condensed_body_shape",
+      "resolution": "The condensed body shape is calculated as (height*20+weight*80)/100\n",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The Team table has columns named team_info_*, which makes it impossible to know how to generate the team's full name\n",
+      "example_questions": [
+        "How can I obtain a team's full name?",
+        "How should I obtain a team's full name?",
+        "Which columns can I use to obtain a team's full name?"
+      ],
+      "id": "has_confusing_table_or_table_definition",
+      "resolution": "The team's full name is given by concatenating columns team_info_3, team_info_4, and team_info_2 with spaces in that order.\n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

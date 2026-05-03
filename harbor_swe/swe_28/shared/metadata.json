@@ -1,0 +1,46 @@
+{
+  "instance_id": "instance_ansible__ansible-39bd8b99ec8c6624207bf3556ac7f9626dad9173-v1055803c3a812189a1133297f7f5468579283f86",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c0c5903a12f8aa6efdf840",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/modules/test_async_wrapper.py::TestAsyncWrapper::test_inline_diagnostic_cap_is_tail_preserving",
+      "test/units/modules/test_async_wrapper.py::TestAsyncWrapper::test_jwrite_keeps_latest_record_and_appends_history",
+      "test/units/modules/test_async_wrapper.py::TestAsyncWrapper::test_end_emits_single_json_and_exits",
+      "test/units/modules/test_async_wrapper.py::TestAsyncWrapper::test_jwrite_derives_timeout_event",
+      "test/units/modules/test_async_wrapper.py::TestAsyncWrapper::test_jwrite_derives_finished_event"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/modules/test_async_wrapper.py b/test/units/modules/test_async_wrapper.py\nindex 762fc2fb0b..31840628e8 100644\n--- a/test/units/modules/test_async_wrapper.py\n+++ b/test/units/modules/test_async_wrapper.py\n@@ -8,6 +8,7 @@ import os\n import json\n import shutil\n import tempfile\n+import io\n \n import pytest\n \n@@ -55,3 +56,102 @@ class TestAsyncWrapper:\n \n         assert jres.get('rc') == 0\n         assert jres.get('stderr') == 'stderr stuff'\n+\n+    def test_inline_diagnostic_cap_is_tail_preserving(self, monkeypatch):\n+        fake_stdout = io.StringIO()\n+        monkeypatch.setattr(async_wrapper.sys, 'stdout', fake_stdout)\n+\n+        stderr_payload = ''.join('%05d|' % idx for idx in range(4000))\n+        exception_payload = ''.join('e%05d#' % idx for idx in range(4000))\n+\n+        with pytest.raises(SystemExit):\n+            async_wrapper.end({'failed': 1, 'stderr': stderr_payload, 'exception': exception_payload}, 9)\n+\n+        emitted = json.loads(fake_stdout.getvalue().strip())\n+\n+        for field_name, original in (('stderr', stderr_payload), ('exception', exception_payload)):\n+            value = emitted[field_name]\n+            assert value.startswith('[truncated_head_bytes=')\n+\n+            marker, retained = value.split('] ', 1)\n+            dropped = int(marker[len('[truncated_head_bytes='):])\n+            assert dropped > 0\n+\n+            escaped_field_bytes = len(json.dumps(value)[1:-1].encode('utf-8'))\n+            assert escaped_field_bytes == 15360\n+            assert retained.encode('utf-8') == original.encode('utf-8')[dropped:]\n+\n+    def test_jwrite_keeps_latest_record_and_appends_history(self, monkeypatch):\n+        workdir = tempfile.mkdtemp()\n+        path = os.path.join(workdir, 'job')\n+        monkeypatch.setattr(async_wrapper, 'job_path', path)\n+        monkeypatch.setattr(async_wrapper, 'job_id', 'jid-canonical')\n+\n+        async_wrapper.jwrite({'started': 1, 'finished': 0, 'ansible_job_id': 'jid-1'})\n+        async_wrapper.jwrite({'failed': 1, 'finished': 1, 'ansible_job_id': 'jid-spoofed', 'stderr': 'err'})\n+\n+        with open(path, 'r') as f:\n+            latest = json.loads(f.read())\n+\n+        with open(path + '.history', 'r') as f:\n+            events = [json.loads(line) for line in f.read().splitlines() if line.strip()]\n+\n+        shutil.rmtree(workdir)\n+\n+        assert latest['ansible_job_id'] == 'jid-canonical'\n+        assert latest['finished'] == 1\n+        assert latest['failed'] == 1\n+        assert 'events' not in latest\n+        assert [event['event'] for event in events] == ['started', 'failed']\n+        assert all(event['ansible_job_id'] == 'jid-canonical' for event in events)\n+\n+    def test_end_emits_single_json_and_exits(self, monkeypatch):\n+        fake_stdout = io.StringIO()\n+        monkeypatch.setattr(async_wrapper.sys, 'stdout', fake_stdout)\n+\n+        exact_cap_payload = 'x' * 15360\n+        with pytest.raises(SystemExit) as exit_info:\n+            async_wrapper.end({'failed': 1, 'stderr': exact_cap_payload}, 7)\n+\n+        output = fake_stdout.getvalue().strip()\n+        emitted = json.loads(output)\n+\n+        assert exit_info.value.code == 7\n+        assert emitted['failed'] == 1\n+        assert emitted['stderr'] == exact_cap_payload\n+        assert not emitted['stderr'].startswith('[truncated_head_bytes=')\n+        assert len(json.dumps(emitted['stderr'])[1:-1].encode('utf-8')) == 15360\n+\n+    def test_jwrite_derives_timeout_event(self, monkeypatch):\n+        workdir = tempfile.mkdtemp()\n+        path = os.path.join(workdir, 'job')\n+        monkeypatch.setattr(async_wrapper, 'job_path', path)\n+        monkeypatch.setattr(async_wrapper, 'job_id', 'jid-canonical')\n+\n+        async_wrapper.jwrite({'started': 1, 'finished': 0, 'ansible_job_id': 'jid-canonical'})\n+        async_wrapper.jwrite({'finished': 1, 'timed_out': 1, 'failed': 1, 'ansible_job_id': 'jid-canonical'})\n+\n+        with open(path + '.history', 'r') as f:\n+            events = [json.loads(line) for line in f.read().splitlines() if line.strip()]\n+\n+        shutil.rmtree(workdir)\n+\n+        assert [e['event'] for e in events] == ['started', 'timeout']\n+        assert all(e['ansible_job_id'] == 'jid-canonical' for e in events)\n+\n+    def test_jwrite_derives_finished_event(self, monkeypatch):\n+        workdir = tempfile.mkdtemp()\n+        path = os.path.join(workdir, 'job')\n+        monkeypatch.setattr(async_wrapper, 'job_path', path)\n+        monkeypatch.setattr(async_wrapper, 'job_id', 'jid-canonical')\n+\n+        async_wrapper.jwrite({'started': 1, 'finished': 0, 'ansible_job_id': 'jid-canonical'})\n+        async_wrapper.jwrite({'finished': 1, 'ansible_job_id': 'jid-canonical'})\n+\n+        with open(path + '.history', 'r') as f:\n+            events = [json.loads(line) for line in f.read().splitlines() if line.strip()]\n+\n+        shutil.rmtree(workdir)\n+\n+        assert [e['event'] for e in events] == ['started', 'finished']\n+        assert all(e['ansible_job_id'] == 'jid-canonical' for e in events)\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "test/units/modules/test_async_wrapper.py"
+  ],
+  "attempt_id": "69c0c5903a12f8aa6efdf840",
+  "task_id": "698648c3283d42a76056753e",
+  "dataset_name": "swe_28",
+  "image_archive": {
+    "attempt_id": "69c0c5903a12f8aa6efdf840",
+    "local_image_ref": "hilbench-swe:69c0c5903a12f8aa6efdf840",
+    "image_id": "sha256:d1eb881969e0f5fa6697271df3f8b3796d787c0652e91057d453893fcd8d29bf",
+    "created": "2026-03-25T22:18:58.732354191-07:00",
+    "artifact_path": "images/69c0c5903a12f8aa6efdf840.tar.zst",
+    "artifact_bytes": 750188270,
+    "artifact_sha256": "8940bcd890b5543f2d0140558e22c71987fc32aa2ba264177a978f14e940d121",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c0c5903a12f8aa6efdf840.tar.zst"
+  }
+}

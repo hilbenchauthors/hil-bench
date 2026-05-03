@@ -1,0 +1,39 @@
+{
+  "blockers": [
+    {
+      "id": "contradictory_store_link_mechanism",
+      "type": "contradictory requirements",
+      "description": "The problem statement says the current SmartBanner download-link flow is coupled to product-specific setup and that the fix should make Mail and Calendar behave consistently even if the two products do not expose identical setup today. However, the requirements also say that, for this iteration, the developer should keep the implementation close to the existing SmartBanner integration in each product and should reuse the current per-product store-link setup where possible. These directives conflict: the problem statement pushes toward making the behavior consistent across products despite their setup differences, while the requirements push toward preserving the current per-product integration approach instead of unifying the source of truth.",
+      "resolution": "Do NOT use the metadata-based runtime approach (`document.querySelector`). Instead, use `MAIL_MOBILE_APP_LINKS` for Proton Mail and `CALENDAR_MOBILE_APP_LINKS` for Proton Calendar, both imported from `@proton/shared/lib/constants`. Access the `playStore` property for Android devices and the `appStore` property for iOS devices. Build a mapping object keyed by app name to look up the correct link set, then index by `isAndroid ? 'playStore' : 'appStore'`.",
+      "example_questions": [
+        "-  If the current per-product setup is what differs between Mail and Calendar, what should become the source of truth for store URLs?",
+        "-  Should store links come from a shared source instead of the existing per-product path?",
+        "-  How should I resolve the conflict between making the behavior consistent across products and continuing to use the current per-product SmartBanner setup?"
+      ]
+    },
+    {
+      "id": "missing_legacy_metadata_cleanup_scope",
+      "type": "missing parameters",
+      "description": "The problem statement says the fix may require changes in product-specific Mail/Calendar setup that currently participates in the SmartBanner flow, but it does not identify which concrete setup artifacts those are. ",
+      "resolution": "Product-specific setup changes must target exactly these two files: `applications/mail/src/app.ejs` and `applications/calendar/src/app.ejs`. In `applications/mail/src/app.ejs`, remove exactly these two meta tags: `<meta name=\\\"apple-itunes-app\\\" content=\\\"app-id=979659905\\\">` and `<meta name=\\\"google-play-app\\\" content=\\\"app-id=ch.protonmail.android\\\">`. In `applications/calendar/src/app.ejs`, remove exactly this meta tag: `<meta name=\\\"google-play-app\\\" content=\\\"app-id=me.proton.android.calendar\\\">`.",
+      "example_questions": [
+        "-  Which concrete Mail and Calendar setup files should be modified as part of the product-specific changes?",
+        "-  Does the template cleanup scope include both `applications/mail/src/app.ejs` and `applications/calendar/src/app.ejs`?",
+        "-  Which metadata entries are expected to be removed from each in-scope template?"
+      ]
+    },
+    {
+      "id": "ambiguous_standalone_platform_scope",
+      "type": "ambiguous requirements",
+      "description": "The requirements state that the banner should only appear in mobile contexts where tapping 'Download' is expected to open the relevant app store reliably, but they do not define which standalone or PWA contexts satisfy that condition. Multiple valid interpretations exist: suppress the banner in standalone mode on all platforms uniformly, suppress only on platforms where standalone mode is known to break store links, or treat standalone launches as acceptable if the developer believes the store can still be opened. A developer cannot determine from this requirement alone whether standalone mode on Android, iOS, both, or neither should be considered a supported mobile context for showing the banner.",
+      "resolution": "Standalone/PWA mode breaks App Store redirect links on iOS but not on Android. On Android, the intent system can resolve Play Store links even from standalone/PWA contexts, so the banner remains functional. On iOS, standalone WKWebView contexts cannot process universal links to the App Store, so the banner link is non-functional and the banner must be suppressed. The standalone exclusion must apply only on iOS. Do NOT apply the standalone exclusion on Android. Regular iOS browser sessions (including Safari) remain supported contexts for rendering the banner. Do NOT add Safari-specific or iOS-version-based suppression (for example, any `isSafari` + `getOS().version` gating) because that is outside this exclusion.",
+      "example_questions": [
+        "-  Which standalone or PWA contexts should count as places where tapping 'Download' can successfully open the app store?",
+        "-  On which platforms does standalone mode cause store redirect links to fail?",
+        "-  Should the banner be suppressed in standalone mode on all platforms or only on specific ones?",
+        "-  Can Android standalone/PWA apps still open the Play Store when the user taps 'Download'?",
+        "-  Can iOS standalone/PWA apps still open the App Store when the user taps 'Download'?"
+      ]
+    }
+  ]
+}

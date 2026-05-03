@@ -1,0 +1,46 @@
+{
+  "instance_id": "instance_flipt-io__flipt-e42da21a07a5ae35835ec54f74004ebd58713874",
+  "repo_name": "app",
+  "repo_name_source": "flipt-io/flipt",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69b63840f88a960afab955ab",
+  "log_parser": "sweap_json",
+  "language": "go",
+  "blocker_stats": {
+    "total": 5,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "TestBatchEvaluate_DisabledValue",
+      "TestBatchEvaluate_DisabledDuration",
+      "TestBatchEvaluate_SharedTimestamp",
+      "TestBatchEvaluate_EntryIdFormat",
+      "TestBatchEvaluate_PartialOnHardError"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/server/evaluator_test.go b/server/evaluator_test.go\n--- a/server/evaluator_test.go\n+++ b/server/evaluator_test.go\n@@ -3,12 +3,15 @@ package server\n import (\n \t\"context\"\n+\t\"errors\"\n+\t\"fmt\"\n \t\"testing\"\n \n \t\"github.com/gofrs/uuid\"\n-\t\"github.com/markphelps/flipt/errors\"\n+\terrs \"github.com/markphelps/flipt/errors\"\n \tflipt \"github.com/markphelps/flipt/rpc\"\n \t\"github.com/markphelps/flipt/storage\"\n+\t\"github.com/sirupsen/logrus\"\n \t\"github.com/stretchr/testify/assert\"\n \t\"github.com/stretchr/testify/mock\"\n \t\"github.com/stretchr/testify/require\"\n )\n@@ -67,7 +70,7 @@ func TestEvaluate_FlagNotFound(t *testing.T) {\n \t\t}\n \t)\n \n-\tstore.On(\"GetFlag\", mock.Anything, \"foo\").Return(&flipt.Flag{}, errors.ErrNotFoundf(\"flag %q\", \"foo\"))\n+\tstore.On(\"GetFlag\", mock.Anything, \"foo\").Return(&flipt.Flag{}, errs.ErrNotFoundf(\"flag %q\", \"foo\"))\n \n \tresp, err := s.Evaluate(context.TODO(), &flipt.EvaluationRequest{\n \t\tEntityId: \"1\",\n@@ -1962,3 +1965,162 @@ func Test_matchesBool(t *testing.T) {\n \t\t})\n \t}\n }\n+\n+func TestBatchEvaluate_DisabledValue(t *testing.T) {\n+\tvar (\n+\t\tstore  = &storeMock{}\n+\t\tlogger = logrus.New()\n+\t\ts      = &Server{\n+\t\t\tlogger: logger,\n+\t\t\tstore:  store,\n+\t\t}\n+\t)\n+\n+\tstore.On(\"GetFlag\", mock.Anything, \"foo\").Return(&flipt.Flag{Key: \"foo\", Enabled: true}, nil)\n+\tstore.On(\"GetFlag\", mock.Anything, \"bar\").Return(&flipt.Flag{Key: \"bar\", Enabled: false}, nil)\n+\tstore.On(\"GetEvaluationRules\", mock.Anything, \"foo\").Return([]*storage.EvaluationRule{}, nil)\n+\n+\tresp, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{\n+\t\tRequestId: \"12345\",\n+\t\tRequests: []*flipt.EvaluationRequest{\n+\t\t\t{EntityId: \"1\", FlagKey: \"foo\", Context: map[string]string{\"bar\": \"boz\"}},\n+\t\t\t{EntityId: \"1\", FlagKey: \"bar\"},\n+\t\t},\n+\t})\n+\n+\trequire.NoError(t, err)\n+\trequire.Equal(t, 2, len(resp.Responses))\n+\n+\tassert.Equal(t, \"disabled\", resp.Responses[1].Value)\n+\tassert.NotEqual(t, \"\", resp.Responses[1].Value)\n+\tassert.NotEqual(t, \"DISABLED\", resp.Responses[1].Value)\n+\tassert.NotEqual(t, \"off\", resp.Responses[1].Value)\n+}\n+\n+func TestBatchEvaluate_DisabledDuration(t *testing.T) {\n+\tvar (\n+\t\tstore  = &storeMock{}\n+\t\tlogger = logrus.New()\n+\t\ts      = &Server{\n+\t\t\tlogger: logger,\n+\t\t\tstore:  store,\n+\t\t}\n+\t)\n+\n+\tstore.On(\"GetFlag\", mock.Anything, \"foo\").Return(&flipt.Flag{Key: \"foo\", Enabled: true}, nil)\n+\tstore.On(\"GetFlag\", mock.Anything, \"bar\").Return(&flipt.Flag{Key: \"bar\", Enabled: false}, nil)\n+\tstore.On(\"GetEvaluationRules\", mock.Anything, \"foo\").Return([]*storage.EvaluationRule{}, nil)\n+\n+\tresp, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{\n+\t\tRequestId: \"12345\",\n+\t\tRequests: []*flipt.EvaluationRequest{\n+\t\t\t{EntityId: \"1\", FlagKey: \"foo\", Context: map[string]string{\"bar\": \"boz\"}},\n+\t\t\t{EntityId: \"1\", FlagKey: \"bar\"},\n+\t\t},\n+\t})\n+\n+\trequire.NoError(t, err)\n+\trequire.Equal(t, 2, len(resp.Responses))\n+\n+\tassert.True(t, resp.Responses[0].RequestDurationMillis > 0)\n+\tassert.Equal(t, float64(0), resp.Responses[1].RequestDurationMillis)\n+}\n+\n+func TestBatchEvaluate_SharedTimestamp(t *testing.T) {\n+\tvar (\n+\t\tstore  = &storeMock{}\n+\t\tlogger = logrus.New()\n+\t\ts      = &Server{\n+\t\t\tlogger: logger,\n+\t\t\tstore:  store,\n+\t\t}\n+\t)\n+\n+\tstore.On(\"GetFlag\", mock.Anything, \"foo\").Return(&flipt.Flag{Key: \"foo\", Enabled: true}, nil)\n+\tstore.On(\"GetFlag\", mock.Anything, \"bar\").Return(&flipt.Flag{Key: \"bar\", Enabled: false}, nil)\n+\tstore.On(\"GetFlag\", mock.Anything, \"baz\").Return(&flipt.Flag{Key: \"baz\", Enabled: true}, nil)\n+\tstore.On(\"GetEvaluationRules\", mock.Anything, \"foo\").Return([]*storage.EvaluationRule{}, nil)\n+\tstore.On(\"GetEvaluationRules\", mock.Anything, \"baz\").Return([]*storage.EvaluationRule{}, nil)\n+\n+\tresp, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{\n+\t\tRequestId: \"12345\",\n+\t\tRequests: []*flipt.EvaluationRequest{\n+\t\t\t{EntityId: \"1\", FlagKey: \"foo\", Context: map[string]string{\"bar\": \"boz\"}},\n+\t\t\t{EntityId: \"1\", FlagKey: \"bar\"},\n+\t\t\t{EntityId: \"1\", FlagKey: \"baz\"},\n+\t\t},\n+\t})\n+\n+\trequire.NoError(t, err)\n+\trequire.Equal(t, 3, len(resp.Responses))\n+\n+\trequire.NotNil(t, resp.Responses[0].Timestamp)\n+\trequire.NotNil(t, resp.Responses[1].Timestamp)\n+\trequire.NotNil(t, resp.Responses[2].Timestamp)\n+\tassert.Equal(t, resp.Responses[0].Timestamp.AsTime(), resp.Responses[1].Timestamp.AsTime())\n+\tassert.Equal(t, resp.Responses[1].Timestamp.AsTime(), resp.Responses[2].Timestamp.AsTime())\n+\tassert.True(t, resp.Responses[2].RequestDurationMillis >= resp.Responses[0].RequestDurationMillis,\n+\t\t\"third entry took longer than first, proving timestamps are not derived from duration\")\n+}\n+\n+func TestBatchEvaluate_EntryIdFormat(t *testing.T) {\n+\tvar (\n+\t\tstore  = &storeMock{}\n+\t\tlogger = logrus.New()\n+\t\ts      = &Server{\n+\t\t\tlogger: logger,\n+\t\t\tstore:  store,\n+\t\t}\n+\t)\n+\n+\tstore.On(\"GetFlag\", mock.Anything, \"foo\").Return(&flipt.Flag{Key: \"foo\", Enabled: true}, nil)\n+\tstore.On(\"GetFlag\", mock.Anything, \"bar\").Return(&flipt.Flag{Key: \"bar\", Enabled: false}, nil)\n+\tstore.On(\"GetEvaluationRules\", mock.Anything, \"foo\").Return([]*storage.EvaluationRule{}, nil)\n+\n+\tresp, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{\n+\t\tRequestId: \"12345\",\n+\t\tRequests: []*flipt.EvaluationRequest{\n+\t\t\t{EntityId: \"1\", FlagKey: \"foo\", Context: map[string]string{\"bar\": \"boz\"}},\n+\t\t\t{EntityId: \"1\", FlagKey: \"bar\"},\n+\t\t},\n+\t})\n+\n+\trequire.NoError(t, err)\n+\trequire.Equal(t, 2, len(resp.Responses))\n+\n+\tassert.Equal(t, fmt.Sprintf(\"%s:%s\", \"12345\", \"foo\"), resp.Responses[0].RequestId)\n+\tassert.Equal(t, fmt.Sprintf(\"%s:%s\", \"12345\", \"bar\"), resp.Responses[1].RequestId)\n+\tassert.NotEqual(t, \"\", resp.Responses[0].RequestId)\n+\tassert.NotEqual(t, \"12345\", resp.Responses[0].RequestId)\n+}\n+\n+func TestBatchEvaluate_PartialOnHardError(t *testing.T) {\n+\tvar (\n+\t\tstore  = &storeMock{}\n+\t\tlogger = logrus.New()\n+\t\ts      = &Server{\n+\t\t\tlogger: logger,\n+\t\t\tstore:  store,\n+\t\t}\n+\t)\n+\n+\tstore.On(\"GetFlag\", mock.Anything, \"foo\").Return(&flipt.Flag{Key: \"foo\", Enabled: true}, nil)\n+\tstore.On(\"GetFlag\", mock.Anything, \"err_flag\").Return((*flipt.Flag)(nil), errors.New(\"storage failure\"))\n+\tstore.On(\"GetFlag\", mock.Anything, \"baz\").Return(&flipt.Flag{Key: \"baz\", Enabled: true}, nil)\n+\tstore.On(\"GetEvaluationRules\", mock.Anything, \"foo\").Return([]*storage.EvaluationRule{}, nil)\n+\n+\tresp, err := s.BatchEvaluate(context.TODO(), &flipt.BatchEvaluationRequest{\n+\t\tRequestId: \"67890\",\n+\t\tRequests: []*flipt.EvaluationRequest{\n+\t\t\t{EntityId: \"1\", FlagKey: \"foo\"},\n+\t\t\t{EntityId: \"1\", FlagKey: \"err_flag\"},\n+\t\t\t{EntityId: \"1\", FlagKey: \"baz\"},\n+\t\t},\n+\t})\n+\n+\tassert.Error(t, err)\n+\tassert.NotNil(t, resp)\n+\tassert.Equal(t, 1, len(resp.Responses))\n+\tassert.False(t, resp.Responses[0].Match)\n+\tstore.AssertNotCalled(t, \"GetEvaluationRules\", mock.Anything, \"baz\")\n+}\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "server/evaluator_test.go"
+  ],
+  "attempt_id": "69b63840f88a960afab955ab",
+  "task_id": "69836ee4987091d7e86e448b",
+  "dataset_name": "swe_43",
+  "image_archive": {
+    "attempt_id": "69b63840f88a960afab955ab",
+    "local_image_ref": "hilbench-swe:69b63840f88a960afab955ab",
+    "image_id": "sha256:d4d9c75b92eff436ba5b166f0860448209f700a39690b14f4bfa64cd00025a31",
+    "created": "2026-03-25T23:50:46.059004095-07:00",
+    "artifact_path": "images/69b63840f88a960afab955ab.tar.zst",
+    "artifact_bytes": 736711016,
+    "artifact_sha256": "a0bc890a30c629a51aa1d9fd1c5c4233f2b4dea0a76d7af416f85f5383aa9e15",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69b63840f88a960afab955ab.tar.zst"
+  }
+}

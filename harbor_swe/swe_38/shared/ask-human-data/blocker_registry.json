@@ -1,0 +1,37 @@
+{
+  "blockers": [
+    {
+      "id": "missing_max_active_entries_limit",
+      "type": "missing parameters",
+      "description": "The abstraction must comply with platform memory policy, but the maximum number of active entries it may hold is not specified. Without the exact limit and overflow behavior, valid implementations can differ drastically in retention and memory usage.",
+      "resolution": "Allow at most `256` active entries in a `SimpleCache`; attempting to create the 257th active entry must return a non-nil error and leave existing contents unchanged. Example: after successfully inserting `k1` through `k256`, `Add(\\\"k257\\\", \\\"v\\\")` must fail and `len(Keys())` must remain `256`; counter-example: do not silently evict an older key or grow beyond `256`.",
+      "example_questions": [
+        "-  What is the maximum number of active entries the cache is allowed to store?",
+        "-  What exact entry-count limit does the platform memory policy require?",
+        "-  How many keys may remain active in the cache at once before inserts must fail?"
+      ]
+    },
+    {
+      "id": "ambiguous_expired_entry_refresh_failure_behavior",
+      "type": "ambiguous requirements",
+      "description": "The loader contract explains how to fill a missing key, but it does not define what should happen when a previously cached value has expired and the refresh loader fails. Plausible implementations include failing closed, serving stale data, or restoring the stale entry as active.\",\n ",
+      "resolution": "If a key has an expired cached value and the refresh loader returns an error, return the stale cached value to the current caller with `nil` error, but do not restore that key as active cache state. Example: cached `\\\"v1\\\"` expires, loader returns `backend down`, `GetWithLoader(\\\"k\\\", loader)` must return `\\\"v1\\\"`, `nil`, and `Keys()` must still omit `\\\"k\\\"`; counter-example: do not return the loader error for that case and do not reinsert `\\\"k\\\"` as active.",
+      "example_questions": [
+        "-  What should `GetWithLoader` do when an expired value exists but the refresh loader fails?",
+        "-  Should refresh failure return an error, return stale data, or reactivate the old value?",
+        "-  If a key is expired and the backend is down, what is the required caller-visible behavior?"
+      ]
+    },
+    {
+      "id": "contradiction_non_positive_lifetime_write_policy",
+      "type": "contradictory requirements",
+      "description": "The requirements say write paths must use caller-provided or loader-provided lifetime information, but they also say values whose lifetime is not active must not become active cache entries. These instructions conflict whenever a non-positive lifetime is supplied.",
+      "resolution": "Treat non-positive lifetimes as non-active writes. `AddWithTTL(key, value, ttl)` with `ttl <= 0` must return a non-nil error and must not store the key; `GetWithLoader` receiving `(value, ttl, nil)` with `ttl <= 0` must return `value` to the current caller with `nil` error but must not store it or expose its key in `Keys()`. Example: `AddWithTTL(\\\"k\\\", \\\"v\\\", 0)` must fail and `Get(\\\"k\\\")` must miss; if loader returns `(\\\"v\\\", 0, nil)`, that call must return `\\\"v\\\"` but a later `Get(\\\"k\\\")` must still miss. Counter-example: do not persist the value forever and do not create an active entry from a non-positive lifetime.",
+      "example_questions": [
+        "-  What should happen when `AddWithTTL` is called with `ttl <= 0`?",
+        "-  How should non-positive lifetimes be handled across direct writes and loader-backed writes?",
+        "-  Which rule wins when caller-provided lifetime handling conflicts with the inactive-lifetime policy?"
+      ]
+    }
+  ]
+}

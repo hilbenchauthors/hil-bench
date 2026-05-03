@@ -1,0 +1,10 @@
+{
+  "csv_index": 26,
+  "dataset_name": "sql_26",
+  "hf_task_id": "public_sql_26",
+  "task_id": "6977cf5464c4667b98edc566",
+  "attempt_id": "699962b37fa69b92ea8050d8",
+  "task_attempt_id": "6977cf5464c4667b98edc566_699962b37fa69b92ea8050d8",
+  "database_name": "toxicology",
+  "num_blockers": 5
+}

@@ -1,0 +1,10 @@
+{
+  "csv_index": 22,
+  "dataset_name": "sql_22",
+  "hf_task_id": "public_sql_22",
+  "task_id": "6977cf5464c4667b98edc4ff",
+  "attempt_id": "699ca105877e121d8a33478f",
+  "task_attempt_id": "6977cf5464c4667b98edc4ff_699ca105877e121d8a33478f",
+  "database_name": "codebase_community",
+  "num_blockers": 3
+}

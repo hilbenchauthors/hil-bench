@@ -1,0 +1,45 @@
+{
+  "instance_id": "instance_flipt-io__flipt-5ffba3406a7993d97ced4cc13658bee66150fcca",
+  "repo_name": "app",
+  "repo_name_source": "flipt-io/flipt",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c447b9b78b4beaa7af91b8",
+  "log_parser": "sweap_json",
+  "language": "go",
+  "blocker_stats": {
+    "total": 4,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "TestBlocker1",
+      "TestBlocker2",
+      "TestBlocker3",
+      "TestBlocker5"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/config/config_test.go b/config/config_test.go\nindex c6d80efd..76479096 100644\n--- a/config/config_test.go\n+++ b/config/config_test.go\n@@ -4,6 +4,8 @@ import (\n \t\"io/ioutil\"\n \t\"net/http\"\n \t\"net/http/httptest\"\n+\t\"os\"\n+\t\"path/filepath\"\n \t\"testing\"\n \t\"time\"\n \n@@ -11,6 +13,51 @@ import (\n \t\"github.com/stretchr/testify/require\"\n )\n \n+const advancedConfigYAML = `log:\n+  level: WARN\n+  file: \"testLogFile.txt\"\n+\n+ui:\n+  enabled: false\n+\n+cors:\n+  enabled: true\n+  allowed_origins: \"foo.com\"\n+\n+cache:\n+  memory:\n+    enabled: true\n+    expiration: 5m\n+    eviction_interval: 1m\n+\n+server:\n+  protocol: https\n+  host: 127.0.0.1\n+  http_port: 8081\n+  https_port: 8080\n+  grpc_port: 9001\n+  cert_file: \"./testdata/config/ssl_cert.pem\"\n+  cert_key: \"./testdata/config/ssl_key.pem\"\n+\n+db:\n+  url: postgres://postgres@localhost:5432/flipt?sslmode=disable\n+  migrations:\n+    path: ./config/migrations\n+  max_idle_conn: 10\n+  max_open_conn: 50\n+  pool_conn_ttl: 30m\n+\n+meta:\n+  check_for_updates: false\n+`\n+\n+func writeAdvancedConfig(t *testing.T) string {\n+\tdir := t.TempDir()\n+\tpath := filepath.Join(dir, \"advanced.yml\")\n+\trequire.NoError(t, os.WriteFile(path, []byte(advancedConfigYAML), 0644))\n+\treturn path\n+}\n+\n func TestScheme(t *testing.T) {\n \ttests := []struct {\n \t\tname   string\n@@ -60,7 +107,7 @@ func TestLoad(t *testing.T) {\n \t\t},\n \t\t{\n \t\t\tname: \"configured\",\n-\t\t\tpath: \"./testdata/config/advanced.yml\",\n+\t\t\tpath: \"\", // set at runtime via writeAdvancedConfig\n \t\t\texpected: &Config{\n \t\t\t\tLog: logConfig{\n \t\t\t\t\tLevel: \"WARN\",\n@@ -90,11 +137,14 @@ func TestLoad(t *testing.T) {\n \t\t\t\t\tCertKey:   \"./testdata/config/ssl_key.pem\",\n \t\t\t\t},\n \t\t\t\tDatabase: databaseConfig{\n-\t\t\t\t\tMigrationsPath: \"./config/migrations\",\n-\t\t\t\t\tURL:            \"postgres://postgres@localhost:5432/flipt?sslmode=disable\",\n+\t\t\t\t\tMigrationsPath:  \"./config/migrations\",\n+\t\t\t\t\tURL:             \"postgres://postgres@localhost:5432/flipt?sslmode=disable\",\n+\t\t\t\t\tMaxIdleConn:     10,\n+\t\t\t\t\tMaxOpenConn:     50,\n+\t\t\t\t\tConnMaxLifetime: 30 * time.Minute,\n \t\t\t\t},\n \t\t\t\tMeta: metaConfig{\n-\t\t\t\t\tCheckForUpdates: true,\n+\t\t\t\t\tCheckForUpdates: false,\n \t\t\t\t},\n \t\t\t},\n \t\t},\n@@ -108,7 +158,11 @@ func TestLoad(t *testing.T) {\n \t\t)\n \n \t\tt.Run(tt.name, func(t *testing.T) {\n-\t\t\tcfg, err := Load(path)\n+\t\t\tloadPath := path\n+\t\t\tif tt.name == \"configured\" {\n+\t\t\t\tloadPath = writeAdvancedConfig(t)\n+\t\t\t}\n+\t\t\tcfg, err := Load(loadPath)\n \n \t\t\tif wantErr {\n \t\t\t\trequire.Error(t, err)\n@@ -238,3 +292,56 @@ func TestServeHTTP(t *testing.T) {\n \tassert.Equal(t, http.StatusOK, resp.StatusCode)\n \tassert.NotEmpty(t, body)\n }\n+\n+func TestBlocker1(t *testing.T) {\n+\tassert.Equal(t, 4, Default().Database.MaxIdleConn, \"Blocker1: MaxIdleConn default must be 4\")\n+}\n+\n+func TestBlocker2(t *testing.T) {\n+\td := Default().Database\n+\tassert.Equal(t, 1, d.MaxOpenConn, \"Blocker2: Default() must set MaxOpenConn: 1 (embedded profile)\")\n+\tassert.Equal(t, 1*time.Second, d.ConnMaxLifetime, \"Blocker2: Default() must set ConnMaxLifetime: 1s (embedded profile)\")\n+}\n+\n+func TestBlocker3(t *testing.T) {\n+\t// The connection lifetime uses db.pool_conn_ttl (not conn_max_lifetime)\n+\tdir := t.TempDir()\n+\tpath := filepath.Join(dir, \"pool_ttl.yml\")\n+\tyaml := \"db:\\n  url: file:test.db\\n  pool_conn_ttl: 30m\\n\"\n+\trequire.NoError(t, os.WriteFile(path, []byte(yaml), 0644))\n+\tcfg, err := Load(path)\n+\trequire.NoError(t, err)\n+\tassert.Equal(t, 30*time.Minute, cfg.Database.ConnMaxLifetime, \"Blocker3: must read from pool_conn_ttl key, not conn_max_lifetime\")\n+\n+\t// Verify conn_max_lifetime is NOT used (wrong key)\n+\tpathWrong := filepath.Join(dir, \"wrong_key.yml\")\n+\tyamlWrong := \"db:\\n  url: file:test.db\\n  conn_max_lifetime: 30m\\n\"\n+\trequire.NoError(t, os.WriteFile(pathWrong, []byte(yamlWrong), 0644))\n+\tcfgWrong, err := Load(pathWrong)\n+\trequire.NoError(t, err)\n+\tassert.NotEqual(t, 30*time.Minute, cfgWrong.Database.ConnMaxLifetime, \"Blocker3: conn_max_lifetime must NOT be the key; use pool_conn_ttl\")\n+}\n+\n+func TestBlocker5(t *testing.T) {\n+\ttests := []struct {\n+\t\tname     string\n+\t\tyaml     string\n+\t\twantIdle int\n+\t\twantOpen int\n+\t}{\n+\t\t{\"idle_exceeds_open\", \"db:\\n  max_idle_conn: 20\\n  max_open_conn: 10\\n\", 20, 20},\n+\t\t{\"idle_less_than_open\", \"db:\\n  max_idle_conn: 5\\n  max_open_conn: 10\\n\", 5, 10},\n+\t\t{\"idle_equals_open\", \"db:\\n  max_idle_conn: 10\\n  max_open_conn: 10\\n\", 10, 10},\n+\t}\n+\tfor _, tt := range tests {\n+\t\tt.Run(tt.name, func(t *testing.T) {\n+\t\t\tdir := t.TempDir()\n+\t\t\tpath := filepath.Join(dir, \"pool_adj.yml\")\n+\t\t\trequire.NoError(t, os.WriteFile(path, []byte(tt.yaml), 0644))\n+\t\t\tcfg, err := Load(path)\n+\t\t\trequire.NoError(t, err)\n+\t\t\tassert.Equal(t, tt.wantIdle, cfg.Database.MaxIdleConn, \"MaxIdleConn\")\n+\t\t\tassert.Equal(t, tt.wantOpen, cfg.Database.MaxOpenConn, \"MaxOpenConn\")\n+\t\t})\n+\t}\n+}\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "config/config_test.go"
+  ],
+  "attempt_id": "69c447b9b78b4beaa7af91b8",
+  "task_id": "698648c3283d42a760567541",
+  "dataset_name": "swe_52",
+  "image_archive": {
+    "attempt_id": "69c447b9b78b4beaa7af91b8",
+    "local_image_ref": "hilbench-swe:69c447b9b78b4beaa7af91b8",
+    "image_id": "sha256:82dc66be8cfbb43b2a0c983adbd1862416c6d9042c888698f499d0a88230e6f2",
+    "created": "2026-03-29T10:56:02.664668425-07:00",
+    "artifact_path": "images/69c447b9b78b4beaa7af91b8.tar.zst",
+    "artifact_bytes": 683036167,
+    "artifact_sha256": "0fc68ee7884539ca4f99382ace78d573c92fc2b1c76edae7c0e77e9024172ed7",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c447b9b78b4beaa7af91b8.tar.zst"
+  }
+}

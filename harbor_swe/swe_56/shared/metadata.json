@@ -1,0 +1,44 @@
+{
+  "instance_id": "instance_protonmail__webclients-f161c10cf7d31abf82e8d64d7a99c9fac5acfa18",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69bbe1ef1ce8ac95acbb79ae",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "packages/components/containers/contacts/import/ContactImportModal.test.tsx | should succeed to import a simple CSV file",
+      "packages/components/containers/contacts/import/ContactImportModal.test.tsx | should return epoch for unparseable vCard date text"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/packages/components/containers/contacts/import/ContactImportModal.test.tsx b/packages/components/containers/contacts/import/ContactImportModal.test.tsx\nindex 0e26b3f8b7..c7bff3d5f8 100644\n--- a/packages/components/containers/contacts/import/ContactImportModal.test.tsx\n+++ b/packages/components/containers/contacts/import/ContactImportModal.test.tsx\n@@ -2,6 +2,7 @@ import { fireEvent, waitFor } from '@testing-library/react';\n \n import { CryptoProxy } from '@proton/crypto';\n import { API_CODES } from '@proton/shared/lib/constants';\n+import { getDateFromVCardProperty } from '@proton/shared/lib/contacts/property';\n import range from '@proton/utils/range';\n \n import { api, clearAll, getCard, mockedCryptoApi, render } from '../tests/render';\n@@ -22,9 +23,9 @@ describe('ContactImportModal', () => {\n \n     it('should succeed to import a simple CSV file', async () => {\n         const csv = `first name,last name,email-address ,nickname,organization,birthday,home phone,work phone,mobile phone,city,state,zip,country,Job title,personal web page,business website,group membership,Timezone,notes,home\n-John,Smith,johnsmith@protonmail.com,,Smith Inc.,,123-456-789,,,New Orleans,LA,94958,USA,Head honcho,,,,GMT-7,,\n-Jane,Doe,jane@example.com,,Example UK,,,(44)12345678,(44)12345678,Brighton,East Sussex,BR7 7HT,UK,,www.customdomain.com,,Brighton kite Flyers,GMT,Likes to party!,\n-Peter,Rabbit,peter@pm.me,Carrot,,03/12/1969,856-264-4130,123-456-789,123-456-789,Bridgeport,NJ,8014,USA,,,www.customdomain.com,,GMT-4,,\n+John,Smith,johnsmith@protonmail.com,,Smith Inc.,\\uFEFF2000-01-15,123-456-789,,,New Orleans,LA,94958,USA,Head honcho,,,,GMT-7,,\n+Jane,Doe,jane@example.com,,Example UK,03/06/1990,,(44)12345678,(44)12345678,Brighton,East Sussex,BR7 7HT,UK,,www.customdomain.com,,Brighton kite Flyers,GMT,Likes to party!,\n+Peter,Rabbit,peter@pm.me,Carrot,,15/06/1969,856-264-4130,123-456-789,123-456-789,Bridgeport,NJ,8014,USA,,,www.customdomain.com,,GMT-4,,\n Botman,,botman@pm.me,,,,,,,Skopje,,,,,,,,,,Partizanska`;\n         const file = new File([csv], 'test.csv', { type: 'text/csv' });\n \n@@ -66,6 +67,7 @@ Botman,,botman@pm.me,,,,,,,Skopje,,,,,,,,,,Partizanska`;\n \n         expect(encrypted0).toContain('ADR;TYPE=;PREF=1:;;;New Orleans;LA;94958;USA');\n         expect(encrypted0).toContain('ORG:Smith Inc.');\n+        expect(encrypted0).toContain('BDAY:20000115');\n         expect(encrypted0).toContain('TEL;TYPE=home;PREF=1:123-456-789');\n         expect(encrypted0).toContain('TITLE:Head honcho');\n         expect(encrypted0).toContain('TZ:GMT-7');\n@@ -79,6 +81,7 @@ Botman,,botman@pm.me,,,,,,,Skopje,,,,,,,,,,Partizanska`;\n         const encrypted1 = getCard(contact1Cards, true);\n \n         expect(encrypted1).toContain('ADR;TYPE=;PREF=1:;;;Brighton;East Sussex;BR7 7HT;UK');\n+        expect(encrypted1).toContain('BDAY:19900603');\n         expect(encrypted1).toContain('NOTE:Likes to party!');\n         expect(encrypted1).toContain('ORG:Example UK');\n         expect(encrypted1).toContain('TEL;TYPE=work;PREF=1:(44)12345678');\n@@ -96,7 +99,7 @@ Botman,,botman@pm.me,,,,,,,Skopje,,,,,,,,,,Partizanska`;\n \n         expect(encrypted2).toContain('ADR;TYPE=;PREF=1:;;;Bridgeport;NJ;8014;USA');\n         expect(encrypted2).toContain('NOTE:nickname: Carrot');\n-        expect(encrypted2).toContain('BDAY;VALUE=TEXT:03/12/1969');\n+        expect(encrypted2).toContain('BDAY:19690615');\n         expect(encrypted2).toContain('TEL;TYPE=home;PREF=1:856-264-4130');\n         expect(encrypted2).toContain('TEL;TYPE=work;PREF=2:123-456-789');\n         expect(encrypted2).toContain('TEL;TYPE=cell;PREF=3:123-456-789');\n@@ -114,4 +117,10 @@ Botman,,botman@pm.me,,,,,,,Skopje,,,,,,,,,,Partizanska`;\n         expect(encrypted3).toContain('ADR;TYPE=;PREF=1:;;;Skopje;;;');\n         expect(encrypted3).toContain('NOTE:home: Partizanska');\n     });\n+\n+    it('should return epoch for unparseable vCard date text', () => {\n+        const result = getDateFromVCardProperty({ value: { text: '!!!no_date!!!' } } as any);\n+        expect(result).toBeDefined();\n+        expect(result).toEqual(new Date(0));\n+    });\n });\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "packages/components/containers/contacts/import/ContactImportModal.test.tsx",
+    "packages/shared/test/contacts/property.spec.ts"
+  ],
+  "attempt_id": "69bbe1ef1ce8ac95acbb79ae",
+  "task_id": "6978fa4d0df9703f1e96f406",
+  "dataset_name": "swe_56",
+  "image_archive": {
+    "attempt_id": "69bbe1ef1ce8ac95acbb79ae",
+    "local_image_ref": "hilbench-swe:69bbe1ef1ce8ac95acbb79ae",
+    "image_id": "sha256:59bc1b836f6f8763f169406bb5dde4b8b9978e4d84cf7a06b9079abbfcee4928",
+    "created": "2026-03-25T23:05:08.443621612-07:00",
+    "artifact_path": "images/69bbe1ef1ce8ac95acbb79ae.tar.zst",
+    "artifact_bytes": 7579530611,
+    "artifact_sha256": "a9d251bcc4bb33ba42d7a6c23d1868e676dfa8307b61d85955ca9e1007d414bd",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69bbe1ef1ce8ac95acbb79ae.tar.zst"
+  }
+}

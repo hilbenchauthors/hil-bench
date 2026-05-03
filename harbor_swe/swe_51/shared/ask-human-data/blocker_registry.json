@@ -1,0 +1,48 @@
+{
+  "blockers": [
+    {
+      "id": "missing_share_default_expiration_duration",
+      "type": "missing parameters",
+      "description": "The problem statement requires handling shares that have no expiration set but does not specify the default expiration duration to use when one is not provided. What default TTL should be applied?",
+      "resolution": "When a share is saved without an expiration value, the expiration assigned by the save operation must be 90 days after the current time.",
+      "example_questions": [
+        "-  What default expiration duration should I use when a share has no expiration set?",
+        "-  How long should shares without an expiration last by default?",
+        "-  What is the policy default TTL for share expiration?"
+      ]
+    },
+    {
+      "id": "ambiguous_which_timestamp_fields_nullable",
+      "type": "ambiguous requirements",
+      "description": "The problem statement refers to timestamp fields such as external_info_updated_at or expires_at but does not specify the full set of fields that must support absent values. Which timestamp fields should be made optional?\n",
+      "resolution": "Among the timestamp fields involved in this task, only the share expiration timestamp and the share last-visited timestamp must support absence, while the album external-info timestamp, artist external-info timestamp, and share audit timestamps must remain non-optional.",
+      "example_questions": [
+        "-  Which timestamp fields should be made nullable?",
+        "-  Should LastVisitedAt and external info timestamps all be optional, or only the two mentioned?",
+        "-  Is the set of optional timestamp fields only external_info_updated_at and expires_at, or should there be more optional timestamp fields"
+      ]
+    },
+    {
+      "id": "contradictory_share_visit_option_parameter_name",
+      "type": "contradictory requirements",
+      "description": "The requirements state that a boolean option must be named UpdateVisitOnLoad, and they also state that this option must be named TrackVisitOnLoad. This parameter defines when the operation can occur and, therefore, is critical.",
+      "resolution": "The load-options API for shares must expose both boolean option names, `UpdateVisitOnLoad` and `TrackVisitOnLoad`.",
+      "example_questions": [
+        "-  Should the boolean option be named UpdateVisitOnLoad or TrackVisitOnLoad?",
+        "-  Which parameter name is correct for the visit update flag?",
+        "-  Which boolean option names must be supported for controlling visit tracking during share loading?"
+      ]
+    },
+    {
+      "id": "contradictory_share_visit_update_policy",
+      "type": "contradictory requirements",
+      "description": "There are two requirements: (1) update LastVisitedAt/VisitCount on share load only when ShareLinkUpdatePolicy is FAST, and (2) only when it is BALANCED. How can both be satisfied?\n",
+      "resolution": "The share-load path must update the persisted visit timestamp and visit count only when `conf.Server.ShareLinkUpdatePolicy` is `FAST` or `BALANCED`, and must not update them for other policy values.",
+      "example_questions": [
+        "-  When should I update LastVisitedAt on share load?",
+        "-  Does FAST or BALANCED take precedence for share visit tracking?",
+        "-  When ShareLinkUpdatePolicy is FAST vs BALANCED, should I update visit count?"
+      ]
+    }
+  ]
+}

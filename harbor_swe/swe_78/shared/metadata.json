@@ -1,0 +1,42 @@
+{
+  "instance_id": "instance_flipt-io__flipt-db1c3b100e231c62f0c90c2ab037614f20a2a63b",
+  "repo_name": "app",
+  "repo_name_source": "flipt-io/flipt",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c1b2144f1a847aabc9ee78",
+  "log_parser": "sweap_json",
+  "language": "go",
+  "blocker_stats": {
+    "total": 4,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "Test_matchesString"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/internal/server/evaluation/legacy_evaluator_test.go b/internal/server/evaluation/legacy_evaluator_test.go\nindex e0fec51f..308665e8 100644\n--- a/internal/server/evaluation/legacy_evaluator_test.go\n+++ b/internal/server/evaluation/legacy_evaluator_test.go\n@@ -198,6 +198,77 @@ func Test_matchesString(t *testing.T) {\n \t\t\tvalue:     \"nope\",\n \t\t\twantMatch: true,\n \t\t},\n+\t\t// contains-strings (positive substring operator)\n+\t\t{\n+\t\t\tname: \"blocker_positive_operator_contains_strings_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue:     \"foobarbaz\",\n+\t\t\twantMatch: true,\n+\t\t},\n+\t\t{\n+\t\t\tname: \"blocker_positive_operator_contains_strings_no_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue: \"foobaz\",\n+\t\t},\n+\t\t// not-contains-strings (negative substring operator)\n+\t\t{\n+\t\t\tname: \"blocker_negative_operator_not_contains_strings_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"not-contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue:     \"foobaz\",\n+\t\t\twantMatch: true,\n+\t\t},\n+\t\t{\n+\t\t\tname: \"blocker_negative_operator_not_contains_strings_no_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"not-contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue: \"foobarbaz\",\n+\t\t},\n+\t\t// case-insensitive substring (blocker: conflicting_case_sensitivity_requirement)\n+\t\t{\n+\t\t\tname: \"blocker_case_insensitive_contains_strings_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"contains-strings\",\n+\t\t\t\tValue:    \"Bar\",\n+\t\t\t},\n+\t\t\tvalue:     \"foobar\",\n+\t\t\twantMatch: true,\n+\t\t},\n+\t\t// empty evaluated value (blocker: ambiguous_entity_id_contains_behavior)\n+\t\t{\n+\t\t\tname: \"blocker_empty_value_contains_strings_no_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue: \"\",\n+\t\t},\n+\t\t{\n+\t\t\tname: \"blocker_empty_value_not_contains_strings_match\",\n+\t\t\tconstraint: storage.EvaluationConstraint{\n+\t\t\t\tProperty: \"foo\",\n+\t\t\t\tOperator: \"not-contains-strings\",\n+\t\t\t\tValue:    \"bar\",\n+\t\t\t},\n+\t\t\tvalue:     \"\",\n+\t\t\twantMatch: true,\n+\t\t},\n \t}\n \tfor _, tt := range tests {\n \t\tvar (\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "internal/server/evaluation/legacy_evaluator_test.go"
+  ],
+  "attempt_id": "69c1b2144f1a847aabc9ee78",
+  "task_id": "69839e79db8f5e922c44f811",
+  "dataset_name": "swe_78",
+  "image_archive": {
+    "attempt_id": "69c1b2144f1a847aabc9ee78",
+    "local_image_ref": "hilbench-swe:69c1b2144f1a847aabc9ee78",
+    "image_id": "sha256:ab8509297124eb35345ea632fc6af39c7e1487b3a753aea25394df67b8925858",
+    "created": "2026-03-26T01:21:57.49063051-07:00",
+    "artifact_path": "images/69c1b2144f1a847aabc9ee78.tar.zst",
+    "artifact_bytes": 1923201704,
+    "artifact_sha256": "3246daa2d8150cbdf2fa08808512db045a0f763a4f976618a517847c34a76b69",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c1b2144f1a847aabc9ee78.tar.zst"
+  }
+}

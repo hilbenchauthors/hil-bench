@@ -1,0 +1,46 @@
+{
+  "instance_id": "instance_protonmail__webclients-e9677f6c46d5ea7d277a4532a4bf90074f125f31",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69be40984263a6b6bb07a51c",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 4,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "components/modalTwo/ModalTwo.test.tsx | Dialog substitute module contract exposes an ES-module-shaped default export",
+      "components/modalTwo/ModalTwo.test.tsx | Dialog substitute behavior does not declare explicit dialog role on the substitute host",
+      "components/modalTwo/ModalTwo.test.tsx | Dialog substitute behavior intercepts the open prop and translates it to aria-hidden on the substitute host",
+      "components/modalTwo/ModalTwo.test.tsx | Dialog production abstraction wraps a native dialog element in the actual module",
+      "components/modalTwo/ModalTwo.test.tsx | ModalTwo constrained DOM compatibility exposes open content via role queries without per-test rewrites"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/packages/components/components/modalTwo/ModalTwo.test.tsx b/packages/components/components/modalTwo/ModalTwo.test.tsx\nindex 026b8b39f7..29f4975ed9 100644\n--- a/packages/components/components/modalTwo/ModalTwo.test.tsx\n+++ b/packages/components/components/modalTwo/ModalTwo.test.tsx\n@@ -1,6 +1,6 @@\n import { ReactNode, useEffect, useState } from 'react';\n \n-import { fireEvent, render } from '@testing-library/react';\n+import { fireEvent, render, screen } from '@testing-library/react';\n \n import { Button } from '../button';\n import ModalTwo from './Modal';\n@@ -199,3 +199,92 @@ describe('ModalTwo Hotkeys', () => {\n         expect(queryByTestId('inner')).toHaveTextContent('Rendered');\n     });\n });\n+\n+describe('Dialog substitute module contract', () => {\n+    it('exposes an ES-module-shaped default export', () => {\n+        const mockedModule = jest.requireMock('../dialog/Dialog');\n+        const Dialog = require('../dialog/Dialog').default as typeof import('../dialog/Dialog').default;\n+\n+        expect(mockedModule.__esModule).toBe(true);\n+        expect(mockedModule.default).toBe(Dialog);\n+        expect(mockedModule.Dialog).toBeUndefined();\n+    });\n+});\n+\n+describe('Dialog substitute behavior', () => {\n+    it('does not declare explicit dialog role on the substitute host', () => {\n+        const Dialog = require('../dialog/Dialog').default as typeof import('../dialog/Dialog').default;\n+\n+        render(\n+            <Dialog data-testid=\"dialog-host\">\n+                <span>Content</span>\n+            </Dialog>\n+        );\n+\n+        const host = screen.getByTestId('dialog-host');\n+\n+        expect(host).not.toHaveAttribute('role');\n+        expect(host).not.toHaveAttribute('aria-modal');\n+    });\n+\n+    it('intercepts the open prop and translates it to aria-hidden on the substitute host', () => {\n+        const Dialog = require('../dialog/Dialog').default as typeof import('../dialog/Dialog').default;\n+\n+        const { rerender } = render(\n+            <Dialog data-testid=\"dialog-host\" open={false} aria-labelledby=\"modal-1\">\n+                <span>Content</span>\n+            </Dialog>\n+        );\n+\n+        const host = screen.getByTestId('dialog-host');\n+\n+        expect(host).toHaveAttribute('aria-hidden', 'true');\n+        expect(host).toHaveAttribute('aria-labelledby', 'modal-1');\n+        expect(host).not.toHaveAttribute('open');\n+        expect(host).not.toHaveAttribute('hidden');\n+        expect(host).not.toHaveAttribute('data-state');\n+\n+        rerender(\n+            <Dialog data-testid=\"dialog-host\" open aria-labelledby=\"modal-1\">\n+                <span>Content</span>\n+            </Dialog>\n+        );\n+\n+        expect(screen.getByTestId('dialog-host')).not.toHaveAttribute('aria-hidden');\n+        expect(screen.getByTestId('dialog-host')).not.toHaveAttribute('open');\n+    });\n+});\n+\n+describe('Dialog production abstraction', () => {\n+    it('wraps a native dialog element in the actual module', () => {\n+        const actualDialogModule = jest.requireActual('../dialog/Dialog') as typeof import('../dialog/Dialog');\n+        const ActualDialog = actualDialogModule.default;\n+\n+        render(\n+            <ActualDialog data-testid=\"dialog-host\">\n+                <span>Content</span>\n+            </ActualDialog>\n+        );\n+\n+        expect(ActualDialog.displayName).toBe('Dialog');\n+        expect(screen.getByTestId('dialog-host').tagName).toBe('DIALOG');\n+    });\n+});\n+\n+describe('ModalTwo constrained DOM compatibility', () => {\n+    it('exposes open content via role queries without per-test rewrites', () => {\n+        render(\n+            <ModalTwo open>\n+                <Button>Hello</Button>\n+            </ModalTwo>\n+        );\n+\n+        const host = document.querySelector('.modal-two-dialog');\n+\n+        expect(host).not.toBeNull();\n+        expect(host).not.toHaveAttribute('role');\n+        expect(host).not.toHaveAttribute('aria-modal');\n+        expect(screen.queryByRole('dialog')).toBeNull();\n+        expect(screen.getByRole('button', { name: 'Hello' })).toBeVisible();\n+    });\n+});\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "packages/components/components/modalTwo/ModalTwo.test.tsx"
+  ],
+  "attempt_id": "69be40984263a6b6bb07a51c",
+  "task_id": "69836ee4987091d7e86e44c1",
+  "dataset_name": "swe_67",
+  "image_archive": {
+    "attempt_id": "69be40984263a6b6bb07a51c",
+    "local_image_ref": "hilbench-swe:69be40984263a6b6bb07a51c",
+    "image_id": "sha256:922b1d5cb6feaf8dad5dc4415b92a83ea0f3eaabd186fc61e4e420ac16a92d9f",
+    "created": "2026-03-25T22:24:44.445154788-07:00",
+    "artifact_path": "images/69be40984263a6b6bb07a51c.tar.zst",
+    "artifact_bytes": 7852359503,
+    "artifact_sha256": "3d7dbc1cf7a88b684c98debcdcb1b58e1fd4767ca5f05e36494c8653f3df4390",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69be40984263a6b6bb07a51c.tar.zst"
+  }
+}

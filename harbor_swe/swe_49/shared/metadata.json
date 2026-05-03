@@ -1,0 +1,45 @@
+{
+  "instance_id": "instance_flipt-io__flipt-2eac0df47b5ecc8bb05002d80383ceb08ab3620a",
+  "repo_name": "app",
+  "repo_name_source": "flipt-io/flipt",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69b0c3d855ba26fbeaa376cc",
+  "log_parser": "sweap_json",
+  "language": "go",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "TestAnalyticsStorageConfigString",
+      "TestTelemetryAnalyticsDisabledEmitsNull",
+      "TestTelemetryAnalyticsEnabledIncludesStorage",
+      "TestTelemetryUUIDRotatesFromPersistedState"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/internal/config/analytics_test.go b/internal/config/analytics_test.go\nindex c8432aa6..51577ad6 100644\n--- a/internal/config/analytics_test.go\n+++ b/internal/config/analytics_test.go\n@@ -27,3 +27,16 @@ func TestAnalyticsClickhouseConfiguration(t *testing.T) {\n \tassert.ErrorContains(t, err, \"parse dsn address failed\")\n \n }\n+\n+func TestAnalyticsStorageConfigString(t *testing.T) {\n+\tcfg := AnalyticsStorageConfig{\n+\t\tClickhouse: ClickhouseConfig{\n+\t\t\tEnabled: true,\n+\t\t},\n+\t}\n+\n+\tassert.Equal(t, \"ClickHouse\", cfg.String())\n+\n+\tcfg.Clickhouse.Enabled = false\n+\tassert.Empty(t, cfg.String())\n+}\ndiff --git a/internal/telemetry/telemetry_test.go b/internal/telemetry/telemetry_test.go\nindex 265c047b..68be6a98 100644\n--- a/internal/telemetry/telemetry_test.go\n+++ b/internal/telemetry/telemetry_test.go\n@@ -464,7 +464,10 @@ func TestPing(t *testing.T) {\n \t\t\tassert.Equal(t, \"flipt.ping\", msg.Event)\n \t\t\tassert.NotEmpty(t, msg.AnonymousId)\n \t\t\tassert.Equal(t, msg.AnonymousId, msg.Properties[\"uuid\"])\n-\t\t\tassert.Equal(t, \"1.4\", msg.Properties[\"version\"])\n+\t\t\tassert.Equal(t, \"1.5\", msg.Properties[\"version\"])\n+\t\t\tif _, ok := tt.want[\"analytics\"]; !ok {\n+\t\t\t\ttt.want[\"analytics\"] = nil\n+\t\t\t}\n \t\t\tassert.Equal(t, tt.want, msg.Properties[\"flipt\"])\n \n \t\t\tassert.NotEmpty(t, out.String())\n@@ -507,9 +510,9 @@ func TestPing_Existing(t *testing.T) {\n \tmsg, ok := mockAnalytics.msg.(analytics.Track)\n \trequire.True(t, ok)\n \tassert.Equal(t, \"flipt.ping\", msg.Event)\n-\tassert.Equal(t, \"1545d8a8-7a66-4d8d-a158-0a1c576c68a6\", msg.AnonymousId)\n-\tassert.Equal(t, \"1545d8a8-7a66-4d8d-a158-0a1c576c68a6\", msg.Properties[\"uuid\"])\n-\tassert.Equal(t, \"1.4\", msg.Properties[\"version\"])\n+\tassert.NotEqual(t, \"1545d8a8-7a66-4d8d-a158-0a1c576c68a6\", msg.AnonymousId)\n+\tassert.Equal(t, msg.AnonymousId, msg.Properties[\"uuid\"])\n+\tassert.Equal(t, \"1.5\", msg.Properties[\"version\"])\n \tassert.Equal(t, \"1.0.0\", msg.Properties[\"flipt\"].(map[string]any)[\"version\"])\n \n \tassert.NotEmpty(t, out.String())\n@@ -577,9 +580,136 @@ func TestPing_SpecifyStateDir(t *testing.T) {\n \tassert.Equal(t, \"flipt.ping\", msg.Event)\n \tassert.NotEmpty(t, msg.AnonymousId)\n \tassert.Equal(t, msg.AnonymousId, msg.Properties[\"uuid\"])\n-\tassert.Equal(t, \"1.4\", msg.Properties[\"version\"])\n+\tassert.Equal(t, \"1.5\", msg.Properties[\"version\"])\n \tassert.Equal(t, \"1.0.0\", msg.Properties[\"flipt\"].(map[string]any)[\"version\"])\n \n \tb, _ := os.ReadFile(path)\n \tassert.NotEmpty(t, b)\n }\n+\n+func TestTelemetryAnalyticsDisabledEmitsNull(t *testing.T) {\n+\tlogger := zaptest.NewLogger(t)\n+\tmockAnalytics := &mockAnalytics{}\n+\treporter := &Reporter{\n+\t\tcfg: config.Config{\n+\t\t\tMeta: config.MetaConfig{\n+\t\t\t\tTelemetryEnabled: true,\n+\t\t\t},\n+\t\t\tDatabase: config.DatabaseConfig{\n+\t\t\t\tProtocol: config.DatabaseSQLite,\n+\t\t\t},\n+\t\t\tAnalytics: config.AnalyticsConfig{\n+\t\t\t\tStorage: config.AnalyticsStorageConfig{\n+\t\t\t\t\tClickhouse: config.ClickhouseConfig{\n+\t\t\t\t\t\tEnabled: false,\n+\t\t\t\t\t\tURL:     \"http://localhost:8123\",\n+\t\t\t\t\t},\n+\t\t\t\t},\n+\t\t\t},\n+\t\t},\n+\t\tlogger: logger,\n+\t\tclient: mockAnalytics,\n+\t\tinfo: info.Flipt{\n+\t\t\tVersion: \"1.0.0\",\n+\t\t\tOS:      \"linux\",\n+\t\t\tArch:    \"amd64\",\n+\t\t},\n+\t}\n+\n+\tin := bytes.NewBuffer(nil)\n+\tout := bytes.NewBuffer(nil)\n+\tmockFile := &mockFile{\n+\t\tReader: in,\n+\t\tWriter: out,\n+\t}\n+\n+\terr := reporter.ping(context.Background(), mockFile)\n+\trequire.NoError(t, err)\n+\n+\tmsg, ok := mockAnalytics.msg.(analytics.Track)\n+\trequire.True(t, ok)\n+\tfliptProps := msg.Properties[\"flipt\"].(map[string]any)\n+\tanalyticsProps, exists := fliptProps[\"analytics\"]\n+\trequire.True(t, exists)\n+\tassert.Nil(t, analyticsProps)\n+}\n+\n+func TestTelemetryAnalyticsEnabledIncludesStorage(t *testing.T) {\n+\tlogger := zaptest.NewLogger(t)\n+\tmockAnalytics := &mockAnalytics{}\n+\treporter := &Reporter{\n+\t\tcfg: config.Config{\n+\t\t\tMeta: config.MetaConfig{\n+\t\t\t\tTelemetryEnabled: true,\n+\t\t\t},\n+\t\t\tDatabase: config.DatabaseConfig{\n+\t\t\t\tProtocol: config.DatabaseSQLite,\n+\t\t\t},\n+\t\t\tAnalytics: config.AnalyticsConfig{\n+\t\t\t\tStorage: config.AnalyticsStorageConfig{\n+\t\t\t\t\tClickhouse: config.ClickhouseConfig{\n+\t\t\t\t\t\tEnabled: true,\n+\t\t\t\t\t\tURL:     \"http://localhost:8123\",\n+\t\t\t\t\t},\n+\t\t\t\t},\n+\t\t\t},\n+\t\t},\n+\t\tlogger: logger,\n+\t\tclient: mockAnalytics,\n+\t\tinfo: info.Flipt{\n+\t\t\tVersion: \"1.0.0\",\n+\t\t\tOS:      \"linux\",\n+\t\t\tArch:    \"amd64\",\n+\t\t},\n+\t}\n+\n+\tin := bytes.NewBuffer(nil)\n+\tout := bytes.NewBuffer(nil)\n+\tmockFile := &mockFile{\n+\t\tReader: in,\n+\t\tWriter: out,\n+\t}\n+\n+\terr := reporter.ping(context.Background(), mockFile)\n+\trequire.NoError(t, err)\n+\n+\tmsg, ok := mockAnalytics.msg.(analytics.Track)\n+\trequire.True(t, ok)\n+\tfliptProps := msg.Properties[\"flipt\"].(map[string]any)\n+\tassert.Equal(t, map[string]any{\"storage\": \"ClickHouse\"}, fliptProps[\"analytics\"])\n+}\n+\n+func TestTelemetryUUIDRotatesFromPersistedState(t *testing.T) {\n+\tlogger := zaptest.NewLogger(t)\n+\tmockAnalytics := &mockAnalytics{}\n+\treporter := &Reporter{\n+\t\tcfg: config.Config{\n+\t\t\tMeta: config.MetaConfig{\n+\t\t\t\tTelemetryEnabled: true,\n+\t\t\t},\n+\t\t},\n+\t\tlogger: logger,\n+\t\tclient: mockAnalytics,\n+\t\tinfo: info.Flipt{\n+\t\t\tVersion: \"1.0.0\",\n+\t\t\tOS:      \"linux\",\n+\t\t\tArch:    \"amd64\",\n+\t\t},\n+\t}\n+\n+\tpersisted := []byte(`{\"version\":\"1.4\",\"uuid\":\"1545d8a8-7a66-4d8d-a158-0a1c576c68a6\",\"lastTimestamp\":\"2024-05-10T10:00:00Z\"}`)\n+\tin := bytes.NewReader(persisted)\n+\tout := bytes.NewBuffer(nil)\n+\tmockFile := &mockFile{\n+\t\tReader: in,\n+\t\tWriter: out,\n+\t}\n+\n+\terr := reporter.ping(context.Background(), mockFile)\n+\trequire.NoError(t, err)\n+\n+\tmsg, ok := mockAnalytics.msg.(analytics.Track)\n+\trequire.True(t, ok)\n+\tassert.NotEqual(t, \"1545d8a8-7a66-4d8d-a158-0a1c576c68a6\", msg.AnonymousId)\n+\tassert.Equal(t, msg.AnonymousId, msg.Properties[\"uuid\"])\n+}\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "internal/telemetry/telemetry_test.go"
+  ],
+  "attempt_id": "69b0c3d855ba26fbeaa376cc",
+  "task_id": "69836ee4987091d7e86e44a4",
+  "dataset_name": "swe_49",
+  "image_archive": {
+    "attempt_id": "69b0c3d855ba26fbeaa376cc",
+    "local_image_ref": "hilbench-swe:69b0c3d855ba26fbeaa376cc",
+    "image_id": "sha256:012669e5dea1e375b41418b5ef897ed514e995ac0e79751b2f0f812db165cd72",
+    "created": "2026-03-25T23:28:18.562301106-07:00",
+    "artifact_path": "images/69b0c3d855ba26fbeaa376cc.tar.zst",
+    "artifact_bytes": 1707160396,
+    "artifact_sha256": "eb2aa8dcba4e39332cbbd732b3563d78571d487fd838e764aaae1629258ac2aa",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69b0c3d855ba26fbeaa376cc.tar.zst"
+  }
+}

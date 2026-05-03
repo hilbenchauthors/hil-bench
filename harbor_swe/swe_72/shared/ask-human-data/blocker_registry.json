@@ -1,0 +1,37 @@
+{
+  "blockers": [
+    {
+      "id": "missing_match_set_flags_accepted_values",
+      "type": "missing parameters",
+      "description": "The directional flags parameter for ipset matching accepts specific flag values, but the exact set of accepted values and whether compound flag combinations are valid is not defined. What values should the flags parameter accept, and are compound combinations like source-and-destination valid?",
+      "resolution": "Define match_set_flags with type='str' and choices=['src', 'dst', 'src,dst', 'dst,src']. These four values are the only valid options. Compound values use comma separation with no spaces. Example: match_set_flags='dst,src' is valid and specifies destination-then-source matching order. Do NOT use full words like 'source'/'destination' or space-separated combinations.",
+      "example_questions": [
+        "-  What are the exact accepted values for the match_set_flags parameter?",
+        "-  Should compound flag values like 'src,dst' and 'dst,src' both be valid choices for the flags parameter?",
+        "-  How should the directional flags be formatted when both source and destination addresses need to be matched against the set?"
+      ]
+    },
+    {
+      "id": "ambiguous_negation_handling",
+      "type": "ambiguous requirements",
+      "description": "The module supports negation for set matching via the '!' operator, but the convention for handling the negation prefix in the generated iptables command arguments is not specified. The codebase contains multiple helper functions that each treat the '!' differently when constructing command arguments. How should the '!' prefix on match_set be represented in the final argument list passed to the iptables command?",
+      "resolution": "When match_set starts with '!', keep the '!' prefix attached to the set name and pass the entire value as a single argument to '--match-set'. Do NOT strip the '!' or reposition it as a separate argument token. Example: match_set='!blocked_hosts' produces the argument pair '--match-set', '!blocked_hosts' where the '!' remains part of the name string. Do NOT use append_param (which strips '!') or append_set_extension (which repositions '!').",
+      "example_questions": [
+        "-  When match_set starts with '!', should the negation operator be separated from the set name or kept as part of the value when constructing the iptables command arguments?",
+        "-  Should the module use the existing append_param helper, the append_set_extension helper, or a different approach for handling the --match-set argument and its negation?",
+        "-  How should the '!' prefix on match_set be represented in the final list of command-line arguments passed to iptables?"
+      ]
+    },
+    {
+      "id": "contradictory_set_extension_inclusion",
+      "type": "contradictory requirements",
+      "description": "The problem statement states the set extension should only be included when explicitly declared via the match parameter. The codebase implementation follows this guidance with documentation explaining that set extensions differ from other extensions like iprange due to ipset version-specific behavior. However, the requirements state the module must generate a functionally complete set matching rule, and the public interface description implies automatic rule clause construction when match_set parameters are provided. Which approach should determine when '-m set' appears in the generated command?",
+      "resolution": "Automatically add '-m set --match-set <name> <flags>' to the command when match_set and match_set_flags are provided, even if the user does not specify match: ['set']. When the user already specifies match: ['set'], only add '--match-set <name> <flags>' without duplicating '-m set'. Example: with match_set='admin_hosts' and match_set_flags provided (no explicit match: ['set']), the command includes the full set extension clause '-m set --match-set admin_hosts <flags>' automatically.",
+      "example_questions": [
+        "-  Should the module automatically add '-m set' when match_set is provided, or should the user be required to explicitly specify match: ['set'] as the codebase documentation states?",
+        "-  The codebase explicitly documents that set extensions differ from iprange and conntrack in their inclusion policy. Should this documented distinction be followed, or should the auto-add pattern from other extensions apply?",
+        "-  When match_set parameters are provided but 'set' is not listed in the match parameter, should the module generate the set extension clause or require explicit configuration?"
+      ]
+    }
+  ]
+}

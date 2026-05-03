@@ -1,0 +1,35 @@
+{
+  "task_id": "69839e79db8f5e922c44f811",
+  "attempt_id": "69c1b2144f1a847aabc9ee78",
+  "csv_index": 78,
+  "dataset_name": "swe_78",
+  "hf_repo_id": null,
+  "dataset_root": "swe_78",
+  "artifacts": {
+    "metadata": {
+      "local_path": "shared/metadata.json"
+    },
+    "problem_statement": {
+      "local_path": "shared/problem_statement.txt"
+    },
+    "blocker_registry": {
+      "local_path": "shared/ask-human-data/blocker_registry.json"
+    },
+    "image_ref": {
+      "local_path": "shared/image_ref.txt"
+    },
+    "sidecar_image_refs": {
+      "local_path": "shared/image_refs.json",
+      "values": {
+        "ask-human": "hil-bench-harbor/ask-human:latest"
+      }
+    },
+    "image_archive": {
+      "local_path": "images/69c1b2144f1a847aabc9ee78.tar.zst",
+      "hf_url": "https://huggingface.co/buckets/kellu-scale/hil-bench-swe-images/resolve/main/images/69c1b2144f1a847aabc9ee78.tar.zst",
+      "local_image_ref": "hilbench-swe:69c1b2144f1a847aabc9ee78",
+      "artifact_sha256": "3246daa2d8150cbdf2fa08808512db045a0f763a4f976618a517847c34a76b69",
+      "hf_bucket": "kellu-scale/hil-bench-swe-images"
+    }
+  }
+}

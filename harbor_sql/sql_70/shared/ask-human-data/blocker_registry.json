@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for accounts opened in \"the first days of February 1997\" but does not specify how many days constitute \"the first days.\" It is unclear whether this means the first 10 days, first 15 days, first week, or some other timeframe.",
+      "example_questions": [
+        "To identify accounts opened in \"the first days of February 1997,\" what specific dates should I filter for?",
+        "How many days should be included when filtering for \"the first days of February 1997\"?",
+        "The question references \"the first days of February 1997\" without specifying the exact date range. Should I include the first ten days of the month?"
+      ],
+      "id": "first_days_february_timeframe_unclear",
+      "resolution": "\"The first days of February 1997\" means February 1 and February 2, 1997 only. ",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"the bank's target segment of customers\" as \"clients from demographics with higher growth potential,\" but this definition is vague and does not specify which demographic attribute or criteria determines growth potential. It is unclear whether this refers to age, income level, gender, location, or some other factor.",
+      "example_questions": [
+        "What demographic criteria determine \"higher growth potential\" for the bank's target customer segment?",
+        "How should I identify the bank's target segment of customers based on \"higher growth potential\"?",
+        "What defines \"clients from demographics with higher growth potential\"?"
+      ],
+      "id": "target_segment_definition_vague",
+      "resolution": "The bank's target segment of customers refers to female clients only (gender = 'F'). Filter for clients where gender = 'F' when identifying the target segment.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The account table structure includes three date-related columns (requested_date, bank_approved_date, customer_approved_date) tracking different lifecycle stages, but the table description does not clearly explain the relationship between these dates or which stage represents the official account opening. The table's multi-stage date architecture is confusing and makes it unclear how to interpret the account timeline.",
+      "example_questions": [
+        "What is the difference between requested_date, bank_approved_date, and customer_approved_date in the account table?",
+        "The account table contains requested_date, bank_approved_date, and customer_approved_date columns. For determining when accounts were opened, which of these three dates should be used for filtering?",
+        "The account table has three date columns (requested_date, bank_approved_date, customer_approved_date). Which date should I use to determine when accounts were \"opened\" in February 1997?"
+      ],
+      "id": "multiple_account_date_columns_unclear",
+      "resolution": "The account table tracks a multi-stage process: requested_date represents when the account opening was initiated, bank_approved_date represents internal approval, and customer_approved_date represents final confirmation. For determining when accounts were \"opened,\" use requested_date as this is the official account opening date.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

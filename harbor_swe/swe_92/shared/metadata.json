@@ -1,0 +1,44 @@
+{
+  "instance_id": "instance_ansible__ansible-1ee70fc272aff6bf3415357c6e13c5de5b928d9b-v1055803c3a812189a1133297f7f5468579283f86",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69be18182d95e06bdeb13feb",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/utils/test_isidentifier.py::test_py2_additional_keywords_rejected",
+      "test/units/utils/test_isidentifier.py::test_string_type_check_in_each_helper",
+      "test/units/utils/test_isidentifier.py::test_isidentifier_bound_at_module_load"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/utils/test_isidentifier.py b/test/units/utils/test_isidentifier.py\nnew file mode 100644\nindex 0000000000..cd082548ea\n--- /dev/null\n+++ b/test/units/utils/test_isidentifier.py\n@@ -0,0 +1,43 @@\n+# -*- coding: utf-8 -*-\n+# Copyright: (c) 2020 Ansible Project\n+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)\n+\n+# Make coding more python3-ish\n+from __future__ import (absolute_import, division, print_function)\n+__metaclass__ = type\n+\n+\n+def test_py2_additional_keywords_rejected():\n+    \"\"\"ADDITIONAL_PY2_KEYWORDS must be frozenset(('True','False','None'); _isidentifier_PY2 rejects them.\"\"\"\n+    import ansible.utils.vars as vars_module\n+    ADDITIONAL_PY2_KEYWORDS = getattr(vars_module, 'ADDITIONAL_PY2_KEYWORDS', None)\n+    _isidentifier_PY2 = getattr(vars_module, '_isidentifier_PY2', None)\n+    assert ADDITIONAL_PY2_KEYWORDS is not None, \"ADDITIONAL_PY2_KEYWORDS not defined in ansible.utils.vars\"\n+    assert _isidentifier_PY2 is not None, \"_isidentifier_PY2 not defined in ansible.utils.vars\"\n+    assert type(ADDITIONAL_PY2_KEYWORDS) is frozenset, \"ADDITIONAL_PY2_KEYWORDS must be a frozenset, not %s\" % type(ADDITIONAL_PY2_KEYWORDS).__name__\n+    assert ADDITIONAL_PY2_KEYWORDS == frozenset(('True', 'False', 'None'))\n+    assert not _isidentifier_PY2('True')\n+    assert not _isidentifier_PY2('False')\n+    assert not _isidentifier_PY2('None')\n+\n+\n+def test_string_type_check_in_each_helper():\n+    \"\"\"Both _isidentifier_PY2 and _isidentifier_PY3 must perform string_types check at start; reject non-strings.\"\"\"\n+    import ansible.utils.vars as vars_module\n+    _isidentifier_PY2 = getattr(vars_module, '_isidentifier_PY2', None)\n+    _isidentifier_PY3 = getattr(vars_module, '_isidentifier_PY3', None)\n+    assert _isidentifier_PY2 is not None, \"_isidentifier_PY2 not defined in ansible.utils.vars\"\n+    assert _isidentifier_PY3 is not None, \"_isidentifier_PY3 not defined in ansible.utils.vars\"\n+    non_strings = [None, 42, 3.14, [], {}, b'bytes']\n+    for val in non_strings:\n+        assert not _isidentifier_PY2(val), \"_isidentifier_PY2 must reject non-string %r\" % (val,)\n+        assert not _isidentifier_PY3(val), \"_isidentifier_PY3 must reject non-string %r\" % (val,)\n+\n+\n+def test_isidentifier_bound_at_module_load():\n+    \"\"\"Public isidentifier must be bound at module load to the version-specific function, not a wrapper.\"\"\"\n+    import ansible.utils.vars as vars_module\n+    from ansible.module_utils.six import PY3\n+    assert vars_module.isidentifier is (\n+        vars_module._isidentifier_PY3 if PY3 else vars_module._isidentifier_PY2\n+    ), \"isidentifier must be the version-specific function itself, not a per-call dispatch wrapper\"\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "test/units/utils/test_isidentifier.py"
+  ],
+  "attempt_id": "69be18182d95e06bdeb13feb",
+  "task_id": "69836ee4987091d7e86e44cd",
+  "dataset_name": "swe_92",
+  "image_archive": {
+    "attempt_id": "69be18182d95e06bdeb13feb",
+    "local_image_ref": "hilbench-swe:69be18182d95e06bdeb13feb",
+    "image_id": "sha256:7284d721731e766702ff26d0f7267a253673b8451ea31752a244b90dae3b4e9c",
+    "created": "2026-03-26T01:33:09.315958843-07:00",
+    "artifact_path": "images/69be18182d95e06bdeb13feb.tar.zst",
+    "artifact_bytes": 748374918,
+    "artifact_sha256": "cf3164fd783161ab286feecbbe077fcd4e31df4f8dd21f1829aa96949992428d",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69be18182d95e06bdeb13feb.tar.zst"
+  }
+}

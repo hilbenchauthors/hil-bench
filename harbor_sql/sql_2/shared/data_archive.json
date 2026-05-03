@@ -1,0 +1,13 @@
+{
+  "hf_bucket": "ScaleAI/hil-bench-sql-artifacts",
+  "db_artifact_path": "public_sql_2/card_games.sqlite",
+  "desc_artifact_paths": [
+    "public_sql_2/cards.csv",
+    "public_sql_2/foreign_data.csv",
+    "public_sql_2/legalities.csv",
+    "public_sql_2/rulings.csv",
+    "public_sql_2/set_translations.csv",
+    "public_sql_2/sets.csv",
+    "public_sql_2/table_descriptions.csv"
+  ]
+}

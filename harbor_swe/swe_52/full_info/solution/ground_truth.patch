@@ -1,0 +1,130 @@
+diff --git a/cmd/flipt/flipt.go b/cmd/flipt/flipt.go
+index 83feadf5..03c58ba2 100644
+--- a/cmd/flipt/flipt.go
++++ b/cmd/flipt/flipt.go
+@@ -261,6 +261,10 @@ func run(_ []string) error {
+ 			return fmt.Errorf("opening db: %w", err)
+ 		}
+ 
++		sql.SetMaxIdleConns(cfg.Database.MaxIdleConn)
++		sql.SetMaxOpenConns(cfg.Database.MaxOpenConn)
++		sql.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
++
+ 		defer sql.Close()
+ 
+ 		var store storage.Store
+diff --git a/config/config.go b/config/config.go
+index 61644d47..ac78ad8c 100644
+--- a/config/config.go
++++ b/config/config.go
+@@ -23,7 +23,7 @@ type Config struct {
+ }
+ 
+ type logConfig struct {
+-	Level string `json:"level"`
++	Level string `json:"level,omitempty"`
+ 	File  string `json:"file,omitempty"`
+ }
+ 
+@@ -38,8 +38,8 @@ type corsConfig struct {
+ 
+ type memoryCacheConfig struct {
+ 	Enabled          bool          `json:"enabled"`
+-	Expiration       time.Duration `json:"expiration"`
+-	EvictionInterval time.Duration `json:"evictionInterval"`
++	Expiration       time.Duration `json:"expiration,omitempty"`
++	EvictionInterval time.Duration `json:"eviction_interval,omitempty"`
+ }
+ 
+ type cacheConfig struct {
+@@ -47,7 +47,7 @@ type cacheConfig struct {
+ }
+ 
+ type metaConfig struct {
+-	CheckForUpdates bool `json:"checkForUpdates"`
++	CheckForUpdates bool `json:"check_for_updates"`
+ }
+ 
+ type Scheme uint
+@@ -84,8 +84,11 @@ type serverConfig struct {
+ }
+ 
+ type databaseConfig struct {
+-	MigrationsPath string `json:"migrationsPath,omitempty"`
+-	URL            string `json:"url,omitempty"`
++	MigrationsPath  string        `json:"migrationsPath,omitempty"`
++	URL             string        `json:"url,omitempty"`
++	MaxIdleConn     int           `json:"max_idle_conn,omitempty"`
++	MaxOpenConn     int           `json:"max_open_conn,omitempty"`
++	ConnMaxLifetime time.Duration `json:"conn_max_lifetime,omitempty"`
+ }
+ 
+ func Default() *Config {
+@@ -120,8 +123,11 @@ func Default() *Config {
+ 		},
+ 
+ 		Database: databaseConfig{
+-			URL:            "file:/var/opt/flipt/flipt.db",
+-			MigrationsPath: "/etc/flipt/config/migrations",
++			URL:             "file:/var/opt/flipt/flipt.db",
++			MigrationsPath:  "/etc/flipt/config/migrations",
++			MaxIdleConn:     4,
++			MaxOpenConn:     1,
++			ConnMaxLifetime: 1 * time.Second,
+ 		},
+ 
+ 		Meta: metaConfig{
+@@ -159,6 +165,12 @@ const (
+ 	// DB
+ 	cfgDBURL            = "db.url"
+ 	cfgDBMigrationsPath = "db.migrations.path"
++	cfgDBMaxIdleConn    = "db.max_idle_conn"
++	cfgDBMaxOpenConn    = "db.max_open_conn"
++	cfgDBConnMaxLifetime = "db.pool_conn_ttl"
++
++	// Meta
++	cfgMetaCheckForUpdates = "meta.check_for_updates"
+ )
+ 
+ func Load(path string) (*Config, error) {
+@@ -208,7 +220,6 @@ func Load(path string) (*Config, error) {
+ 			cfg.Cache.Memory.EvictionInterval = viper.GetDuration(cfgCacheMemoryEvictionInterval)
+ 		}
+ 	}
+-
+ 	// Server
+ 	if viper.IsSet(cfgServerHost) {
+ 		cfg.Server.Host = viper.GetString(cfgServerHost)
+@@ -247,6 +258,24 @@ func Load(path string) (*Config, error) {
+ 		cfg.Database.MigrationsPath = viper.GetString(cfgDBMigrationsPath)
+ 	}
+ 
++	if viper.IsSet(cfgDBMaxIdleConn) {
++		cfg.Database.MaxIdleConn = viper.GetInt(cfgDBMaxIdleConn)
++	}
++	if viper.IsSet(cfgDBMaxOpenConn) {
++		cfg.Database.MaxOpenConn = viper.GetInt(cfgDBMaxOpenConn)
++	}
++	if viper.IsSet(cfgDBConnMaxLifetime) {
++		cfg.Database.ConnMaxLifetime = viper.GetDuration(cfgDBConnMaxLifetime)
++	}
++
++	if viper.IsSet(cfgDBMaxIdleConn) && viper.IsSet(cfgDBMaxOpenConn) && cfg.Database.MaxIdleConn > cfg.Database.MaxOpenConn {
++		cfg.Database.MaxOpenConn = cfg.Database.MaxIdleConn
++	}
++
++	if viper.IsSet(cfgMetaCheckForUpdates) {
++		cfg.Meta.CheckForUpdates = viper.GetBool(cfgMetaCheckForUpdates)
++	}
++
+ 	if err := cfg.validate(); err != nil {
+ 		return &Config{}, err
+ 	}
+@@ -254,6 +283,7 @@ func Load(path string) (*Config, error) {
+ 	return cfg, nil
+ }
+ 
++
+ func (c *Config) validate() error {
+ 	if c.Server.Protocol == HTTPS {
+ 		if c.Server.CertFile == "" {

@@ -1,0 +1,37 @@
+{
+  "blockers": [
+    {
+      "id": "missing_registrable_domain_reduction_policy",
+      "type": "missing parameters",
+      "description": "The specs require hostname simplification for matching but never define how far the hostname should be reduced. Multiple reduction levels are valid and the correct matching key cannot be determined without an explicit policy.",
+      "resolution": "Strip any leading www. prefix, then use the existing getSecondLevelDomain helper to obtain the registrable domain, applying it iteratively for multi-level public suffixes, and return only the leftmost label. Example: both `www.mail.proton.me` and `calendar.proton.me` yield `proton`; `secure.login.example.co.uk` yields `example`.",
+      "example_questions": [
+        "-  What exact hostname reduction rule should produce the matching key from nested subdomains?",
+        "-  How should multi-level public suffixes like `co.uk` be handled in the extraction output?",
+        "-  Should the extractor return the full hostname, the registrable domain, or only one label from it?"
+      ]
+    },
+    {
+      "id": "ambiguous_malformed_url_fallback",
+      "type": "ambiguous requirements",
+      "description": "The requirements specify how punycodeUrl should transform valid URLs but do not specify the exact fallback output value when the input string cannot be parsed as a URL. The required return format is not provided anywhere in the specifications.",
+      "resolution": "Wrap the URL constructor in a try-catch. When parsing throws, return a data: URI (RFC 2397) containing the original input \u2014 specifically the string `'data:,'` followed by the original URL. Do not return the original URL unchanged, an empty string, or let the error propagate.",
+      "example_questions": [
+        "-  What should punycodeUrl return when given a malformed URL that cannot be parsed?",
+        "-  Should the function throw, return a sentinel value, or silently degrade on invalid input?",
+        "-  What URI format should represent an unparseable input in the output"
+      ]
+    },
+    {
+      "id": "conflicting_path_normalization_scope",
+      "type": "contradictory requirements",
+      "description": "The requirements specify trailing path separators must be cleaned from output, while also requiring the output path to remain equivalent to the user-authored path. These rules conflict for any URL whose authored path ends with a separator.",
+      "resolution": "Apply trailing separator removal only to root paths. When the parsed pathname is exactly `'/'`, strip it to produce a clean domain-only URL. For all other paths, preserve the trailing separator as authored. Example: `https://example.com/` becomes `https://example.com` but `https://example.com/path/` stays unchanged.",
+      "example_questions": [
+        "-  Should trailing path separators be removed from all paths or only root paths?",
+        "-  How should the normalization rule distinguish between root URLs and deep-link paths?",
+        "-  What is the correct precedence when clean output conflicts with authored path preservation?"
+      ]
+    }
+  ]
+}

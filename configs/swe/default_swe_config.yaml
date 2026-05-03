@@ -107,7 +107,7 @@ agent:
       last_n_messages: 2
 instances:
   deployment:
-    python_standalone_dir: null
+    python_standalone_dir: "/root"
     docker_args:
       - "--entrypoint="
       - "-e"

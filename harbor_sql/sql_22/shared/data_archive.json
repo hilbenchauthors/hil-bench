@@ -1,0 +1,15 @@
+{
+  "hf_bucket": "ScaleAI/hil-bench-sql-artifacts",
+  "db_artifact_path": "public_sql_22/codebase_community.sqlite",
+  "desc_artifact_paths": [
+    "public_sql_22/badges.csv",
+    "public_sql_22/comments.csv",
+    "public_sql_22/posthistory.csv",
+    "public_sql_22/postlinks.csv",
+    "public_sql_22/posts.csv",
+    "public_sql_22/table_descriptions.csv",
+    "public_sql_22/tags.csv",
+    "public_sql_22/users.csv",
+    "public_sql_22/votes.csv"
+  ]
+}

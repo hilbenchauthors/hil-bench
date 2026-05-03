@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "songcount_zero_behavior",
+      "type": "missing parameters",
+      "description": "In normalized mode, the requirements call for PlayCount / SongCount but omit a required edge-case parameter: the explicit fallback PlayCount value to use when SongCount = 0. Because this zero-denominator output value is not specified, the division-by-zero case is underdefined and the resulting PlayCount cannot be implemented deterministically.",
+      "resolution": "When SongCount is zero (0) in normalized mode, PlayCount must be set to 0. Do NOT skip normalization, do NOT leave PlayCount unchanged, do NOT return an error. Explicitly set PlayCount = 0 when SongCount == 0. Example: Album with SongCount=0 and PlayCount=50 in normalized mode gets PlayCount=0.",
+      "example_questions": [
+        "-  What should PlayCount be when SongCount is zero in normalized mode?",
+        "-  How to handle division by zero when normalizing PlayCount?",
+        "-  Should albums with zero songs keep their original PlayCount or get a specific value?",
+        "-  What is the expected PlayCount result for an album with no songs?",
+        "-  Does SongCount of zero produce PlayCount of zero, or should normalization be skipped?"
+      ]
+    },
+    {
+      "id": "playcount_rounding_strategy",
+      "type": "ambiguous requirements",
+      "description": "The requirements mention 'the application's established convention' for rounding, and the interfaces state 'use the existing codebase convention'. However, this creates ambiguity: the specs do not clarify what is the round method to use.",
+      "resolution": "Use math.Floor() to always round DOWN to the nearest integer. Do NOT use math.Round() even though the existing codebase uses it. Example: 19 divided by 4 equals 4.75, floor gives 4 (the existing math.Round would give 5). The code must use: int64(math.Floor(float64(PlayCount) / float64(SongCount)))",
+      "example_questions": [
+        "-  Should math.Round() convention or a different method be used?",
+        "-  The codebase uses Round but should PostScan use the same?",
+        "-  How to convert the fractional result to an integer?",
+        "-  Should 4.75 become 4 or 5 after the division?",
+        "-  Which math function produces the correct integer result for PostScan?"
+      ]
+    },
+    {
+      "id": "compilation_album_normalization",
+      "type": "contradictory requirements",
+      "description": "Three sources contradict each other: (1) Problem statement says 'Compilation albums must be excluded from PlayCount normalization'. (2) Requirements say 'Normalization must be applied uniformly to all albums regardless of their type or metadata flags'. (3) Interfaces say 'PostScan should check Album.Compilation and only normalize non-compilation albums'. Two sources say exclude compilations, one says normalize all.\n",
+      "resolution": "Normalization MUST be applied to ALL albums including compilation albums. Do NOT check the Compilation flag. Do NOT skip normalization for compilation albums. Apply the same normalization logic uniformly regardless of whether Album.Compilation is true or false. The requirements take precedence because uniform behavior is simpler to maintain and test.",
+      "example_questions": [
+        "-  Should compilation albums be excluded from normalization?",
+        "-  Should the Compilation flag be checked before normalizing?",
+        "-  Problem statement says skip compilations, requirements say normalize all - which is correct?",
+        "-  Should Album.Compilation=true affect the normalization behavior?",
+        "-  Are there any album types that should be excluded from normalization?"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \"recent period\" is not specified and could mean different time periods.",
+      "example_questions": [
+        "Which time period you want me to consider as recent period?",
+        "Which time frame should be considered for the 'recent period'?",
+        "Could you provide a specific time period to search for the cards?"
+      ],
+      "id": "recent_period",
+      "resolution": "Interpret \u201crecent period\u201d as rulings with rulings.date in calendar year 2021 (>= 2021-01-01 and < 2022-01-01).",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "It is not clear which value from the column layout to consider as rare, it could be certain layouts or anything distinct than normal.",
+      "example_questions": [
+        "What you consider a card with rare layout?",
+        "How should I identify cards with rare layout?",
+        "Which layout value you consider as rare?"
+      ],
+      "id": "rare_layout",
+      "resolution": "Interpret \"rare layout\" as cards with layout equal to 'modal_dfc'.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "There's no clear meaning of the phrase limited availability and multiple columns could be used to calculate the metric.",
+      "example_questions": [
+        "How should I identify limited availability cards?",
+        "What does limited availability refers to?",
+        "Which cards you consider have limited availability?"
+      ],
+      "id": "limited_availability",
+      "resolution": "Consider limited availability the cards with cards.hasFoil equal to 1 and cards.hasNonFoil equal to 0.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The column AlternativeDeckLimitMarker has confusing values: 7, 17, 27, and 37.",
+      "example_questions": [
+        "How should I identify cards without alternative deck limits?",
+        "What is an indicator for cards that have alternative deck limits?",
+        "I see that there's a column AlternativeDeckLimitMarker with values 7, 17,\u00a0 27, and 37. Which of these values would cards with alternative deck limits be represented as?"
+      ],
+      "id": "alternative_deck_limits",
+      "resolution": "Consider cards with no alternative deck limits as cards for which AlternativeDeckLimitMarker is 17, 27 or 37.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

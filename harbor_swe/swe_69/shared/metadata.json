@@ -1,0 +1,44 @@
+{
+  "instance_id": "instance_protonmail__webclients-4feccbc9990980aee26ea29035f8f931d6089895",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69b230a3b4b20f251ac47d07",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "applications/drive/src/app/store/_links/test/extendedAttributes.compatibility.test.ts | test execution",
+      "applications/drive/src/app/store/_links/test/extendedAttributes.blockSizes.test.ts | test execution",
+      "applications/drive/src/app/store/_links/test/extendedAttributes.modificationTime.test.ts | test execution"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/applications/drive/src/app/store/_links/test/extendedAttributes.blockSizes.test.ts b/applications/drive/src/app/store/_links/test/extendedAttributes.blockSizes.test.ts\nnew file mode 100644\nindex 0000000000..96095e5cd6\n--- /dev/null\n+++ b/applications/drive/src/app/store/_links/test/extendedAttributes.blockSizes.test.ts\n@@ -0,0 +1,26 @@\n+import { FILE_CHUNK_SIZE } from '@proton/shared/lib/drive/constants';\n+\n+import { mockGlobalFile, testFile } from '../../../utils/test/file';\n+import { createFileExtendedAttributes } from '../extendedAttributes';\n+\n+describe('extended attrbiutes block sizes', () => {\n+    beforeEach(() => {\n+        mockGlobalFile();\n+    });\n+\n+    it('test execution', () => {\n+        const testCases: [File, number[]][] = [\n+            [testFile('empty.txt', 0), []],\n+            [testFile('exact.bin', FILE_CHUNK_SIZE * 2), [FILE_CHUNK_SIZE, FILE_CHUNK_SIZE]],\n+            [testFile('remainder.bin', FILE_CHUNK_SIZE * 2 + 123), [FILE_CHUNK_SIZE, FILE_CHUNK_SIZE, 123]],\n+        ];\n+\n+        testCases.forEach(([file, expectedBlockSizes]) => {\n+            const xattrs = createFileExtendedAttributes({\n+                file,\n+            });\n+\n+            expect(xattrs.Common.BlockSizes).toEqual(expectedBlockSizes);\n+        });\n+    });\n+});\ndiff --git a/applications/drive/src/app/store/_links/test/extendedAttributes.compatibility.test.ts b/applications/drive/src/app/store/_links/test/extendedAttributes.compatibility.test.ts\nnew file mode 100644\nindex 0000000000..ec7ef0fd16\n--- /dev/null\n+++ b/applications/drive/src/app/store/_links/test/extendedAttributes.compatibility.test.ts\n@@ -0,0 +1,37 @@\n+import { mockGlobalFile, testFile } from '../../../utils/test/file';\n+import { createFileExtendedAttributes } from '../extendedAttributes';\n+\n+describe('extended attrbiutes compatibility metadata', () => {\n+    beforeEach(() => {\n+        mockGlobalFile();\n+    });\n+\n+    it('test execution', () => {\n+        const xattrsWithDigests = createFileExtendedAttributes({\n+            file: testFile('testfile.txt', 123),\n+            digests: { sha1: 'abcdef' },\n+            media: { width: 100, height: 200 },\n+        });\n+\n+        expect(xattrsWithDigests).toStrictEqual({\n+            Common: {\n+                Version: 2,\n+                ModificationTime: '2009-02-13T23:31:30.000Z',\n+                Size: 123,\n+                BlockSizes: [123],\n+                Digests: {\n+                    SHA1: 'abcdef',\n+                },\n+            },\n+            Media: {\n+                Width: 100,\n+                Height: 200,\n+            },\n+        });\n+\n+        const xattrsWithoutDigests = createFileExtendedAttributes({\n+            file: testFile('nodigest.txt', 5),\n+        });\n+        expect(xattrsWithoutDigests.Common.Digests).toBeUndefined();\n+    });\n+});\ndiff --git a/applications/drive/src/app/store/_links/test/extendedAttributes.modificationTime.test.ts b/applications/drive/src/app/store/_links/test/extendedAttributes.modificationTime.test.ts\nnew file mode 100644\nindex 0000000000..f7c9f909e8\n--- /dev/null\n+++ b/applications/drive/src/app/store/_links/test/extendedAttributes.modificationTime.test.ts\n@@ -0,0 +1,34 @@\n+import { mockGlobalFile, testFile } from '../../../utils/test/file';\n+import { createFileExtendedAttributes, parseExtendedAttributes } from '../extendedAttributes';\n+\n+describe('extended attrbiutes modification time', () => {\n+    beforeEach(() => {\n+        mockGlobalFile();\n+    });\n+\n+    it('test execution', () => {\n+        const created = createFileExtendedAttributes({\n+            file: testFile('testfile.txt', 123),\n+        });\n+        expect(created.Common.ModificationTime).toBe('2009-02-13T23:31:30.000Z');\n+\n+        const parsed = parseExtendedAttributes('{\"Common\": {\"ModificationTime\": \"2009-02-13T23:31:30+0000\"}}');\n+        expect(parsed.Common.ModificationTime).toBe(1234567890000);\n+\n+        expect(() => parseExtendedAttributes('')).not.toThrow();\n+        expect(() => parseExtendedAttributes('not-json')).not.toThrow();\n+\n+        const parsedInvalid = parseExtendedAttributes(\n+            '{\"Common\":{\"ModificationTime\":\"bad-date\",\"Size\":\"aaa\",\"BlockSizes\":\"aaa\",\"Digests\":{\"SHA1\":12}},\"Media\":{\"Width\":\"100\"}}'\n+        );\n+        expect(parsedInvalid.Common.ModificationTime).toBeUndefined();\n+        expect(parsedInvalid.Common.Size).toBeUndefined();\n+        expect(parsedInvalid.Common.BlockSizes).toBeUndefined();\n+        expect(parsedInvalid.Common.Digests).toBeUndefined();\n+        expect(parsedInvalid.Media).toBeUndefined();\n+\n+        const parsedPartial = parseExtendedAttributes('{\"Common\":{\"Size\":123}}');\n+        expect(parsedPartial.Common.ModificationTime).toBeUndefined();\n+        expect(parsedPartial.Common.Size).toBe(123);\n+    });\n+});\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "applications/drive/src/app/store/_links/extendedAttributes.test.ts"
+  ],
+  "attempt_id": "69b230a3b4b20f251ac47d07",
+  "task_id": "69836ee4987091d7e86e44b9",
+  "dataset_name": "swe_69",
+  "image_archive": {
+    "attempt_id": "69b230a3b4b20f251ac47d07",
+    "local_image_ref": "hilbench-swe:69b230a3b4b20f251ac47d07",
+    "image_id": "sha256:4241c4517ac5abe273097f8a8a7fefe5bd96668f7a20178cca098855956013a6",
+    "created": "2026-03-26T01:26:52.964702514-07:00",
+    "artifact_path": "images/69b230a3b4b20f251ac47d07.tar.zst",
+    "artifact_bytes": 7592676843,
+    "artifact_sha256": "8d7d9ff828dc5e8d3bfbbea1fe8105f6e90cd854412a4da30348d13bdc14c45f",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69b230a3b4b20f251ac47d07.tar.zst"
+  }
+}

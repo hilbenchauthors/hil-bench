@@ -1,0 +1,62 @@
+{
+  "blockers": [
+    {
+      "id": "missing_directory_creation_permission_mode",
+      "type": "missing parameters",
+      "description": "The task requires creating missing parent directories and mentions access-control expectations (owner management, group operational visibility, limited non-owner traversal), but it does not define the exact octal permission needed to satisfy that policy and interoperability constraints.",
+      "resolution": "Use permission mode 0751 for created parent directories (owner rwx, group r-x, others --x). The exact call is fs.MkdirAll(dir, 0751). Do not use 0755, 0777, 0770, or 0750.\n",
+      "example_questions": [
+        "-  Which permission mode should I use when creating missing parent directories for the audit sink?",
+        "-  What exact octal value should `MkdirAll` use for the audit directory path?",
+        "-  According to the audit hardening policy, which directory permission bits are mandatory for owner, group, and non-owner users?",
+        "-  Is there a platform-standard directory mode required for audit log paths?"
+      ]
+    },
+    {
+      "id": "missing_file_creation_permission_mode",
+      "type": "missing parameters",
+      "description": "The requirements define append/open behavior and policy-level file access expectations, but they do not specify the exact octal mode required at creation time to satisfy both security policy and compatibility with existing ingestion tooling.",
+      "resolution": "Use permission mode 0641 for the log file when creating it (owner rw-, group r--, others --x). The exact call is fs.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0641). Do not use 0666, 0644, 0600, or 0640.\n",
+      "example_questions": [
+        "-  What file permission should the audit log file have when created?",
+        "-  Which octal mode should I pass to OpenFile when creating the log file?",
+        "-  Which mode satisfies owner write, group read, and the required compatibility bit for downstream tooling?",
+        "-  Is there a mandated creation mode for audit log files in this environment?"
+      ]
+    },
+    {
+      "id": "missing_maximum_directory_creation_depth",
+      "type": "missing parameters",
+      "description": "The task requires bounded automatic directory creation for safety, but it does not define the exact maximum allowed depth or the precise counting rule used to enforce that cap before creation.",
+      "resolution": "The maximum directory creation depth is 8. Count non-empty path segments in the parent directory path after cleaning it (split by `filepath.Separator` and count only non-empty segments). A path with 8 segments must be accepted; a path with more than 8 segments must be rejected before directory creation is attempted.\n",
+      "example_questions": [
+        "-  Is there a maximum depth for creating parent directories?",
+        "-  How many levels of missing directories should the sink be allowed to create?",
+        "-  Should the sink create all ancestors regardless of depth or enforce a limit?",
+        "-  How should depth be counted when deciding whether to reject a path?"
+      ]
+    },
+    {
+      "id": "ambiguous_durability_sync_timing",
+      "type": "ambiguous requirements",
+      "description": "The requirements say to write audit events to a file but do not specify when written data must be made durable (synced to storage). When should the sink ensure data is persisted to disk?\n",
+      "resolution": "Call Sync() once for each processed event. Do not batch sync across multiple events. If a Sync() call fails, continue processing the remaining events and return a non-nil error after the batch completes.",
+      "example_questions": [
+        "-  When should I sync audit data to disk?",
+        "-  Should I call fsync in batches?",
+        "-  How often must written audit events be durable?"
+      ]
+    },
+    {
+      "id": "contradictory_run_delimiter_mode_conditions",
+      "type": "contradictory requirements",
+      "description": "The requirements mix three incompatible compatibility goals: one rule reserves run-start marker emission for `always`, another keeps `on_restart` responsible for marker emission in restart-oriented deployments, and another preserves marker emission during initialization for `per_session` workflows. These instructions cannot all be satisfied by one emission policy.",
+      "resolution": "Write the run-start marker line only when run_delimiter_mode is 'always' or 'per_session'. Do NOT write it when the mode is 'on_restart', 'never', or 'disabled'. Treat empty or unset run_delimiter_mode as 'always'. When writing the marker, use exactly {\"type\":\"run_start\"} followed by a newline and no extra fields. The config/JSON field name and tags for this option must use the snake_case name `run_delimiter_mode` rather than `runDelimiterMode`. If writing this marker during sink initialization fails, return that error. Reject unsupported run_delimiter_mode values with an error. \n",
+      "example_questions": [
+        "-  For which run_delimiter_mode values should I write the run-start marker?",
+        "-  Which of the run_delimiter_mode values should trigger the run-start marker?",
+        "-  Which run_delimiter_mode values should not trigger the run-start marker?"
+      ]
+    }
+  ]
+}

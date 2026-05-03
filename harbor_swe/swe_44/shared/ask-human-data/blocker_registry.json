@@ -1,0 +1,41 @@
+{
+  "blockers": [
+    {
+      "id": "missing_deprecation_call_parameters",
+      "type": "missing parameters",
+      "description": "The problem statement and requirements mandate that a deprecation warning be emitted when py3compat.environ is accessed, but specify none of the concrete details: not the target removal version, not the deprecation function to call, not whether the message should include dynamic caller information, and not the message format. Multiple deprecation versions (2.18, 2.19, 2.20) and deprecation mechanisms exist across the codebase, so the correct values cannot be inferred.",
+      "resolution": "Use Display().deprecated() with version='2.20'. The Display import and instantiation must be lazy (inside the __getattr__ function, not at module level) to avoid circular imports with ansible.config.manager. Initialize a module-level 'display = None' sentinel. Inside __getattr__, wrap the Display init AND the deprecated() call together in a single try/except block to handle bootstrap circular imports (constants \\u2192 config/manager \\u2192 py3compat.environ \\u2192 Display \\u2192 constants). Pattern: 'global display; try: if display is None: from ansible.utils.display import Display; display = Display(); caller = inspect.stack()[1]; display.deprecated(...); except Exception: pass'. The warning message must dynamically include the caller's filename and line number via inspect.stack()[1]. The full message format is: 'ansible.utils.py3compat.environ is deprecated in favor of os.environ. Accessed by {caller.filename} line number {caller.lineno}'. Do NOT use warnings.warn() or logging.warning(). Do NOT use a static message without caller details. Do NOT use any version other than '2.20'. Do NOT import Display at the top of the module.",
+      "example_questions": [
+        "-  What Ansible version should be specified as the deprecation target for py3compat.environ?",
+        "-  Which function should I use to emit the deprecation warning \\u2014 display.deprecated(), warnings.warn(), or something else?",
+        "-  Should the deprecation message include information about which file and line number triggered the deprecated access?",
+        "-  What is the correct format for the py3compat deprecation warning message?",
+        "-  Should I use inspect.stack() to capture caller details for the deprecation message?"
+      ]
+    },
+    {
+      "id": "ambiguous_migration_scope",
+      "type": "ambiguous requirements",
+      "description": "The requirements refer to 'Modules updated' (plural) without clarifying whether this means only the env lookup plugin, only the core config/lookup subsystem, or every file that references py3compat.environ. An agent may update only env.py (following the Component field), update all three files (following a grep-all approach), or update some subset \\u2014 there is no explicit guidance on which files are in scope.",
+      "resolution": "Migrate env.py AND manager.py \\u2014 both belong to the core config/lookup subsystem directly referenced by the Component field or its dependencies. Do NOT migrate lib/ansible/plugins/callback/junit.py \\u2014 it is a separate callback plugin outside the scope of this Component-field PR and will be migrated independently in a future effort. Specifically: in lib/ansible/plugins/lookup/env.py, add 'import os' at the top, remove 'from ansible.utils import py3compat', and change 'py3compat.environ.get(var, d)' to 'os.environ.get(var, d)'. In lib/ansible/config/manager.py, remove 'from ansible.utils import py3compat' (os is already imported) and change 'self._loop_entries(py3compat.environ, defs[config][\\\"env\\\"])' to 'self._loop_entries(os.environ, defs[config][\\\"env\\\"])'. Do NOT touch junit.py's py3compat.environ usage.",
+      "example_questions": [
+        "-  Should I update all files that use py3compat.environ, or only the one stated in the Component field?",
+        "-  I found py3compat.environ in env.py, manager.py, and junit.py \\u2014 which of these are in scope for this change?",
+        "-  Should lib/ansible/plugins/callback/junit.py be migrated as part of this PR, or is it out of scope?",
+        "-  The Component field says env.py but the requirements say 'Modules updated' (plural) \\u2014 does that include manager.py, junit.py, or both?",
+        "-  Is the intent to migrate all internal py3compat.environ usages at once, or only the core config/lookup subsystem?"
+      ]
+    },
+    {
+      "id": "contradictory_duplicate_versus_unique_values",
+      "type": "contradictory requirements",
+      "description": "The specification gives two conflicting behaviors for ansible.utils.py3compat.environ. In the problem statement's Expected Behavior section, accessing ansible.utils.py3compat.environ must return os.environ \"without any other change.\" However, the Requirements section says ansible.utils.py3compat.environ must resolve to os.environ while filtering duplicate values before returning it. These are incompatible definitions of the same interface, because one requires an unchanged mapping and the other requires a modified copy.",
+      "resolution": "When implementing __getattr__ in ansible.utils.py3compat, it must return a dictionary copy of os.environ, using `values_seen = set()\nreturn {k: v for k, v in os.environ.items() if v not in values_seen and not values_seen.add(v)}`",
+      "example_questions": [
+        "-  How to resolve the conflict between non-filtering and duplicate variable values?",
+        "-  When the same env value appears multiple times, what is the approach to manage it?",
+        "-  Which takes precedence: one unique value, or duplicate values?"
+      ]
+    }
+  ]
+}

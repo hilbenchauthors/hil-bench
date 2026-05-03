@@ -1,0 +1,41 @@
+{
+  "blockers": [
+    {
+      "description": "The question requires patients to have \u201cno thrombosis\u201d while also having \u201csevere thrombosis outcomes.\u201d These conditions are mutually exclusive if interpreted as applying to the same examination record.",
+      "example_questions": [
+        "Which Thrombosis values should be considered \u201csevere thrombosis outcomes\u201d (e.g., only value 1, or both 1 and 2)?",
+        "Should \u201cno thrombosis\u201d and \u201csevere thrombosis outcomes\u201d refer to the same examination record, or to different examination records for the same patient over time?",
+        "If \u201cno thrombosis\u201d and \u201csevere thrombosis outcomes\" refer to different examinations, should \u201cno thrombosis\u201d be interpreted as the patient\u2019s latest examination result, or as any examination within the period?",
+        "Does \"no thrombosis\" mean the patient has never had thrombosis, or that their most recent examination shows no thrombosis regardless of earlier results?"
+      ],
+      "id": "no_thrombosis_vs_severe_outcome_contradicting",
+      "resolution": "Interpret 'no thrombosis' as the patient's overall latest examination (the chronologically last Examination record for that patient across the entire Examination table, with no date or age filters applied) having Thrombosis = 0. Interpret 'severe thrombosis outcomes' as the patient having at least one record in the Examination table with Thrombosis IN (1, 2), regardless of date range or age at examination.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "Business information defines \"near-to-adulthood patients\" as patients who are \"close to turning 18,\" but it does not specify how close to 18 a patient must be to qualify.",
+      "example_questions": [
+        "What exact age range qualifies as \"near-to-adulthood\"?",
+        "At what minimum age does a patient start being considered a \"near-to-adulthood patient\"?",
+        "How close should a patient be to turning 18 to be considered \"near-to-adulthood\"?"
+      ],
+      "id": "near_to_adulthood_definition",
+      "resolution": "\"near-to-adulthood patients\" refers to patients aged between 17 years and 9 months (inclusive) and 18 years (exclusive) at the time of the examination. \n\nFilter using: \n\ne.\"Examination Date\" >= DATE(p.Birthday, '+17 years', '+9 months') AND e.\"Examination Date\" < DATE(p.Birthday, '+18 years').",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The phrase \"were at the hospital during 1990\u20131993\" is ambiguous because the database has multiple date fields that could represent when a patient was at the hospital, and it is unclear which one to use.",
+      "example_questions": [
+        "Which date field should be used to determine if a patient was at the hospital during 1990\u20131993: the Examination Date in the Examination table, the First Date in the Patient table, or the Recorded Date in the Patient table?",
+        "Does \"were at the hospital\" refer to the date the patient was first seen (First Date), the date their record was created (Recorded Date), or the date of a specific examination (Examination Date)?",
+        "Should \"at the hospital during 1990\u20131993\" be determined from a field in the Patient table or from a field in the Examination table? Which field should this be?"
+      ],
+      "id": "at_the_hospital_interpretation",
+      "resolution": "Interpret 'were at the hospital during 1990\u20131993' as: patients whose First Date in the Patient table falls between 1990-01-01 and 1993-12-31 (inclusive).",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

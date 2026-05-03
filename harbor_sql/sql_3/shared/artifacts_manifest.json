@@ -1,0 +1,38 @@
+{
+  "task_id": "6977cf5464c4667b98edc4f1",
+  "attempt_id": "6995e83741c6ec518b1b586b",
+  "csv_index": 1,
+  "dataset_name": "sql_1",
+  "hf_repo_id": null,
+  "dataset_root": "https://huggingface.co/datasets/TODO_HF_REPO_ID/resolve/main/sql_1",
+  "artifacts": {
+    "database": {
+      "local_path": "shared/data/database.sqlite",
+      "hf_url": "https://huggingface.co/datasets/TODO_HF_REPO_ID/resolve/main/sql_1/shared/data/database.sqlite"
+    },
+    "schema_descriptions_dir": {
+      "local_path": "shared/data/database_description/",
+      "hf_url_prefix": "https://huggingface.co/datasets/TODO_HF_REPO_ID/resolve/main/sql_1/shared/data/database_description/"
+    },
+    "business_info": {
+      "local_path": "shared/data/business_info.json",
+      "hf_url": "https://huggingface.co/datasets/TODO_HF_REPO_ID/resolve/main/sql_1/shared/data/business_info.json"
+    },
+    "blocker_registry": {
+      "local_path": "shared/ask-human-data/blocker_registry.json",
+      "hf_url": "https://huggingface.co/datasets/TODO_HF_REPO_ID/resolve/main/sql_1/shared/ask-human-data/blocker_registry.json"
+    },
+    "ground_truth_sql": {
+      "local_path": "shared/ground_truth.sql",
+      "hf_url": "https://huggingface.co/datasets/TODO_HF_REPO_ID/resolve/main/sql_1/shared/ground_truth.sql"
+    },
+    "golden_output_csv": {
+      "local_path": "shared/golden_output.csv",
+      "hf_url": "https://huggingface.co/datasets/TODO_HF_REPO_ID/resolve/main/sql_1/shared/golden_output.csv"
+    },
+    "metadata": {
+      "local_path": "shared/metadata.json",
+      "hf_url": "https://huggingface.co/datasets/TODO_HF_REPO_ID/resolve/main/sql_1/shared/metadata.json"
+    }
+  }
+}

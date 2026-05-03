@@ -1,0 +1,10 @@
+{
+  "csv_index": 92,
+  "dataset_name": "sql_92",
+  "hf_task_id": "public_sql_92",
+  "task_id": "6977cf5464c4667b98edc4f2",
+  "attempt_id": "699f3208c3e0647980ec979a",
+  "task_attempt_id": "6977cf5464c4667b98edc4f2_699f3208c3e0647980ec979a",
+  "database_name": "card_games",
+  "num_blockers": 4
+}

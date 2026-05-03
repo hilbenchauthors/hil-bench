@@ -1,0 +1,10 @@
+{
+  "csv_index": 83,
+  "dataset_name": "sql_83",
+  "hf_task_id": "public_sql_83",
+  "task_id": "6977cf5464c4667b98edc4fe",
+  "attempt_id": "698fa59a7b88a1c47366234c",
+  "task_attempt_id": "6977cf5464c4667b98edc4fe_698fa59a7b88a1c47366234c",
+  "database_name": "codebase_community",
+  "num_blockers": 3
+}

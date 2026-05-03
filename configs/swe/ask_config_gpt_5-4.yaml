@@ -114,7 +114,7 @@ agent:
 # expose host so we can send requests to ask_human_server
 instances:
   deployment:
-    python_standalone_dir: null
+    python_standalone_dir: "/root"
     docker_args:
       - "--entrypoint="
       - "--add-host=host.docker.internal:host-gateway"

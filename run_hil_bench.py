@@ -24,7 +24,7 @@ from datasets import load_dataset
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-HF_DATASET = "[REDACTED]/hil-bench"
+HF_DATASET = "ScaleAI/hil-bench"
 RUN_OWNER_DIR = Path(os.getenv("HIL_BENCH_RUN_OWNER_DIR", "/tmp/hil_bench_run_owners"))
 RUN_TIMEOUT_SECONDS = 21600
 DOCKER_LOADED_IMAGE_RE = re.compile(r"Loaded image:\s*(\S+)")

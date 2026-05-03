@@ -1,0 +1,20 @@
+{
+  "hf_bucket": "ScaleAI/hil-bench-sql-artifacts",
+  "db_artifact_path": "public_sql_68/formula_1.sqlite",
+  "desc_artifact_paths": [
+    "public_sql_68/circuits.csv",
+    "public_sql_68/constructorresults.csv",
+    "public_sql_68/constructors.csv",
+    "public_sql_68/constructorstandings.csv",
+    "public_sql_68/drivers.csv",
+    "public_sql_68/driverstandings.csv",
+    "public_sql_68/laptimes.csv",
+    "public_sql_68/pitstops.csv",
+    "public_sql_68/qualifying.csv",
+    "public_sql_68/races.csv",
+    "public_sql_68/results.csv",
+    "public_sql_68/seasons.csv",
+    "public_sql_68/status.csv",
+    "public_sql_68/table_descriptions.csv"
+  ]
+}

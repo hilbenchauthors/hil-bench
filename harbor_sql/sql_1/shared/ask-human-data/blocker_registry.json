@@ -1,0 +1,66 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for \"Middle Eastern Circuits\" but it's unclear which countries are considered Middle Eastern for this purpose, as the geographic definition of the Middle East varies.",
+      "example_questions": [
+        "Which countries are considered Middle Eastern?",
+        "Which circuits are located in Middle Eastern countries?",
+        "Which circuits.country values should I consider to identify Middle Eastern countries?"
+      ],
+      "id": "middle_eastern_circuits",
+      "resolution": "Filter for circuits where circuits.country is equal to 'UAE' AND 'Bahrain' to identify Middle Eastern circuits.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines a technical circuit a slow circuit but it could refer to multiple values like lap time, lap speed, total time, etc and the thresholds to define 'low' are not defined.",
+      "example_questions": [
+        "How should I identify technical circuits?",
+        "What criteria define technical circuits?",
+        "Which values should I use to determine if a circuit is technical?"
+      ],
+      "id": "technical_circuits",
+      "resolution": "Calculate technical circuits using: result.fastestLapSpeed < 192",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "It's unclear what is meant by \"landslide victory ratio\" or how this metric is calculated as it is not specified in the schema or business information.",
+      "example_questions": [
+        "What is the landslide victory ratio?",
+        "How is the landslide victory ratio calculated?",
+        "What does landslide victory ratio mean?",
+        "How should I identify races with a landslide victory ratio?"
+      ],
+      "id": "landslide_victory_ratio",
+      "resolution": "Using the results table: ((res2.milliseconds \u2212 res1.milliseconds) / res1.milliseconds) \u00d7 100. Classify a race as a landslide victory when the resulting ratio exceeds 0.35%.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The business information states that \"The Russell-Antonelli competitive index identifies circuits with limited winner diversity.\" which is vague and doesn't specify how to compute the metric, thresholds or time periods.",
+      "example_questions": [
+        "What is the Russell-Antonelli competitive index?",
+        "How do I determine if a circuit qualifies for the Russell-Antonelli competitive index?",
+        "What does the Russell-Antonelli competitive index measure?",
+        "How is the Russell-Antonelli competitive index calculated?"
+      ],
+      "id": "russell_antonelli_competitive_index",
+      "resolution": "To compute the Russell-Antonelli competitive index: retrieve each unique driver ID in the results.positionOrder = 1 and identify circuits that have less or equal than 5 unique winners.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "It's unclear which column in the circuit_performance_table should be used to identify premier performance classification, as there are eight columns that show different circuit-related performance aspects.",
+      "example_questions": [
+        "Which column indicates premier performance classification?",
+        "How do I identify circuits with premier performance classification?",
+        "Which field in the circuit_performance table shows premier performance classification?"
+      ],
+      "id": "premier_performance_classification",
+      "resolution": "Use the column circuit_performance.driver_performance and filter for the value premier.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

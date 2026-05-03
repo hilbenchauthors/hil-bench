@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "unexpected_layer_handling_policy",
+      "type": "contradictory requirements",
+      "description": "The Problem Statement says OCI repositories may contain auxiliary non-Flipt layers and ingestion should ignore non-Flipt layers while continuing to process supported feature layers. The Requirements say `fetchFiles` must return an error for any layer whose media type is not a supported Flipt media type. These instructions are mutually exclusive for unsupported layers: either ignore-and-continue or fail-with-error.\n",
+      "resolution": "`fetchFiles` MUST return an error when it encounters an unsupported layer media type, and MUST NOT silently skip unknown layers.\n",
+      "example_questions": [
+        "-  Should fetchFiles skip OCI layers with unknown media types?",
+        "-  How should the source behave when an auxiliary non-Flipt layer is present?",
+        "-  Must unexpected layer media types be ignored or treated as errors?",
+        "-  Is compatibility achieved by permissive layer filtering or strict media-type validation?",
+        "-  What is the required behavior for unsupported layer types during snapshot fetch?"
+      ]
+    },
+    {
+      "id": "max_layers_per_manifest",
+      "type": "missing parameters",
+      "description": "The Requirements state that `fetchFiles` must enforce an upper bound on manifest layers per fetch operation, but they do not specify the exact maximum layer count. Without the exact threshold, multiple implementations are possible and behavior diverges under large manifests.",
+      "resolution": "`fetchFiles` MUST reject manifests with more than 256 layers. The exact allowed maximum is 256 layers per fetch. If `len(manifest.Layers) > 256`, return an error and do not process any layers.\n",
+      "example_questions": [
+        "-  What is the exact maximum number of layers allowed per manifest fetch?",
+        "-  At what layer count should fetchFiles reject a manifest?",
+        "-  Should a 257-layer manifest be accepted or rejected?",
+        "-  What numeric threshold enforces the layer processing bound?",
+        "-  How many layers can fetchFiles process before returning an error?"
+      ]
+    },
+    {
+      "id": "features_annotation_requirement_policy",
+      "type": "ambiguous requirements",
+      "description": "The Problem Statement and Public Interfaces acknowledge namespace metadata can appear in descriptor annotations and/or payload fields, while Requirements mandate reading `fliptoci.AnnotationFliptNamespace` and preserving namespace association. The specs do not define whether annotation namespace is optional when payload namespace is already present, or mandatory as a required metadata contract for `MediaTypeFliptFeatures` ingestion.\n",
+      "resolution": "For `MediaTypeFliptFeatures` layers, `fliptoci.AnnotationFliptNamespace` MUST be treated as required metadata. If the annotation is missing or empty, `fetchFiles` MUST return an error even if the payload document includes a top-level `namespace`.\n",
+      "example_questions": [
+        "-  Is AnnotationFliptNamespace optional when features payload already has namespace?",
+        "-  Should fetchFiles accept MediaTypeFliptFeatures layers that omit descriptor namespace annotation?",
+        "-  Can payload namespace alone satisfy namespace metadata requirements?",
+        "-  What should happen if features payload has namespace but layer annotation is empty?",
+        "-  Is annotation namespace a mandatory contract field for features layers?"
+      ]
+    }
+  ]
+}

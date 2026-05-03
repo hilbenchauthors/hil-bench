@@ -1,0 +1,269 @@
+Body
+"<p>Machine Learning seems to have its basis in the pragmatic - a Practical observation or simulation of reality.  Even within statistics, mindless ""checking of models and assumptions"" can lead to discarding methods that are useful.</p>
+
+<p>For example, years ago, the very first commercially available (and working) Bankruptcy model implemented by the credit bureaus was created through a plain old linear regression model targeting a 0-1 outcome.  Technically, that's a bad approach, but practically, it worked.</p>
+"
+"<p>Could someone walk me through an example on how to use DLM Kalman filtering in R on a time series. Say I have a these values (quarterly values with yearly seasonality); how would you use DLM to predict the next values? And BTW, do I have enough historical data (what is the minimum)?</p>
+
+<pre><code>89  2009Q1  
+82  2009Q2  
+89  2009Q3  
+131 2009Q4  
+97  2010Q1  
+94  2010Q2  
+101 2010Q3  
+151 2010Q4  
+100 2011Q1  
+?   2011Q2
+</code></pre>
+
+<p>I'm looking for a R code cookbook-style how-to step-by-step type of answer. Accuracy of the prediction is not my main goal, I just want to learn the sequence of code that gives me a number for 2011Q2, even if I don't have enough data. Thanks!  </p>
+"
+"<p>I would like to predict the average number of days in a year for which two conditions are true:</p>
+
+<ul>
+<li>daily average temperature is below zero celsius</li>
+<li>the day was preceded by at least four days with daily average temperature below zero celsius</li>
+</ul>
+
+<p>I've historical daily average temperature data for the location available for about 10 years. My initial approach was to use the <a href=""http://en.wikipedia.org/wiki/Chebyshev_inequality#Variant%3a_One-sided_Chebyshev_inequality"" rel=""nofollow"" rel=""nofollow"">one sided Chebyshev inequality</a>
+ which can be used to approximate a probability if the distribution is not known. However in this application I am interested in the probability of a special condition, can I use the Chebyshev inequality for a dummy time series as well? I.e.: 1 if condition is fullfilled, otherwise 0, --> the dataset would therefore look something like 0,0,0,0,0,1,1,0,0,0,0,0,1,1,1,1,1,1,etc.</p>
+
+<p>How would you approach a problem like that from a different angle, the data clearly has seasonality, is there any distribution which I could use to have a better estimate than Chebyshev?</p>
+"
+"<p>I'm interested in fitting a conditional Poisson regression model using PROC GENMOD in SAS to analyze a matched cohort study. However, it's not quite clear to me how I should exactly go about it. </p>
+
+<p>My impression is that a REPEATED statement should be used along with the events/trials syntax, but if so then how does one account for continuous covariates in the model, such as age?</p>
+
+<p>I would be most grateful if anyone had any pointers. Thus far, Google and the internet have disappointed me. Cheers.</p>
+"
+"<p>I think there's a nice and simple intuition to be gained from the (independence-chain) Metropolis-Hastings algorithm.  </p>
+
+<p>First, what's the goal?  The goal of MCMC is to draw samples from some probability distribution without having to know its exact height at any point.  The way MCMC achieves this is to ""wander around"" on that distribution in such a way that the amount of time spent in each location is proportional to the height of the distribution.  If the ""wandering around"" process is set up correctly, you can make sure that this proportionality (between time spent and height of the distribution) is achieved.</p>
+
+<p>Intuitively, what we want to do is to to walk around on some (lumpy) surface in such a way that the amount of time we spend (or # samples drawn) in each location is proportional to the height of the surface at that location.  So, e.g., we'd like to spend twice as much time on a hilltop that's at an altitude of 100m as we do on a nearby hill that's at an altitude of 50m.  The nice thing is that we can do this even if we don't know the absolute heights of points on the surface: all we have to know are the <em>relative</em> heights.  e.g., if one hilltop A is twice as high as hilltop B, then we'd like to spend twice as much time at A as we spend at B.</p>
+
+<p>The simplest variant of the Metropolis-Hastings algorithm (independence chain sampling) achieves this as follows: assume that in every (discrete) time-step, we pick a random new ""proposed"" location (selected uniformly across the entire surface).  If the proposed location is higher than where we're standing now, move to it.  If the proposed location is lower, then move to the new location with probability p, where p is the ratio of the height of that point to the height of the current location.  (i.e., flip a coin with a probability p of getting heads; if it comes up heads, move to the new location; if it comes up tails, stay where we are).  Keep a list of the locations you've been at on every time step, and that list will (asyptotically) have the right proportion of time spent in each part of the surface.  (And for the A and B hills described above, you'll end up with twice the probability of moving from B to A as you have of moving from A to B).</p>
+
+<p>There are more complicated schemes for proposing new locations and the rules for accepting them, but the basic idea is still: (1) pick a new ""proposed"" location; (2) figure out how much higher or lower that location is compared to your current location; (3) probabilistically stay put or move to that location in a way that respects the overall goal of spending time proportional to height of the location.  </p>
+
+<p>What is this useful for? Suppose we have a probabilistic model of the weather that allows us to evaluate A*P(weather), where A is an unknown constant. (This often happens--many models are convenient to formulate in a way such that you can't determine what A is).  So we can't exactly evaluate P(""rain tomorrow"").  However, we can run the MCMC sampler for a while and then ask: what fraction of the samples (or ""locations"") ended up in the ""rain tomorrow"" state.  That fraction will be the (model-based) probabilistic weather forecast.</p>
+"
+"<p>How many compounds are in your sample?  (Or, how big is the covariance matrix in question?).  </p>
+
+<p>Alan Genz has some very nice code in a variety of languages (R, Matlab, Fortran; see <a href=""http://www.math.wsu.edu/faculty/genz/software/software.html"" rel=""nofollow"">here</a>) for computing integrals of multivariate normal densities over hyper-rectangles (i.e., the kinds of integrals you need to evaluate the likelihood, as noted by user28).</p>
+
+<p>I've used these functions (""ADAPT"" and ""QSIMVN"") for integrals up to around 10-12 dimensions, and several functions on that page advertise integrals (and associated derivatives you might need) for problems up to dimension 100.  I don't know if that's enough dimensions for your purposes, but if so it could presumably allow you to find maximum likelihood estimates by gradient ascent.</p>
+"
+"<p>First of all, the training error obtained by solution #1 (concatenating $x$ and $z$) <em>can't</em> be higher than the error obtained by regression against $x$ or $z$ alone. But of course, the test error (i.e., prediction performance on new data) may well be worse.  </p>
+
+<p>If I were confronted with this problem, I would normalize $x$ and $z$ to have the same marginal variance, then concatenate them and then attempt to vary the ridge parameter $\\lambda$ -- I would bet that for some setting of $\\lambda$ you can find performance that's better than you get from regressing against $x$ or $z$ separately.  </p>
+
+<p>However, if $x$ and $z$ are highly correlated, then you might wish to try <a href=""http://en.wikipedia.org/wiki/Principal_component_regression"" rel=""nofollow"">Principal Components Regression</a> instead.  The basic idea is to compute the principal components of $[x;z]$, project onto the subspace spanned by the first $n$ principal components, then perform standard regression using the projected data as your regressors. You can now vary $n$ and the ridge parameter (if you like) to explore the space of possible solutions using cross-validation.</p>
+
+<p>You can of course also try other regularization methods: Lasso (L1 regularization) is more appropriate if you expect your regression coefficients to be sparse (several large values and many zeros); ""elastic net"" trades off Ridge and Lasso (L1 and L2) forms of regularization.</p>
+"
+"<p>I think there's a slight conceptual problem here: the likelihood is the quantity $P(x,y|\\theta)$ as a function of $\\theta$. But the correlation coefficient is a function of the data $x$ and $y$. The correlation coefficient is therefore by definition a ""statistic"" (a function of the data) and not a likelihood (a function of the parameters).  </p>
+
+<p>To put it another way, there are values of $\\theta$ for which the probability of the observed correlation would be high, and other values of $\\theta$ for which the observed correlation would be low. If you have a correlated Gaussian in mind, then the observed correlation might be unlikely due to the fact that the covariance matrix was either <em>more</em> dependent or less dependent than would be expected from the data.  (So the relationship between likelihood and $r^2$ will not even be monotonic unless $r^2=1$).  Of course, the <em>expected correlation coefficient</em> is monotonically related to the off-diagonal term in a bivariate Gaussian, but this doesn't make $r^2$ itself a proxy for likelihood.  </p>
+
+<p>It sounds like you're interested in a test of whether a particular correlation coefficient is likely to have been observed given that $x$ and $y$ were generated independently.  For this, you might want to perform a significance test on the value of the observed $r$ or $r^2$, which will tell you how <em>probable</em> it is that you observed that value given a particular model of the data.  The Wikipedia article on correlation coefficient <a href=""http://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient#Inference"" rel=""nofollow"">inference</a> discusses a few common tests.</p>
+"
+"<p>I think you're looking for an <a href=""http://en.wikipedia.org/wiki/Instrumental_variable"" rel=""nofollow"">instrumental variable</a> test, which will allow you to assess whether $y$ mediates the correlation between $x$ and $z$.  The section on ""interpretation as two-stage least squares"" provides a nice intuition for this procedure.</p>
+"
+"<p>This is all correct, except you don't need the last term: $P(X_3=X_{31})$.  You observe the data $Y_1$ and $Y_2$, so you know whether $X_3=X_{31}$ or $X_3=X_{32}$.  </p>
+
+<p>Another way to see this is that the likelihood function for this system is is:
+$L(\\theta) = P(Y_1,Y_2,Y_3|\\theta) = P(Y_1|\\theta)P(Y_2|\\theta)P(Y_3|Y_1,Y_2,\\theta)$.</p>
+
+<p>The right most term is:
+$P(Y_3|Y1,Y2,\\theta) = \\n\\begin{cases} \\n f(Y_3|X_{31},-) &amp; \\mbox{if }Y_1 Y_2  \\gt  0 \\\\ f(Y_3|X_{32},-) &amp; \\mbox{if }Y_1 Y_2 \\le 0\\n\\end{cases}$</p>
+
+<p>You could write that out using an indicator function of $Y_1Y_2$ if you wanted to, 
+$f(Y_3|X_{31},-)\\cdot \\mathbb{I}(Y_1Y_2&gt;0) + f(Y_3|X_{32},-)\\cdot \\mathbb{I}(Y_1Y_2\\leq 0)$, where $\\mathbb{I}(\\cdot)$ is 1 if its argument is true and 0 otherwise. </p>
+"
+"<p>One approach would be to model the $X$'s with a generalized linear model (GLM).  Here, you would formulate $p_i$, the probability of success on the $i$'th trial as a (logistic linear) function of the recent observation history.  So you're essentially fitting an autoregressive GLM where the noise is Bernoulli and the link function is logit.  The setup is:</p>
+
+<p>$p_i = f(b + a_1 X_{i-1} + a_2 X_{i-2} + \\ldots a_k X_{i-k})$, where</p>
+
+<p>$f(x) = \\frac{1}{1+\\exp(x)}$, and</p>
+
+<p>$X_i \\sim Bernoulli(p_i)$</p>
+
+<p>The parameters of the model are $\\{b, a_1, \\ldots a_k\\}$, which can be estimated by logistic regression.  (All you have to do is set up your design matrix using the relevant portion of observation history at each trial, and pass that into a logistic regression estimation function; the log-likelihood is concave so there's a unique global maximum for the parameters).  If the outcomes are indeed independent then the $a_i$'s will be set to zero; positive $a_i$'s mean that subsequent $p_i$'s increase whenever a success is observed. </p>
+
+<p>The model <em>doesn't</em> provide a simple expression for the probability over the <em>sum</em> of the $X_i$'s, but this is easy to compute by simulation (particle filtering or MCMC) since the model has simple Markovian structure.</p>
+
+<p>This kind of model has been used with great success to model temporal dependencies between ""spikes"" of neurons in the brain, and there is an extensive literature on autoregressive point process models.  See, e.g., <a href=""http://jn.physiology.org/content/93/2/1074.full.pdf"" rel=""nofollow"">Truccolo et al 2005</a> (although this paper uses a Poisson instead of a Bernoulli likelihood, but the mapping from one to the other is straightforward).</p>
+"
+"<p>I posted this on maths, but seems it would be better here :S</p>
+
+<p><a href=""http://math.stackexchange.com/questions/49941/calculate-the-rate-of-change"">http://math.stackexchange.com/questions/49941/calculate-the-rate-of-change</a></p>
+
+<p>Basically </p>
+
+<p>I am trying to calculate the change frequency for a set of data. Each bit of data has the date-time it was created. I would like to say for a specific set of data the change frequency is hourly, daily, weekly, monthly or yearly.</p>
+
+<p>So far I have tried getting the list of dates and get the min/max which is easy to calculate an average from which can be converted into a human readable label such as hourly, daily etc</p>
+
+<p>How would i take into account the age of the last new bit of data. eg: say there were 50 dates all roughly an hour one after the other. This is hourly. but if the last one was 2 weeks ago, its not quite hourly.</p>
+
+<p>In this example I am not sure myself what the frequency would be of the list (hourly, daily, weekly, monthly or yearly) so I'm looking for a bit of direction. Maybe someone here has done this before and has a good model or knows a bit more than me :)</p>
+
+<p>Thanks</p>
+"
+"<p>For visualization purposes, try a <a href=""http://en.wikipedia.org/wiki/Q-Q_plot"">Q-Q plot</a>, which is a plot of the quantiles of your data against the quantiles of the expected distribution.  </p>
+
+<p>If you want a statistical test, the <a href=""http://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test"">Kolmogorov-Smirnov</a> statistic provides a non-parametric test for whether the data come from $p(x)$, using the maximum difference in the empirical and analytic cdf. </p>
+
+<p>Of course, you could also evaluate the log-probability of your data under the two  distributions:  $L_1 = \\sum_i p_1(X_i)$  vs. $L_2 = \\sum_i p_2(X_i)$, and take whichever is larger.  This is equivalent to maximum likelihood density comparison. (However, this may not be valid if $p_1$ and $p_2$ are distributions <em>fit</em> to your data, especially if they have different numbers of fitted parameters; in that case you want to do ""model comparison"", and there are a variety of tools for this— AIC, BIC, Bayes Factors, Likelihood-ratio test, Cross-validation, etc.)</p>
+"
+"<p>There are four allowed states of the visible units that have even parity:
+[000] [110] [101] [011].</p>
+
+<p>A simple (if costly) way to enforce this constraint would be to have 4 hidden units which correspond to these four allowed states.  The first unit has weights [---] to the visible units, the second-fourth have weights [++-], [+-+], and [-++], respectively.  If a hidden unit comes on, it enforces (via its weights) that the network adopt the corresponding state. (You could use strong inhibitory weights between the hidden units to ensure that only a single hidden unit is on at a time).  </p>
+"
+"<p>Another (closely related) quantity is the entropy of the distribution: for a multivariate Gaussian this is the log of the determinant of the covariance matrix, or</p>
+
+<p>$\\frac{1}{2} \\log |(2\\pi e)\\Lambda|$</p>
+
+<p>where $\\Lambda$ is the covariance matrix.  The advantage of this choice is that it can be compared to the ""spread"" of points under other (e.g., non-Gaussian) distributions.  </p>
+
+<p>(If we want to get technical, this is the <em>differential entropy</em> of a Gaussian). </p>
+"
+"<p>Easy example:  Let $X$ be a random variable that is $-1$ or $+1$ with probability 0.5.  Then let $Y$ be a random variable such that $Y=0$ if $X=-1$, and $Y$ is randomly $-1$ or $+1$ with probability 0.5 if $X=1$.</p>
+
+<p>Clearly $X$ and $Y$ are highly dependent (since knowing $Y$ allows me to perfectly know $X$), but their covariance is zero:  They both have zero mean, and </p>
+
+<p>$$\\eqalign{\\n\\mathbb{E}[XY] &amp;=&amp;(-1) &amp;\\cdot &amp;0 &amp;\\cdot &amp;P(X=-1) \\\\\\n \\n&amp;+&amp; 1 &amp;\\cdot &amp;1 &amp;\\cdot &amp;P(X=1,Y=1) \\\\\\n\\n&amp;+&amp; 1 &amp;\\cdot &amp;(-1)&amp;\\cdot &amp;P(X=1,Y=-1) \\\\\\n\\n&amp;=&amp;0.\\n}$$</p>
+
+<p>Or more generally, take any distribution $P(X)$ and any $P(Y|X)$ such that $P(Y=a|X) = P(Y=-a|X)$ for all $X$ (i.e., a joint distribution that is symmetric around the $x$ axis), and you will always have zero covariance.  But you will have non-independence whenever $P(Y|X) \\neq P(Y)$; i.e., the conditionals are not all equal to the marginal. Or ditto for symmetry around the $y$ axis. </p>
+"
+"<p>I think it's perfectly well justified. (In fact, I've use this convention in papers I've published; or you can call them ""nats"" if you prefer to stick with logarithms of base $e$).</p>
+
+<p>The justification runs as follows: the log-likelihood of the fitted model can be viewed as a Monte Carlo estimate of the <a href=""http://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence"" rel=""nofollow"">KL divergence</a> between the ""true"" (unknown) data distribution and the distribution implied by the fitted model.  Let $P(x)$ denote the ""true"" distribution of the data, and let $P_\\theta(x)$ denote the distribution (i.e., the likelihood $P(x|\\theta))$ provided by a model.  </p>
+
+<p>Maximum likelihood fitting involves maximizing </p>
+
+<p>$L(\\theta) = \\frac{1}{N}\\sum_i \\log P_\\theta(x_i) \\approx \\int P(x) \\log P_\\theta(x) dx$</p>
+
+<p>The left hand side (the log-likelihood, scaled by the # datapoints $N$) is a Monte Carlo estimate for the right hand side, i.e., since the datapoints $x_i$ were drawn from $P(x)$.  So we can rewrite</p>
+
+<p>$L(\\theta) \\approx \\int P(x) \\log P_\\theta(x) dx = \\int P(x) \\log \\frac{P_\\theta(x)}{P(x)} dx - \\int P(x) \\log P(x)dx$</p>
+
+<p>$ = -D_{KL}(P,P_\\theta) + H(x)$</p>
+
+<p>So the log-likelihood normalized by the number of points is an estimate of the (negative) KL-divergence between $P$ and $P_\\theta$ plus the (true) entropy of $x$. The KL divergence has units of ""bits"" (if we use log 2), and can be understood as the number of ""extra bits"" you would need to encode data from $P(x)$ using a codebook based on $P_\\theta(x)$.  (If $P = P_\\theta$, you don't need any extra bits, so KL divergence is zero).</p>
+
+<p>Now: when you take the log-likelihood ratio of two different models, it should be obvious that you end up with:</p>
+
+<p>$\\log \\frac{P_{\\theta_1(x)}}{P_{\\theta_2}(x)} \\approx  D_{KL}(P,P_{\\theta_2}) - D_{KL}(P,P_{\\theta_1})$</p>
+
+<p>The entropy $H(x)$ terms cancel. So the log-likelihood ratio (normalized by $N$) is an estimate of the difference between the KL divergence of the true distribution and the distribution provided by model 1, and the true distribution provided by model 2.  It's therefore an estimate of the number of ""extra bits"" you need to code your data with model 2 compared to coding it with model 1.  So I think the ""bits"" units are perfectly well justified.</p>
+
+<p>One important caveat: when using this statistic for model-comparison, you should really use LLR computed on <em>cross-validated</em> data. The log-likelihood of <em>training</em> data is generally artificially high (favoring the model with more parameters) due to overfitting. That is, the model assigns this data higher probability than it would if it were fit to an infinite set of training data and then evaluated at the points $x_i \\dots x_N$ in your dataset.  So the procedure many people follow is to: </p>
+
+<ol>
+<li><p>train models 1 and 2 using training data; </p></li>
+<li><p>evaluate the log-likelihood ratio of a test dataset and report the resulting number in units of bits as a measure of the improved ""code"" provided by model 1 compared to model</p></li>
+</ol>
+
+<p>The LLR evaluated on training data would generally give an unfair advantage to the model with more parameters / degrees of freedom.</p>
+"
+"<p><em>[edited]</em></p>
+
+<p>Restating:  The problem you'd like to solve is to infer the posterior over $X$, $P(X|Y)$, using particle filtering.  You draw samples $X_i$ from $P(X)$ and then convert them to particles $Y_i \\sim Q(Y|X_i)$, i.e., by sampling a $Y$ particle for each $X$ particle from the conditional distribution $Q(Y|X)$.  You then need to apply Bayes' rule now to get the posterior of interest:</p>
+
+<p>$P(X|Y) \\propto Q(Y|X)P(X)$.</p>
+
+<p>You sampled your initial particles from $P(X)$, so all you need to do is weight them by weights $w_i = Q(Y_i|X_i)$ and you're done!  Is that it?</p>
+
+<p>If so, then I think the problem is this: Q(Y|X) has delta masses <em>as a function of Y</em>. But NOT as a function of $X$!  That is, there is a point mass at $\\pm x$ in the conditional distribution $Q(Y|X_i)$ as a function of $Y$ for a fixed value $X_i$.  However, that's not the weight you need here. You want the <em>likelihood</em>, which is $Q(Y_i|X)$ considered as a function of $X$. (Namely, you want to evaluate that function at $X=X_i$).  </p>
+
+<p>This latter thing (the likelihood) has no point masses. I assume the sampling procedure for $Y|X$ is something like ""add some Gaussian noise and then theshold"".  You actually get a continuous likelihood function over $X$ for each value of $Y_i$. How you compute it will depend on $Y_i$:</p>
+
+<ol>
+<li>If $Y_i=x$ (the upper boundary), then the likelihood involves normcdf: it's the probability that $X$ plus some noise ended up $&gt;x$. So it's a sigmoidal function that goes from zero to 1 as it crosses $x$, with slope that depends on the variance of the noise added to $Y$, and it stays at $+1$ for all larger values of $X$ out to infinity. (Note that this doesn't integrate to 1; it doesn't have to since it's a likelihood!)</li>
+<li>If $Y_i \\in (-x,x)$, the likelihood involves the (standard) normpdf$(Y_i,X_i,\\sigma^2)$</li>
+</ol>
+
+<p>But in both cases, you have a continuous function over $X$.   There's no value of $X$ for which a particular observation of $Y$ has infinitely higher probability than the other values of $X$ (except for trivial examples like $Y_i=-x$ and $X_i\\rightarrow +\\infty$).</p>
+"
+"<p>If $X \\sim \\mathcal{N}(0,I)$ is a column vector of standard normal RV's, then if you set $Y = L X$, the covariance of $Y$ is $L L^T$.  </p>
+
+<p>I think the problem you're having may arise from the fact that matlab's <strong>mvnrnd</strong> function returns row vectors as samples, even if you specify the mean as a column vector.  e.g., </p>
+
+<pre><code> &gt; size(mvnrnd(ones(10,1),eye(10))  
+ &gt; ans =
+ &gt;      1    10
+</code></pre>
+
+<p>And note that transforming a row vector gives you the opposite formula.  if $X$ is a row vector, then $Z = X L^T$ is also a row vector, so $Z^T = L X^T$ is a column vector, and the covariance of $Z^T$ can be written $E[Z^TZ] = LL^T$.  </p>
+
+<p>Based on what you wrote though, the Wikipedia formula is correct: if $\\Phi^{-1}(U)$ were a row vector returned by matlab, you can't left-multiply it by $L^T$.  (But right-multiplying by $L^T$ would give you a sample with the same covariance of $LL^T$). </p>
+"
+"<p>I've never seen a regression model for ratios before, but regression for a percentage (or more commonly, a fraction) is quite common.  The reason may be that it's easy to write down a likelihood (probability of the data given your parameter) in terms of a fraction or <em>probability</em>: each element has a probability $p$ of being in category $A$ (vs. $B$).  The estimate of $p$ is then the estimated fraction. </p>
+
+<p>Note however: it's not standard to make a <em>linear</em> model for a fraction; more common is a <a href=""http://en.wikipedia.org/wiki/Generalized_linear_model"" rel=""nofollow"">generalized linear model</a>, which is a linear model along with an invertible, nonlinear 'link' function that controls the range of the desired model (here $[0,1]$). </p>
+
+<p>The most common model for fractions is (as you noted) logistic regression, which allows you to use regressors on the real line but have a fraction constrained to live on [0,1].  However, logistic regression is technically a model for binary data, meaning you observe a series of events where each input (set of independent variables) produces an independent observation of $0$ or $1$.  For the case where you just have a population divided into two different classes (i.e., and you don't have separate regressors for each member of the population), you might want <a href=""http://en.wikipedia.org/wiki/Binomial_regression"" rel=""nofollow"">binomial regression</a>.  </p>
+
+<p>That being said, there's probably nothing to stop you from writing down a generalized linear model (GLM) for ratios. (Logistic and binomial regression are also GLMs). You'd need to pick a function mapping from the input space to the space of possible ratios (e.g., $\\log$), then write down your likelihood in terms of the resulting ratio.</p>
+"
+"<p>You can get there more easily if you just collect terms:</p>
+
+<p>$P(\\{X_i\\}|\\mu,\\sigma^2) = \\prod_{i=1}^N \\frac{1}{\\sqrt{2\\pi \\sigma^2}} \\exp (-\\frac{(x_i-\\mu)^2}{2\\sigma^2}) = \\frac{1}{\\sqrt{|2\\pi \\sigma^2 I|}}\\exp (-\\frac{\\sum (x_i-\\mu)^2}{2\\sigma^2})$</p>
+
+<p>If you massage the terms in that exponent (start by multiplying out the quadratics), you should be able to get to the desired expression.  (This is probably easier than computing the Jacobian explicitly).  Actually, it's probably easier if you plug in explicit expressions for sufficient statistics $\\bar \\mu$ and $\\bar \\sigma$ and work backward to the expression here.</p>
+"
+"<p>I think the CI for grand mean is too wide [17,62] even for the range of original data.</p>
+
+<p>This experiments are VERY common in chemistry. For example, in certification of reference materials you have to pick up some bottles from whole lot in a random way, and you have to carry out replicate analysis on each bottles. How do you calculate the reference value and its uncertainty? There are a lot of way to do it, but the most sofisticated (and correct, I think) is applying meta-analysis or ML (Dersimonian-Laird, Vangel-Rukhin, etc)</p>
+
+<p>What about bootstrap estimates?</p>
+"
+"<p>Could anybody help me with detrending data that is nonstationary? I have already made the mistake of trying to detrend it by plotting the residuals of a linear regression in excel but it was pointed out to me by 'Zach' and 'cardinal' that it is not a valid method. Unfortunately, I had used that method after many hours of internet searching about detrending data. I have searched for ARIMA models in the context of detrending a line but I only get formulaic results when what I really need is a descriptive answer. I recognize that the math behind it is important, and maybe I can work on it in time, but now I just need to detrend the line. My questions are  1. Is it possible to detrend the nonstationary data in excel.  2. If not, is there a simple free stats software I can download to work with.   3. Is there anyone who might kindly help me in achieving this small objective as I have spent several days trying to solve the problem and I haven't really achieved very much. Any help will be gratefully received.<img src=""http://i.stack.imgur.com/GahYp.jpg"" alt=""line""></p>
+"
+"<p>I am looking for a statistical test to compare frequencies in a particular dataset. In a long string, a particular sequence of characters occurs at a frequency of x per 1000 characters. In some portions of the string, the frequency is higher at y per 1000 characters. Can we tell if y and x are significantly different or not?</p>
+"
+"<p>I have a 2(truthfulness) x 2 (immediate test) study where I am looking to compare 2 logistic regression models. </p>
+
+<p>Both are classifying the same outcome variable: truthfulness (truthful versus deceptive -- an experimental manipulation where they were told to tell the truth or lie). The independent variable in both is a score on a delayed test.  </p>
+
+<p>The first model uses scores for people who did the immediate test, the other model uses scores for people who did not do the immediate test. I want to know whether truthfulness can be classified <strong>better</strong> using scores on the delayed test when people have previously done the immediate test. </p>
+
+<p>However, I am confused as to how to compare logistic regression models. 
+Is it possible to do that even though models are estimated from different samples? Is it possible to interpret differences between classification accuracy tables as meaningful? And is it possible to statistically test the differences between models?</p>
+"
+"<p>I am doing a study with one variable with continuous data; the measurement involves measurements done by three people. I wish to do an inter-rater reliability test, e.g. with Bland-Altman analysis, but cannot find information about how it works with multiple measures. Would some other test be better?</p>
+
+<h3>Sample data</h3>
+
+<blockquote>
+  <p>Rater A: 380 404 381 374 377 392 373 369 371 378 392 331 366 418</p>
+  
+  <p>Rater B: 379 400 380 372 366 390 374 364 370 378 392 326 364 424</p>
+  
+  <p>Rater C: 379 402 380 372 367 392 374 361 373 378 392 332 364 420</p>
+</blockquote>
+"
+"<p>I need to study in depth the on/off problem with different approaches: frequentist, bayesian - frequentist hybrid, profile likelihood.</p>
+
+<p>The on/off problem is a counting experiment where you observe $n_{on}$ events when the source is ""on"" in the time $T_{on}$ and $n_{off}$ events when the source is ""off"" in time $T_{off}$ and you want to make inferences about the source power (the simpler case power > 0 ?)</p>
+
+<p>Do you know some good books?</p>
+
+<p>Some references on the problem: </p>
+
+<ul>
+<li><a href=""http://cern.ch/phystat-lhc/2008-001.pdf#page=48"" rel=""nofollow"">Tucker 2008</a></li>
+<li><a href=""http://www.sciencedirect.com/science/article/pii/S0168900208010255"" rel=""nofollow"">Cousins Linemann &amp; Tucker 2008</a></li>
+<li><a href=""http://www.google.ch/url?sa=t&amp;rct=j&amp;q=kyle%20cranmer%20romania%20summer%20school&amp;source=web&amp;cd=2&amp;ved=0CC8QFjAB&amp;url=https%3A%2F%2Findico.cern.ch%2FgetFile.py%2Faccess%3FcontribId%3D19%26resId%3D1%26materialId%3Dslides%26confId%3D117033&amp;ei=SJzCTvTZCbTa4QSq84yXDQ&amp;usg=AFQjCNGQMcP9eL2qfm-UBGVO3b64TRyWoQ&amp;sig2=wKodUpkUo5oOOQrxs05sXQ&amp;cad=rja"" rel=""nofollow"">Cranmer 2011</a> (page 36)</li>
+</ul>
+"
+"<p>First, follow Josh's advice - starting with some summary statistics for the chain and for each store is the best way to let the data guide your inquiry.</p>
+
+<p>That said, if the management of your grocery chain produces a <em>planogram</em> (<a href=""http://en.wikipedia.org/wiki/Planogram"" rel=""nofollow"">Wikipedia</a>, <a href=""http://www.google.com/search?q=planogram&amp;hl=en&amp;nord=1&amp;site=webhp&amp;prmd=imvns&amp;tbm=isch&amp;tbo=u&amp;source=univ&amp;sa=X&amp;ei=qgnlToC3BqOTiAKt7bXCBg&amp;sqi=2&amp;ved=0CFYQsAQ&amp;biw=1276&amp;bih=706#hl=en&amp;nord=1&amp;site=webhp&amp;tbm=isch&amp;q=retail+planogram&amp;revid=1733843349&amp;sa=X&amp;ei=rgnlToGZMYKMiAKdzOHTBg&amp;ved=0CD8Q1QIoAQ&amp;bav=on.2,or.r_gc.r_pw.r_cp.,cf.osb&amp;fp=6289682119ce1100&amp;biw=1276&amp;bih=706"" rel=""nofollow"">some sample images</a>) dictating the physical placement of every product, you may want to try producing some visualizations incorporating that information. Making heatmaps of, for example, units sold and profit per product could help guide stocking decisions and product placement. Do the store's generic brands sell better above or beside their name-brand counterparts? Did last month's decision to move product X help or hurt sales of the goods across the aisle? Are there any unusual sales patterns that jump out?</p>
+
+<p>Asking questions about product placement within stores may be a useful starting point because it's immediately actionable and low-risk: using your infographics to change the planogram for a few stores is easily reversed and incurs little additional cost. If your ideas result in increased sales, they can be deployed more widely.</p>
+"

@@ -1,0 +1,10 @@
+{
+  "csv_index": 24,
+  "dataset_name": "sql_24",
+  "hf_task_id": "public_sql_24",
+  "task_id": "6977cf5464c4667b98edc503",
+  "attempt_id": "69a5b8e06bccf351879256ca",
+  "task_attempt_id": "6977cf5464c4667b98edc503_69a5b8e06bccf351879256ca",
+  "database_name": "codebase_community",
+  "num_blockers": 5
+}

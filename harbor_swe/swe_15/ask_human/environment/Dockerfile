@@ -1,0 +1,4 @@
+FROM hilbench-swe:69c3277deb9e9972372b30fc
+
+WORKDIR /app
+ENTRYPOINT ["/bin/sh", "-c", "sleep infinity"]

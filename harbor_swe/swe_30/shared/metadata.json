@@ -1,0 +1,44 @@
+{
+  "instance_id": "instance_ansible__ansible-ed6581e4db2f1bec5a772213c3e186081adc162d-v0f01c69f1e2528b935359cfe578530722bca2c59",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c520a2f00e205b69a054d5",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/utils/collection_loader/test_collection_loader.py::test_path_hook_find_module_filefinder_special_case",
+      "test/units/utils/collection_loader/test_collection_loader.py::test_path_hook_find_module_non_filefinder_uses_tuple_path",
+      "test/units/utils/collection_loader/test_collection_loader.py::test_path_hook_find_spec_non_collection_raises_attributeerror"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/utils/collection_loader/test_collection_loader.py b/test/units/utils/collection_loader/test_collection_loader.py\nindex 425f770c77..80205da7d5 100644\n--- a/test/units/utils/collection_loader/test_collection_loader.py\n+++ b/test/units/utils/collection_loader/test_collection_loader.py\n@@ -285,6 +285,49 @@ def test_path_hook_importerror():\n     assert _AnsiblePathHookFinder(_AnsibleCollectionFinder(), path_to_a_file).find_module('foo.bar.my_action') is None\n \n \n+def test_path_hook_find_module_filefinder_special_case():\n+    filefinder = MagicMock()\n+    filefinder.find_module.return_value = 'loader'\n+    filefinder.__class__.__module__ = '_frozen_importlib_external'\n+    filefinder.__class__.__name__ = 'FileFinder'\n+\n+    finder = _AnsiblePathHookFinder(_AnsibleCollectionFinder(), '/tmp/test-path')\n+    with patch.object(finder, '_get_finder', return_value=filefinder):\n+        result = finder.find_module('some_pkg.some_mod')\n+\n+    assert result == 'loader'\n+    filefinder.find_module.assert_called_once_with('some_pkg.some_mod')\n+\n+\n+def test_path_hook_find_module_non_filefinder_uses_tuple_path():\n+    delegated_finder = MagicMock()\n+    delegated_finder.find_module.return_value = 'delegated_loader'\n+    delegated_finder.__class__.__module__ = 'custom.module'\n+    delegated_finder.__class__.__name__ = 'CustomFinder'\n+\n+    finder = _AnsiblePathHookFinder(_AnsibleCollectionFinder(), '/tmp/test-path')\n+    with patch.object(finder, '_get_finder', return_value=delegated_finder):\n+        result = finder.find_module('ansible_collections.ns.coll')\n+\n+    assert result == 'delegated_loader'\n+    delegated_finder.find_module.assert_called_once()\n+    _, kwargs = delegated_finder.find_module.call_args\n+    assert kwargs['path'] == ('/tmp/test-path',)\n+    assert isinstance(kwargs['path'], tuple)\n+\n+\n+def test_path_hook_find_spec_non_collection_raises_attributeerror():\n+    delegated_finder = MagicMock()\n+    delegated_finder.find_spec.return_value = object()\n+    delegated_finder.__class__.__module__ = 'custom.module'\n+    delegated_finder.__class__.__name__ = 'CustomFinder'\n+\n+    finder = _AnsiblePathHookFinder(_AnsibleCollectionFinder(), '/tmp/test-path')\n+    with patch.object(finder, '_get_finder', return_value=delegated_finder):\n+        with pytest.raises(AttributeError):\n+            finder.find_spec('external_package.module')\n+\n+    delegated_finder.find_spec.assert_not_called()\n def test_new_or_existing_module():\n     module_name = 'blar.test.module'\n     pkg_name = module_name.rpartition('.')[0]\n\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "test/units/utils/collection_loader/test_collection_loader.py"
+  ],
+  "attempt_id": "69c520a2f00e205b69a054d5",
+  "task_id": "69836ee4987091d7e86e44d4",
+  "dataset_name": "swe_30",
+  "image_archive": {
+    "attempt_id": "69c520a2f00e205b69a054d5",
+    "local_image_ref": "hilbench-swe:69c520a2f00e205b69a054d5",
+    "image_id": "sha256:264ed31ee88d269a39556d22f0590bde1b89921f54a8ab9411dd75ebd152092f",
+    "created": "2026-03-29T10:37:32.751622325-07:00",
+    "artifact_path": "images/69c520a2f00e205b69a054d5.tar.zst",
+    "artifact_bytes": 775801088,
+    "artifact_sha256": "8b4545369ff66327b28bc8acc70d9a96b6c6b8595bc5e4997e37569b17134211",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c520a2f00e205b69a054d5.tar.zst"
+  }
+}

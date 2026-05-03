@@ -1,0 +1,47 @@
+{
+  "instance_id": "instance_protonmail__webclients-3f22e2172cbdfd7b9abb2b1d8fd80c16d38b4bbe",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69b1f41a499676d65266d7a5",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 4,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider calls auth setters when resumedSession is truthy but keyPassword is empty",
+      "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider uses persistedSession.UID instead of resumedSession.UID for auth.setUID",
+      "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider uses persistedSession.localID when resuming session",
+      "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider returns null when all sessions are stale according to freshness policy",
+      "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider keeps sessions persisted at the exact freshness threshold",
+      "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider returns null when multiple sessions are all stale"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/applications/drive/src/test/usePublicSession.test.tsx b/applications/drive/src/test/usePublicSession.test.tsx\nnew file mode 100644\nindex 0000000000..0dfd883172\n--- /dev/null\n+++ b/applications/drive/src/test/usePublicSession.test.tsx\n@@ -0,0 +1,178 @@\n+import { act, render } from '@testing-library/react';\n+\n+import { useApi, useAuthentication } from '@proton/components';\n+import { STORAGE_PREFIX } from '@proton/shared/lib/authentication/persistedSessionStorage';\n+import { resumeSession } from '@proton/shared/lib/authentication/persistedSessionHelper';\n+\n+import { getLastActivePersistedUserSession } from '../app/utils/lastActivePersistedUserSession';\n+import usePublicSession, { PublicSessionProvider } from '../app/store/_api/usePublicSession';\n+\n+jest.mock('@proton/components', () => ({\n+    useApi: jest.fn(),\n+    useAuthentication: jest.fn(),\n+}));\n+\n+jest.mock('@proton/shared/lib/authentication/persistedSessionHelper', () => ({\n+    ...jest.requireActual('@proton/shared/lib/authentication/persistedSessionHelper'),\n+    resumeSession: jest.fn(),\n+}));\n+\n+jest.mock('../app/utils/lastActivePersistedUserSession', () => ({\n+    ...jest.requireActual('../app/utils/lastActivePersistedUserSession'),\n+    getLastActivePersistedUserSession: jest.fn(),\n+}));\n+\n+jest.mock('../app/store/_api/useDebouncedRequest', () => ({\n+    __esModule: true,\n+    default: () => jest.fn(),\n+}));\n+\n+const getLastActivePersistedUserSessionActual = jest.requireActual(\n+    '../app/utils/lastActivePersistedUserSession'\n+).getLastActivePersistedUserSession as () => any;\n+\n+describe('usePublicSessionProvider', () => {\n+    const mockApi = jest.fn().mockResolvedValue({ Flags: 0 });\n+    const mockAuth = {\n+        setPassword: jest.fn(),\n+        setUID: jest.fn(),\n+        setLocalID: jest.fn(),\n+        getLocalID: jest.fn().mockReturnValue(7),\n+    };\n+\n+    let capturedHook: ReturnType<typeof usePublicSession> | undefined;\n+\n+    const Probe = () => {\n+        capturedHook = usePublicSession();\n+        return null;\n+    };\n+\n+    beforeEach(() => {\n+        jest.clearAllMocks();\n+        window.localStorage.clear();\n+        jest.mocked(useApi).mockReturnValue(mockApi as any);\n+        jest.mocked(useAuthentication).mockReturnValue(mockAuth as any);\n+        jest.mocked(getLastActivePersistedUserSession).mockReturnValue({\n+            UID: 'persisted-uid',\n+            localID: 42,\n+            persistedAt: 100,\n+        } as any);\n+        jest.mocked(resumeSession).mockResolvedValue({\n+            UID: 'resumed-uid',\n+            keyPassword: '',\n+            User: {},\n+        } as any);\n+    });\n+\n+    afterEach(() => {\n+        jest.useRealTimers();\n+    });\n+\n+    const runInitHandshake = async () => {\n+        render(\n+            <PublicSessionProvider>\n+                <Probe />\n+            </PublicSessionProvider>\n+        );\n+\n+        await act(async () => {\n+            await capturedHook?.initHandshake('token');\n+        });\n+    };\n+\n+    it('calls auth setters when resumedSession is truthy but keyPassword is empty', async () => {\n+        await runInitHandshake();\n+\n+        expect(mockAuth.setPassword).toHaveBeenCalledWith('');\n+        expect(mockAuth.setUID).toHaveBeenCalledWith('persisted-uid');\n+        expect(mockAuth.setLocalID).toHaveBeenCalledWith(42);\n+    });\n+\n+    it('uses persistedSession.UID instead of resumedSession.UID for auth.setUID', async () => {\n+        jest.mocked(resumeSession).mockResolvedValue({\n+            UID: 'resumed-uid',\n+            keyPassword: 'resumed-password',\n+            User: {},\n+        } as any);\n+\n+        await runInitHandshake();\n+\n+        expect(mockAuth.setUID).toHaveBeenCalledWith('persisted-uid');\n+        expect(mockAuth.setUID).not.toHaveBeenCalledWith('resumed-uid');\n+    });\n+\n+    it('uses persistedSession.localID when resuming session', async () => {\n+        jest.mocked(resumeSession).mockResolvedValue({\n+            UID: 'resumed-uid',\n+            keyPassword: 'resumed-password',\n+            User: {},\n+        } as any);\n+\n+        await runInitHandshake();\n+\n+        expect(resumeSession).toHaveBeenCalledWith({\n+            api: mockApi,\n+            localID: 42,\n+        });\n+    });\n+\n+    it('returns null when all sessions are stale according to freshness policy', () => {\n+        const now = 2_000_000_000_000;\n+        jest.useFakeTimers();\n+        jest.setSystemTime(now);\n+\n+        localStorage.setItem(\n+            `${STORAGE_PREFIX}0`,\n+            JSON.stringify({ UserID: 'stale-user-1', UID: 'stale-uid-1', persistedAt: now - 1_036_800_001 })\n+        );\n+\n+        const result = getLastActivePersistedUserSessionActual();\n+        expect(result).toBeNull();\n+    });\n+\n+    it('keeps sessions persisted at the exact freshness threshold', () => {\n+        const now = 2_000_000_000_000;\n+        jest.useFakeTimers();\n+        jest.setSystemTime(now);\n+\n+        localStorage.setItem(\n+            `${STORAGE_PREFIX}0`,\n+            JSON.stringify({ UserID: 'fresh-user-threshold', UID: 'fresh-uid-threshold', persistedAt: now - 1_036_800_000 })\n+        );\n+\n+        const boundaryResult = getLastActivePersistedUserSessionActual();\n+        expect(boundaryResult?.UID).toBe('fresh-uid-threshold');\n+\n+        // Complementary boundary check: just-over-threshold must be treated as stale.\n+        localStorage.clear();\n+        localStorage.setItem(\n+            `${STORAGE_PREFIX}0`,\n+            JSON.stringify({\n+                UserID: 'stale-user-over-threshold',\n+                UID: 'stale-uid-over-threshold',\n+                persistedAt: now - 1_036_800_001,\n+            })\n+        );\n+\n+        const overThresholdResult = getLastActivePersistedUserSessionActual();\n+        expect(overThresholdResult).toBeNull();\n+    });\n+\n+    it('returns null when multiple sessions are all stale', () => {\n+        const now = 2_000_000_000_000;\n+        jest.useFakeTimers();\n+        jest.setSystemTime(now);\n+\n+        localStorage.setItem(\n+            `${STORAGE_PREFIX}0`,\n+            JSON.stringify({ UserID: 'stale-user-1', UID: 'stale-uid-1', persistedAt: now - 1_036_800_500 })\n+        );\n+        localStorage.setItem(\n+            `${STORAGE_PREFIX}1`,\n+            JSON.stringify({ UserID: 'stale-user-2', UID: 'stale-uid-2', persistedAt: now - 1_036_800_001 })\n+        );\n+\n+        const result = getLastActivePersistedUserSessionActual();\n+        expect(result).toBeNull();\n+    });\n+});\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts"
+  ],
+  "attempt_id": "69b1f41a499676d65266d7a5",
+  "task_id": "69836ee4987091d7e86e44c5",
+  "dataset_name": "swe_23",
+  "image_archive": {
+    "attempt_id": "69b1f41a499676d65266d7a5",
+    "local_image_ref": "hilbench-swe:69b1f41a499676d65266d7a5",
+    "image_id": "sha256:9937235a8762aaba607224d241047bd102a7db426b50c67939478c26505aea9a",
+    "created": "2026-03-26T00:26:29.977431276-07:00",
+    "artifact_path": "images/69b1f41a499676d65266d7a5.tar.zst",
+    "artifact_bytes": 7065045453,
+    "artifact_sha256": "d1035cc93e4fea33bca019356aac3d7504aaaffa510567432aa1b576be5f5667",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69b1f41a499676d65266d7a5.tar.zst"
+  }
+}

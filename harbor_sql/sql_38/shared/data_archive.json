@@ -1,0 +1,15 @@
+{
+  "hf_bucket": "ScaleAI/hil-bench-sql-artifacts",
+  "db_artifact_path": "public_sql_38/financial.sqlite",
+  "desc_artifact_paths": [
+    "public_sql_38/account.csv",
+    "public_sql_38/card.csv",
+    "public_sql_38/client.csv",
+    "public_sql_38/disp.csv",
+    "public_sql_38/district.csv",
+    "public_sql_38/loan.csv",
+    "public_sql_38/order.csv",
+    "public_sql_38/table_descriptions.csv",
+    "public_sql_38/trans.csv"
+  ]
+}

@@ -1,0 +1,54 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for cards that have a military role in its name, but the exact words for which to filter for are not clear.\n",
+      "example_questions": [
+        "Which exact words should I look for when looking for cards that have a military role in its name?",
+        "Which words can I use to look for cards that have a military role in its name?",
+        "What are the words to look for when looking for cards that have a military role in its name?"
+      ],
+      "id": "military_role_name",
+      "resolution": "To look for cards that have a military role in their name, look for names containing the exact words \"Knight\", \"Guard\", or \"Warrior\". This can be looked for using the condition (' ' || c.name || ' ' LIKE '% Knight %'\n   OR ' ' || c.name || ' ' LIKE '% Guard %'\n   OR ' ' || c.name || ' ' LIKE '% Warrior %'). Looking for other words will produce incorrect results.\n",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "Identifying which card is currently on the MTGGoldfish \"Top Trending\" list requires access to live, external website data that changes daily and is not stored in the database.",
+      "example_questions": [
+        "Which cards are currently on the MTGGoldfish \"Top Trending\" list today?",
+        "Can you provide the list of \"Top Trending\" cards from MTGGoldfish for today's date?",
+        "How can I determine which cards are currently trending on MTGGoldfish?",
+        "Is there an external source or search result for today's MTGGoldfish trending cards?"
+      ],
+      "id": "mtggoldfish_status",
+      "resolution": "The cards currently featured on the MTGGoldfish \"Top Trending\" list are 'Serrated Arrows', 'Angel of Mercy', 'Siege-Gang Commander', 'Castle', 'Josu Vess, Lich Knight', 'Clone', 'Mortal Combat', 'Blizzard Knight', 'Tsunami', 'Relentless Assault', 'Infused Arrows', 'Guard Dogs', 'Crusading Knight', 'Stronghold Discipline', 'Frozen Warrior X', 'Mausoleum Guard', 'Obsianus Golem', '\tSyr Cadian, Knight Owl', 'Strands of Night', 'Pyre Hound', 'Ma Chao, Western Warrior', 'Sedris, the Traitor King', 'Salvage Titan', 'Godo, Bandit Warlord', 'Goblin Cannon', and 'Fearing Knight'.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "It is unknown what \"sanctioned manifest designation\" means for cards. This term is not defined in the business information or schema.",
+      "example_questions": [
+        "What does \"sanctioned manifest designation\" mean?",
+        "How is the sanctioned manifest designation determined for a card?",
+        "Which cards have sanctioned manifest designation?",
+        "What attribute or value determines if a card has a sanctioned manifest designation?"
+      ],
+      "id": "sanctioned_manifest_designation",
+      "resolution": "Sanctioned manifest designation means cards where convertedManaCost BETWEEN 4 AND 6.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The \"degree\" column in the \"artists\" table contains values that cannot be interpreted as education levels. It is impossible to understand how to use this column to determine if an artist finished high school.\n",
+      "example_questions": [
+        "How should I interpret the values from the \"degree\" column in the \"artists\" table?",
+        "What do the values from the \"degree\" column in the \"artists\" table mean?",
+        "How do I interpret the values from the \"degree\" column in the \"artists\" table?"
+      ],
+      "id": "degree_codes",
+      "resolution": "The artists who finished high school are those for whom the \"degree\" column in the \"artists\" table contains the values \"High\" or \"Doc\". Looking for other values will produce incorrect results.\n",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

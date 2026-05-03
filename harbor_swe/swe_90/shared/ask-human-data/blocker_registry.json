@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "missing_default_country_prop_default",
+      "type": "missing parameters",
+      "description": "The requirements state that PhoneInput must accept a defaultCountry prop that may be an empty string and must initialize internal state from that value, including the empty case. They do not specify what value the defaultCountry prop should have when the parent component omits it entirely.",
+      "resolution": "Use the empty string as the default value for the defaultCountry prop when it is not supplied. In the component's props destructuring, use defaultCountry = '' (e.g. defaultCountry = '' in the parameter list). Do not use 'US' or any other country code as the fallback when the prop is omitted. When the prop is omitted or is '', the displayed country must be empty (no country selected); do not introduce a helper or initial state that maps empty string to a country code. Example: { value: actualValue = '', defaultCountry = '', embedded, onChange, onValue, ...rest }: Props.",
+      "example_questions": [
+        "-  What should the default value of defaultCountry be when the parent does not pass it?",
+        "-  When defaultCountry is omitted, should PhoneInput start with an empty country or a specific fallback like 'US'?",
+        "-  How should I initialize the defaultCountry prop in PhoneInput when it is not provided?",
+        "-  What value should PhoneInput use for defaultCountry when the prop is missing?",
+        "-  Should the default for the defaultCountry prop be empty string or a country code?"
+      ]
+    },
+    {
+      "id": "ambiguous_ignore_subsequent_default_country_changes",
+      "type": "ambiguous requirements",
+      "description": "Two separate requirements give different guidance for how PhoneInput should respond when the parent updates defaultCountry after mount. One requirement states that when defaultCountry is later updated by the parent, the component must update its displayed country to match the new prop value so that the UI stays in sync. Another states that after initial adoption the component should ignore subsequent changes to defaultCountry only when the new value is non-empty, and clear when it becomes empty. It is ambiguous how these two instructions apply together\u2014whether 'update to match the new prop value' is meant to apply in all cases or only before the first adoption, and whether the ignore/clear rule qualifies or overrides the sync rule in subsequent updates. The scope and precedence of each requirement relative to the other is left unclear.",
+      "resolution": "Ignore any change to the defaultCountry prop after the component has set its internal country state (either from the initial prop or from one adoption when state was empty). Do not update internal country state from defaultCountry after that, and do not clear the internal state when defaultCountry later becomes empty or changes to another value. Example: if the component adopted 'US' and a later render passes defaultCountry='', the displayed country must remain 'US'. Counter-example: do NOT clear the internal state when defaultCountry becomes empty (e.g. a rerender with defaultCountry='' after adopting 'US' must leave the displayed country as 'United States', not empty). Use a ref (e.g. onceRef) to ensure the adoption-from-prop logic runs at most once per mount.",
+      "example_questions": [
+        "-  When defaultCountry changes to empty after we've already adopted a country, should we clear the internal state or keep the current country?",
+        "-  Does 'ignore subsequent changes' mean we never update from defaultCountry again, or only that we ignore later non-empty values?",
+        "-  If defaultCountry goes from 'US' to '' after we adopted 'US', should the input show no country or keep 'US'?",
+        "-  Should we clear the phone input's country when defaultCountry is later set to empty?",
+        "-  What exactly should 'ignore subsequent changes to defaultCountry' do when the prop becomes empty?"
+      ]
+    },
+    {
+      "id": "contradictory_loading_gate_vs_preserve_gating",
+      "type": "contradictory requirements",
+      "description": "The requirements say consuming components 'should not depend on a loading flag from that hook' and that 'existing gating tied to user settings should remain unchanged.' SetPhoneContainer and AccountRecoverySection currently gate rendering on both loadingUserSettings and loadingCountry. Removing the loadingCountry check could be read as changing existing gating, while the first requirement says not to depend on the hook's loading flag. It is unclear whether the loadingCountry check must be removed or retained.",
+      "resolution": "Remove the loadingCountry check from the loading gate in both SetPhoneContainer and AccountRecoverySection. Use only loadingUserSettings (and, in AccountRecoverySection, !userSettings) in the condition that triggers the loader. Do not add any new condition that shows the loader (or withholds main content) when the country value is undefined\u2014the loader must not be shown solely because useMyCountry() returned undefined; this applies to all listed consuming components (SetPhoneContainer, AccountRecoverySection, ForgotUsernameContainer, ResetPasswordContainer, SignupContainer, CustomStep, UsersOnboardingReplaceAccountPlaceholder). The phrase 'existing gating tied to user settings should remain unchanged' refers to gating that depends on user-settings state (e.g. loadingUserSettings, !userSettings); it does not refer to the loading flag from useMyCountry. Therefore remove the loadingCountry variable from the useMyCountry destructuring and remove loadingCountry from the if-conditions. Example: in SetPhoneContainer use 'if (loadingUserSettings)' only; in AccountRecoverySection use 'if (loadingUserSettings || !userSettings)' only.",
+      "example_questions": [
+        "-  Should I remove the loadingCountry check from the loader condition or keep it to preserve existing gating?",
+        "-  Does 'existing gating tied to user settings' mean I must keep the loadingCountry gate?",
+        "-  The requirements say don't depend on the loading flag but also keep gating unchanged\u2014which applies to the loadingCountry check?",
+        "-  Should SetPhoneContainer and AccountRecoverySection still wait for loadingCountry before rendering the main content?",
+        "-  How do I resolve 'do not depend on loading flag' with 'existing gating should remain unchanged' for the loader?"
+      ]
+    }
+  ]
+}

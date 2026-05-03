@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt first asks for schools that enroll more than 300 students of ages 5-17 and then whether or not any of them have less than 250 students in total, which is contradictory.\n",
+      "example_questions": [
+        "Should I look for schools that enroll more than 300 students of ages 5-17 or those have less than 250 students in total? These conditions are incompatible.",
+        "Could you clarify whether I should look for schools with fewer than 250 students in total or the ones that enrolled more than 300 students of ages 5-17?",
+        "Looking for schools that enroll more than 300 students of ages 5-17 who also have less than 250 students in total is incompatible? Which condition should I use?"
+      ],
+      "id": "enrollment_number",
+      "resolution": "The correct action is to for schools that enroll more than 200 students of ages 5-17 and keep looking if any of them have less than 250 students in total.\n",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The threshold coordinates for defining a school as 'northern' are unclear.\n",
+      "example_questions": [
+        "Which latitude values should I consider as an \"northern\" school?",
+        "Which are the \"northern\" school latitude values?",
+        "Which latitude values should I use to look for a \"northern\" school?"
+      ],
+      "id": "northern_school",
+      "resolution": "A \"northern\" school is one with a latitude above 37.7. \n",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "What makes a school one of the \"best\" can be interpreted as per the SAT scores, free meal count, elegible frpm rate, etc.\n",
+      "example_questions": [
+        "What would you mean by \"best\" schools, should I consider their SAT scores?",
+        "When filtering for \"best\" school, should I use their SAT scores or something else?",
+        "What should I use to filter by \"best\" schools?"
+      ],
+      "id": "best_meaning",
+      "resolution": "The \"best\" schools, are those with the highest elegible frpm rate.\n",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The prompt uses the corrected SAT score term, which is mentioned in business information, but how to give more importance to math is not defined.\n",
+      "example_questions": [
+        "What exact formula should I use when calculating the corrected SAT score?",
+        "How can I calculate the corrected SAT score?",
+        "Which set of weights should I use when calculating the corrected SAT score?"
+      ],
+      "id": "has_confusing_information",
+      "resolution": "The corrected SAT score can be calculated as (math*50+read*25+write*25)/100\n",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The Schools table contains columns code1, code2, and code3, making it impossible to know which one is the charter number\n",
+      "example_questions": [
+        "How can I obtain a schools's charter number?",
+        "How should I obtain a schools's charter number?",
+        "Which column can I use to obtain a schools's charter number?"
+      ],
+      "id": "unreadable_table",
+      "resolution": "To find the charter number, use the column code3 from the Schools table\n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

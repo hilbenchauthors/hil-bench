@@ -1,0 +1,47 @@
+{
+  "instance_id": "instance_flipt-io__flipt-c154dd1a3590954dfd3b901555fc6267f646a289",
+  "repo_name": "app",
+  "repo_name_source": "flipt-io/flipt",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69b20af8600119b97e678c5b",
+  "log_parser": "sweap_json",
+  "language": "go",
+  "blocker_stats": {
+    "total": 5,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "TestDefaultMetaConfig",
+      "TestLoadMetaFallback",
+      "TestValidateMeta"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/config/config_test.go b/config/config_test.go\nindex 51ca97d9..494bdea8 100644\n--- a/config/config_test.go\n+++ b/config/config_test.go\n@@ -4,6 +4,7 @@ import (\n \t\"io/ioutil\"\n \t\"net/http\"\n \t\"net/http/httptest\"\n+\t\"os\"\n \t\"testing\"\n \t\"time\"\n \n@@ -93,6 +94,11 @@ func TestLoad(t *testing.T) {\n \t\t\t\t\tMigrationsPath: \"./config/migrations\",\n \t\t\t\t\tURL:            \"postgres://postgres@localhost:5432/flipt?sslmode=disable\",\n \t\t\t\t},\n+\t\t\t\tMeta: metaConfig{\n+\t\t\t\t\tCheckForUpdates:     false,\n+\t\t\t\t\tDataPath:            \"/tmp/flipt/data\",\n+\t\t\t\t\tUpdateCheckInterval: 30 * time.Minute,\n+\t\t\t\t},\n \t\t\t},\n \t\t},\n \t}\n@@ -240,3 +246,127 @@ func TestServeHTTP(t *testing.T) {\n \tassert.Equal(t, http.StatusOK, resp.StatusCode)\n \tassert.NotEmpty(t, body)\n }\n+\n+func TestDefaultMetaConfig(t *testing.T) {\n+\tcfg := Default()\n+\tassert.True(t, cfg.Meta.CheckForUpdates)\n+\tassert.Equal(t, \"/var/opt/flipt/meta\", cfg.Meta.DataPath)\n+\tassert.Equal(t, 6*time.Hour, cfg.Meta.UpdateCheckInterval)\n+}\n+\n+func TestLoadMetaFallback(t *testing.T) {\n+\tdir := t.TempDir()\n+\tpath := dir + \"/config.yml\"\n+\tcontent := `meta:\n+  check_for_updates: true\n+  data_path: \"\"\n+  update_check_interval: 0s\n+`\n+\terr := os.WriteFile(path, []byte(content), 0644)\n+\trequire.NoError(t, err)\n+\n+\tcfg, err := Load(path)\n+\trequire.NoError(t, err)\n+\n+\tassert.Equal(t, \"/var/opt/flipt/meta\", cfg.Meta.DataPath)\n+\tassert.Equal(t, 6*time.Hour, cfg.Meta.UpdateCheckInterval)\n+\tassert.True(t, cfg.Meta.CheckForUpdates)\n+}\n+\n+func TestValidateMeta(t *testing.T) {\n+\ttests := []struct {\n+\t\tname    string\n+\t\tcfg     *Config\n+\t\twantErr bool\n+\t}{\n+\t\t{\n+\t\t\tname: \"relative data path rejected\",\n+\t\t\tcfg: &Config{\n+\t\t\t\tMeta: metaConfig{\n+\t\t\t\t\tDataPath: \"relative/path\",\n+\t\t\t\t},\n+\t\t\t},\n+\t\t\twantErr: true,\n+\t\t},\n+\t\t{\n+\t\t\tname: \"absolute data path accepted\",\n+\t\t\tcfg: &Config{\n+\t\t\t\tMeta: metaConfig{\n+\t\t\t\t\tDataPath: \"/var/data/flipt\",\n+\t\t\t\t},\n+\t\t\t},\n+\t\t\twantErr: false,\n+\t\t},\n+\t\t{\n+\t\t\tname: \"non-existent absolute path accepted\",\n+\t\t\tcfg: &Config{\n+\t\t\t\tMeta: metaConfig{\n+\t\t\t\t\tDataPath: \"/nonexistent/flipt/data/path\",\n+\t\t\t\t},\n+\t\t\t},\n+\t\t\twantErr: false,\n+\t\t},\n+\t\t{\n+\t\t\tname: \"negative interval with updates enabled\",\n+\t\t\tcfg: &Config{\n+\t\t\t\tMeta: metaConfig{\n+\t\t\t\t\tCheckForUpdates:     true,\n+\t\t\t\t\tDataPath:            \"/var/opt/flipt/meta\",\n+\t\t\t\t\tUpdateCheckInterval: -1 * time.Hour,\n+\t\t\t\t},\n+\t\t\t},\n+\t\t\twantErr: true,\n+\t\t},\n+\t\t{\n+\t\t\tname: \"positive interval with updates enabled\",\n+\t\t\tcfg: &Config{\n+\t\t\t\tMeta: metaConfig{\n+\t\t\t\t\tCheckForUpdates:     true,\n+\t\t\t\t\tDataPath:            \"/var/opt/flipt/meta\",\n+\t\t\t\t\tUpdateCheckInterval: 6 * time.Hour,\n+\t\t\t\t},\n+\t\t\t},\n+\t\t\twantErr: false,\n+\t\t},\n+\t\t{\n+\t\t\tname: \"zero interval with updates disabled\",\n+\t\t\tcfg: &Config{\n+\t\t\t\tMeta: metaConfig{\n+\t\t\t\t\tCheckForUpdates:     false,\n+\t\t\t\t\tDataPath:            \"/var/opt/flipt/meta\",\n+\t\t\t\t\tUpdateCheckInterval: 0,\n+\t\t\t\t},\n+\t\t\t},\n+\t\t\twantErr: false,\n+\t\t},\n+\t\t{\n+\t\t\tname: \"negative interval with updates disabled\",\n+\t\t\tcfg: &Config{\n+\t\t\t\tMeta: metaConfig{\n+\t\t\t\t\tCheckForUpdates:     false,\n+\t\t\t\t\tDataPath:            \"/var/opt/flipt/meta\",\n+\t\t\t\t\tUpdateCheckInterval: -5 * time.Second,\n+\t\t\t\t},\n+\t\t\t},\n+\t\t\twantErr: false,\n+\t\t},\n+\t}\n+\n+\tfor _, tt := range tests {\n+\t\tvar (\n+\t\t\tcfg     = tt.cfg\n+\t\t\twantErr = tt.wantErr\n+\t\t)\n+\n+\t\tt.Run(tt.name, func(t *testing.T) {\n+\t\t\terr := cfg.validate()\n+\n+\t\t\tif wantErr {\n+\t\t\t\trequire.Error(t, err)\n+\t\t\t\treturn\n+\t\t\t}\n+\n+\t\t\trequire.NoError(t, err)\n+\t\t})\n+\t}\n+}\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    ".github/workflows/database-test.yml",
+    ".github/workflows/test.yml",
+    "config/config_test.go",
+    "test/api"
+  ],
+  "attempt_id": "69b20af8600119b97e678c5b",
+  "task_id": "69836ee4987091d7e86e4494",
+  "dataset_name": "swe_14",
+  "image_archive": {
+    "attempt_id": "69b20af8600119b97e678c5b",
+    "local_image_ref": "hilbench-swe:69b20af8600119b97e678c5b",
+    "image_id": "sha256:6a366c9980483db0fd0e011663a1a92131d60c900649c28b609d4c5af815e9bb",
+    "created": "2026-03-26T01:31:16.074525433-07:00",
+    "artifact_path": "images/69b20af8600119b97e678c5b.tar.zst",
+    "artifact_bytes": 681450392,
+    "artifact_sha256": "a1a6deadcf0f736994cdd69809d179392584efe273c7d49a6d5e5108ae72a0ef",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69b20af8600119b97e678c5b.tar.zst"
+  }
+}

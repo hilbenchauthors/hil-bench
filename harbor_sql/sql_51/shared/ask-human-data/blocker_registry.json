@@ -1,0 +1,55 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for cards released before 1992 during the spring season. However, Magic: The Gathering was first published in August 1993, so no cards exist before that date.",
+      "example_questions": [
+        "What date range should I use for cards released before 1992?",
+        "Which sets are considered to be from the spiring season in Magic: The Gathering?",
+        "How is the spring season defined for card release dates?"
+      ],
+      "id": "cards_release_date",
+      "resolution": "Magic: The Gathering was first published in 1993. Treat \"before 1992 during the spring season\" as \"Spring 1994\" (the first spring season since the game's release) and filter for cards from sets with releaseDate >= '1994-03-01' AND releaseDate < '1994-06-01'.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for cards with \"special frame effects\", but it is unclear which specific frameEffects values should be considered as special.",
+      "example_questions": [
+        "Which frameEffects values should I consider as special?",
+        "What specific frame effects from the frameEffects column count as special?",
+        "Can you clarify which frame effects are included in special frame effects?",
+        "Which values in the frameEffects column qualify as special?"
+      ],
+      "id": "special_frame_effects",
+      "resolution": "The following frameEffects values count as special: extendedart and etched.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"competitive cards\" as those with strong tournament performance, but this definition is vague and does not specify how to identify them from the database.",
+      "example_questions": [
+        "How should I identify competitive cards from the database?",
+        "What criteria define a card as competitive?",
+        "Which columns should I use to filter for competitive cards?",
+        "Can you clarify how to determine if a card is competitive?"
+      ],
+      "id": "competitive_cards",
+      "resolution": "Competitive cards are defined as those with rarity 'mythic' or 'rare' and a convertedManaCost between 4 and 5.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks to order by \"design variations\", but the cards table has three similar columns (variations_standard, variations_premium, variations_base) with descriptions mentioning different weight factors (standard, premium, base), making it unclear how to combine them to calculate design variations.",
+      "example_questions": [
+        "Which variations column should I use for design variations?",
+        "What is the difference between variations_standard, variations_premium and variations_base?",
+        "Which column represents the number of design variations?",
+        "What does each variations column represent in the cards table?"
+      ],
+      "id": "design_variations",
+      "resolution": "Design variations is calculated using a weighted formula: (variations_standard * 2 + variations_premium * 3 + variations_base) / 6",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

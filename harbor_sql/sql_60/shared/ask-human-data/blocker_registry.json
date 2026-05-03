@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks to filter patients based on the presence of a symptom term, but it does not specify how symptom values should be matched, leaving it unclear whether the filter requires an exact match, partial match, synonymous terms, or semantic interpretations of the symptom text, according to the multiple possibilities that exist in the symptoms column.",
+      "example_questions": [
+        "Should the symptom be matched exactly or can similar wording be included?",
+        "Are synonymous or related symptom terms considered equivalent?",
+        "Can related leg terms be considered?"
+      ],
+      "id": "symptom_ambiguity",
+      "resolution": "Symptom filtering is resolved by applying an exact text match to 'pain in leg' in the Symptoms field.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The question refers to \u201celevated antibody measurements\u201d without specifying which antibodies are clinically relevant or which variables should be used, allowing multiple valid interpretations that lead to different calculations.",
+      "example_questions": [
+        "Which antibody measurements are considered selected?",
+        "Are all recorded antibodies eligible or only specific ones?",
+        "Should selection be based on antibody class or on predefined analytical criteria?"
+      ],
+      "id": "missing_antibody_business_info",
+      "resolution": "Selected antibody measurements are antibody_2 (anti-cardiolipin IgG) and antibody_3 (anti-cardiolipin IgM), with elevated values defined as greater than 0. A patient meets the antibody criterion if either antibody_2 or antibody_3 is greater than 0, treating NULL",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The business information provides categorical thrombosis labels without explaining their meaning, ordering, or relationship to clinical outcomes, making it unclear how thrombosis presence should be determined.\n\n",
+      "example_questions": [
+        "Which thrombosis labels indicate a positive outcome?",
+        "What represent no thrombosis?",
+        "What thrombosis labels can be considered to patients with thrombosis?"
+      ],
+      "id": "thromb_confusion",
+      "resolution": "Thrombosis presence is defined as records where the Thrombosis value equals 'K'",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The Patient table contains multiple admission-related columns with identical value domains and no documented distinction, making it unclear which column should be used to determine admission status for filtering or analysis.\n",
+      "example_questions": [
+        "Which admission column should be used?",
+        "Are the multiple admission columns intended to represent different contexts or duplicates?",
+        "Should admission status be derived from a single column or combined across columns?"
+      ],
+      "id": "confusing_admission_columns",
+      "resolution": "Admission status for the analysis is determined exclusively using the Admission_2 column, not Admission_1, nor Admission_3.\n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

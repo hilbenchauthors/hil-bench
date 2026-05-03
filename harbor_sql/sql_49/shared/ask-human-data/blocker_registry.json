@@ -1,0 +1,53 @@
+{
+  "blockers": [
+    {
+      "description": "The SAT math scores column (\"AvgScr3\") contains the \"OOC\" value, which is unclear.",
+      "example_questions": [
+        "What does the \"OOC\" value mean as math SAT score?",
+        "I see that the math SAT score has \"OOC\" as values. Should these values be considered as higher than 450?",
+        "I see that the math SAT score has \"OOC\" as values. Should these values be discarted?"
+      ],
+      "id": "has_unclear_value",
+      "resolution": "The \"OOC\" value in the SAT math scores column (\"AvgScr3\") means \"Out Of Charts\" and should be considered as higher than 450.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The \"effective grade\" term was included as \"the average between the high and low grade\", but does not describe how to handle non-numeric values in the column.\n",
+      "example_questions": [
+        "How should I handle non-numeric values for grades?",
+        "I see that there are non-numeric values in the grade columns. How should I handle these?",
+        "I see non-numeric values such as \"K\". How should I handle these?",
+        "Should I consider non-numeric values when calculating the effective grade?"
+      ],
+      "id": "has_confusing_info",
+      "resolution": "Non-numeric values for effective grade should be excluded.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The prompt asks for the average sat score in math, but the table only has column with names \"AvgScr1\", \"AvgScr2\", and \"AvgScr3\".\n",
+      "example_questions": [
+        "Which of these columns provides the average math score: \"AvgScr1\", \"AvgScr2\", or \"AvgScr3\"?",
+        "I need to know which of these columns provides the average math score: \"AvgScr1\", \"AvgScr2\", or \"AvgScr3\"?",
+        "Would \"AvgScr1\" be the average math score? There are also columns named \"AvgScr2\" and \"AvgScr3\"."
+      ],
+      "id": "has_confusing_table_or_table_definition",
+      "resolution": "The column \"AvgScr3\" corresponds to the average SAT score in math.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    },
+    {
+      "description": "The prompt asks for a total enrollment higher than the average enrollment per school in Argentina in 2024, which can only be found by browsing.\n",
+      "example_questions": [
+        "Please tell me the average enrollment per school in Argentina in 2024",
+        "What is the average enrollment per school in Argentina in 2024?",
+        "I need to know the average enrollment per school in Argentina in 2024"
+      ],
+      "id": "has_requires_real_time_info",
+      "resolution": "The value 897 should be used as the average enrollment per school in Argentina in 2024.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    }
+  ]
+}

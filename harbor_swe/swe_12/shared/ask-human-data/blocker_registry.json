@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "missing_spotlight_eligibility_cutoff",
+      "type": "missing parameters",
+      "description": "The problem statement says the spotlight should only appear when the user has 'enough cached items' but does not specify the exact cutoff value. The requirements describe computing eligibility based on cached children count but do not define the threshold number or boundary operator. Without these, implementations will differ at the edge case.",
+      "resolution": "Define `SEARCH_DISCOVERY_MIN_ELIGIBLE_ITEMS = 8` in `applications/drive/src/app/components/useSpotlight.tsx`, compute `enoughItemsStored` as `storedItemsCount > SEARCH_DISCOVERY_MIN_ELIGIBLE_ITEMS` (eligibility is false when the cached root children count is exactly 8, true when it is 9 or more). Use strict `>`, never `>=`. Counter-example: do NOT use any cutoff other than 8 or inclusive boundaries that would make count 8 eligible.",
+      "example_questions": [
+        "-  What exact cached-children cutoff enables spotlight visibility?",
+        "-  What value should the minimum eligible items threshold use?",
+        "-  Should the spotlight gate use > or >= at the boundary?",
+        "-  How many cached root items are needed before showing the spotlight?",
+        "-  Should eligibility include exactly the threshold value or only counts above it?"
+      ]
+    },
+    {
+      "id": "ambiguous_feature_toggle_token",
+      "type": "ambiguous requirements",
+      "description": "The problem statement requires gating the spotlight through FeatureCode but does not say whether rollout should follow existing Drive* spotlight naming, a neutral feature-discovery name, or alignment with adjacent Drive search flags, so several mutually consistent enum tokens would each look reasonable against the spec alone.",
+      "resolution": "Add `DriveSearchFeatureDiscovery = 'DriveSearchFeatureDiscovery'` to the `FeatureCode` enum in `packages/components/containers/features/FeaturesContext.ts`. Counter-example: do NOT register or use `DriveSearchSpotlight`, `SpotlightDriveSearch`, `DriveSearchDiscovery`, or any other member name for this rollout.",
+      "example_questions": [
+        "-  The spec only says to use FeatureCode; which naming convention should this rollout follow among the plausible Drive and spotlight patterns?",
+        "-  Should the enum token read as a spotlight rollout, a generic feature-discovery flag, or something aligned with existing Drive search entries?",
+        "-  Should I follow existing spotlight naming patterns or use a different convention?",
+        "-  When several FeatureCode names would satisfy the written requirement, how should I choose between them?",
+        "-  Do we standardize on the same naming style as other spotlight FeatureCode values, or is a different token family required here?"
+      ]
+    },
+    {
+      "id": "contradictory_spotlight_ownership_boundary",
+      "type": "contradictory requirements",
+      "description": "The problem statement says spotlight state should be accessible through a shared provider, and the public interfaces describe useSpotlight.tsx as providing centralized spotlight state management. However, the requirements specify that SearchField must directly call useSpotlightOnFeature and useSpotlightShow hooks from @proton/components. These instructions conflict on where the spotlight feature hooks must reside.",
+      "resolution": "Only `applications/drive/src/app/components/useSpotlight.tsx` (inside the internal `useSearchSpotlight` hook) may call `useSpotlightOnFeature` and `useSpotlightShow`. That hook must be the sole owner of the spotlight feature-hook wiring: it destructures `{ show, onDisplayed, onClose }` from `useSpotlightOnFeature`, sets `isOpen = useSpotlightShow(show)`, and returns `{ isOpen, onDisplayed, close: onClose }` for the provider. `SearchField.tsx` must use only `useSpotlight()` (e.g. `searchSpotlight.isOpen`, `onDisplayed`, `close`) and must not contain the substrings `useSpotlightOnFeature(` or `useSpotlightShow(` in source.",
+      "example_questions": [
+        "-  Requirements say SearchField should call spotlight hooks, but interfaces centralize state in provider; which source takes precedence?",
+        "-  Should SearchField directly invoke useSpotlightOnFeature/useSpotlightShow, or only consume useSpotlight state?",
+        "-  When requirements and interfaces disagree about hook ownership, what is the required implementation boundary?",
+        "-  Which component or hook owns the responsibility for calling spotlight feature hooks?",
+        "-  Should the spotlight feature flag logic live in SearchField or in the provider?"
+      ]
+    }
+  ]
+}

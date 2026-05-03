@@ -1,0 +1,924 @@
+diff --git a/applications/mail/src/app/components/composer/addresses/SelectSender.tsx b/applications/mail/src/app/components/composer/addresses/SelectSender.tsx
+index 1c27f493b7..5ef01aeaeb 100644
+--- a/applications/mail/src/app/components/composer/addresses/SelectSender.tsx
++++ b/applications/mail/src/app/components/composer/addresses/SelectSender.tsx
+@@ -1,4 +1,4 @@
+-import { useState, MutableRefObject } from 'react';
++import { useEffect, useRef, useState, MutableRefObject } from 'react';
+ import {
+     generateUID,
+     useAddresses,
+@@ -8,13 +8,20 @@ import {
+     Icon,
+     SettingsLink,
+     useUser,
++    useUserSettings,
+ } from '@proton/components';
+ import { c } from 'ttag';
+ import { APPS } from '@proton/shared/lib/constants';
+ import { SelectChangeEvent } from '@proton/components/components/selectTwo/select';
+ import { defaultFontStyle } from '@proton/components/components/editor/helpers';
+ import { getAddressFromEmail, getFromAddresses } from '../../../helpers/addresses';
+-import { changeSignature } from '../../../helpers/message/messageSignature';
++import {
++    changeSignature,
++    executeSenderSignatureRewriteWithRetry,
++    scheduleSenderSignatureRewrite,
++    SenderSignatureRewriteState,
++} from '../../../helpers/message/messageSignature';
++import { getSenderReferralUserSettings } from '../../../helpers/message/messageSenderReferral';
+ import { MessageState } from '../../../logic/messages/messagesTypes';
+ import { MessageChange } from '../Composer';
+ 
+@@ -30,8 +37,20 @@ const SelectSender = ({ message, disabled, onChange, onChangeContent, addressesB
+     const [mailSettings] = useMailSettings();
+     const [addresses = []] = useAddresses();
+     const [user] = useUser();
++    const [userSettings] = useUserSettings();
+ 
+     const [uid] = useState(generateUID('select-sender'));
++    const rewriteStateRef = useRef<SenderSignatureRewriteState>({
++        history: [],
++    });
++
++    useEffect(() => {
++        return () => {
++            if (rewriteStateRef.current.timer) {
++                clearTimeout(rewriteStateRef.current.timer);
++            }
++        };
++    }, []);
+ 
+     const addressesOptions = getFromAddresses(addresses, message.draftFlags?.originalTo).map((address) => (
+         <Option value={address.Email} title={address.Email} key={address.Email}>
+@@ -60,18 +79,50 @@ const SelectSender = ({ message, disabled, onChange, onChangeContent, addressesB
+         const Sender = newAddress ? { Name: newAddress.DisplayName, Address: email } : undefined;
+ 
+         const fontStyle = defaultFontStyle(mailSettings);
++        const currentSenderUserSettings = getSenderReferralUserSettings(user.Email, currentAddress?.Email, userSettings);
++        const nextSenderUserSettings = getSenderReferralUserSettings(user.Email, newAddress?.Email, userSettings);
++
++        const runSignatureRewrite = (oldSignature: string, newSignature: string) => {
++            void executeSenderSignatureRewriteWithRetry(
++                () =>
++                    onChangeContent(
++                        changeSignature(
++                            message,
++                            mailSettings,
++                            fontStyle,
++                            oldSignature,
++                            newSignature,
++                            currentSenderUserSettings,
++                            nextSenderUserSettings
++                        ),
++                        true
++                    ),
++                (delay) =>
++                    new Promise((resolve) => {
++                        rewriteStateRef.current.timer = setTimeout(resolve, delay);
++                    })
++            ).then((didExecute) => {
++                if (!didExecute) {
++                    return;
++                }
++                const executedAt = Date.now();
++                rewriteStateRef.current.history = [...rewriteStateRef.current.history, executedAt];
++                rewriteStateRef.current.lastExecution = executedAt;
++            });
++        };
++
++        const scheduleSignatureRewriteForSender = (oldSignature: string, newSignature: string) =>
++            scheduleSenderSignatureRewrite(
++                rewriteStateRef.current,
++                { oldSignature, newSignature },
++                Date.now(),
++                (callback, delay) => setTimeout(callback, delay),
++                clearTimeout,
++                ({ oldSignature, newSignature }) => runSignatureRewrite(oldSignature, newSignature)
++            );
+ 
+         onChange({ data: { AddressID: newAddress?.ID, Sender } });
+-        onChangeContent(
+-            changeSignature(
+-                message,
+-                mailSettings,
+-                fontStyle,
+-                currentAddress?.Signature || '',
+-                newAddress?.Signature || ''
+-            ),
+-            true
+-        );
++        scheduleSignatureRewriteForSender(currentAddress?.Signature || '', newAddress?.Signature || '');
+     };
+ 
+     return (
+diff --git a/applications/mail/src/app/components/composer/editor/EditorWrapper.tsx b/applications/mail/src/app/components/composer/editor/EditorWrapper.tsx
+index cd4e8476e4..b5485d3a0d 100644
+--- a/applications/mail/src/app/components/composer/editor/EditorWrapper.tsx
++++ b/applications/mail/src/app/components/composer/editor/EditorWrapper.tsx
+@@ -3,7 +3,15 @@ import { c } from 'ttag';
+ 
+ import { Attachment } from '@proton/shared/lib/interfaces/mail/Message';
+ import { isPlainText as testIsPlainText } from '@proton/shared/lib/mail/messages';
+-import { useHandler, Editor, EditorMetadata, EditorTextDirection, EditorActions } from '@proton/components';
++import {
++    useHandler,
++    Editor,
++    EditorMetadata,
++    EditorTextDirection,
++    EditorActions,
++    useUser,
++    useUserSettings,
++} from '@proton/components';
+ import { MIME_TYPES } from '@proton/shared/lib/constants';
+ import { diff } from '@proton/shared/lib/helpers/array';
+ import { defaultFontStyle } from '@proton/components/components/editor/helpers';
+@@ -64,6 +72,8 @@ const EditorWrapper = ({
+     addresses,
+ }: Props) => {
+     const isMounted = useIsMounted();
++    const [user] = useUser();
++    const [userSettings] = useUserSettings();
+     const skipNextInputRef = useRef(false); // Had trouble by using a state here
+ 
+     const [editorReady, setEditorReady] = useState(false);
+@@ -273,7 +283,9 @@ const EditorWrapper = ({
+                     message.data,
+                     message.messageDocument?.plainText,
+                     mailSettings,
+-                    addresses
++                    addresses,
++                    userSettings,
++                    user?.Email
+                 );
+ 
+                 const fontStyles = defaultFontStyle(mailSettings);
+@@ -295,7 +307,7 @@ const EditorWrapper = ({
+                 onChange({ data: { RightToLeft: change.rightToLeft } });
+             }
+         },
+-        [onChange, message]
++        [onChange, message, mailSettings, addresses, userSettings, user]
+     );
+ 
+     const handleBlocquoteToggleClick = useCallback(() => {
+diff --git a/applications/mail/src/app/components/eo/reply/EOComposer.tsx b/applications/mail/src/app/components/eo/reply/EOComposer.tsx
+index 041f4f289e..592f3d71eb 100644
+--- a/applications/mail/src/app/components/eo/reply/EOComposer.tsx
++++ b/applications/mail/src/app/components/eo/reply/EOComposer.tsx
+@@ -3,7 +3,7 @@ import { OpenPGPKey } from 'pmcrypto';
+ 
+ import { noop } from '@proton/shared/lib/helpers/function';
+ import { useHandler } from '@proton/components';
+-import { eoDefaultAddress, eoDefaultMailSettings } from '@proton/shared/lib/mail/eo/constants';
++import { eoDefaultAddress, eoDefaultMailSettings, eoDefaultUserSettings } from '@proton/shared/lib/mail/eo/constants';
+ 
+ import ComposerContent from '../../composer/ComposerContent';
+ import { MessageState, OutsideKey } from '../../../logic/messages/messagesTypes';
+@@ -45,7 +45,8 @@ const EOComposer = ({ referenceMessage, id, publicKey, outsideKey, numberOfRepli
+             (ID) => {
+                 return undefined;
+             },
+-            true
++            true,
++            eoDefaultUserSettings
+         ) as MessageState
+     );
+ 
+diff --git a/applications/mail/src/app/helpers/message/messageContent.ts b/applications/mail/src/app/helpers/message/messageContent.ts
+index d7a327bc52..0a0b083b25 100644
+--- a/applications/mail/src/app/helpers/message/messageContent.ts
++++ b/applications/mail/src/app/helpers/message/messageContent.ts
+@@ -1,4 +1,4 @@
+-import { MailSettings, Address } from '@proton/shared/lib/interfaces';
++import { MailSettings, Address, UserSettings } from '@proton/shared/lib/interfaces';
+ import { isPlainText, isNewsLetter } from '@proton/shared/lib/mail/messages';
+ import { Message } from '@proton/shared/lib/interfaces/mail/Message';
+ import { getMaxDepth } from '@proton/shared/lib/helpers/dom';
+@@ -8,6 +8,7 @@ import { findSender } from '../addresses';
+ import { textToHtml } from '../textToHtml';
+ import { parseInDiv } from '../dom';
+ import { MessageState, PartialMessageState } from '../../logic/messages/messagesTypes';
++import { getSenderReferralUserSettings } from './messageSenderReferral';
+ 
+ export const getPlainTextContent = (message: PartialMessageState) => {
+     return message.messageDocument?.plainText || '';
+@@ -94,10 +95,14 @@ export const plainTextToHTML = (
+     message: Message | undefined,
+     plainTextContent: string | undefined,
+     mailSettings: MailSettings | undefined,
+-    addresses: Address[]
++    addresses: Address[],
++    userSettings: Partial<UserSettings> = {},
++    primaryAddressEmail = ''
+ ) => {
+     const sender = findSender(addresses, message);
+-    return textToHtml(plainTextContent, sender?.Signature || '', mailSettings);
++    const senderUserSettings = getSenderReferralUserSettings(primaryAddressEmail, sender?.Email, userSettings);
++
++    return textToHtml(plainTextContent, sender?.Signature || '', mailSettings, senderUserSettings);
+ };
+ 
+ export const querySelectorAll = (message: Partial<MessageState> | undefined, selector: string) => [
+diff --git a/applications/mail/src/app/helpers/message/messageDraft.ts b/applications/mail/src/app/helpers/message/messageDraft.ts
+index 46a134eef3..6990ec20a9 100644
+--- a/applications/mail/src/app/helpers/message/messageDraft.ts
++++ b/applications/mail/src/app/helpers/message/messageDraft.ts
+@@ -2,7 +2,7 @@ import { MIME_TYPES } from '@proton/shared/lib/constants';
+ import { unique } from '@proton/shared/lib/helpers/array';
+ import { setBit } from '@proton/shared/lib/helpers/bitset';
+ import { canonizeInternalEmail } from '@proton/shared/lib/helpers/email';
+-import { Address, MailSettings } from '@proton/shared/lib/interfaces';
++import { Address, MailSettings, UserSettings } from '@proton/shared/lib/interfaces';
+ import { Recipient } from '@proton/shared/lib/interfaces/Address';
+ import { Message } from '@proton/shared/lib/interfaces/mail/Message';
+ import { MESSAGE_FLAGS } from '@proton/shared/lib/mail/constants';
+@@ -29,6 +29,7 @@ import { getDate } from '../elements';
+ import { exportPlainText, getDocumentContent, plainTextToHTML } from './messageContent';
+ import { getEmbeddedImages, restoreImages, updateImages } from './messageImages';
+ import { insertSignature } from './messageSignature';
++import { getSenderReferralUserSettings } from './messageSenderReferral';
+ import { convertToFile } from '../attachment/attachmentConverter';
+ import { MessageStateWithData, PartialMessageState } from '../../logic/messages/messagesTypes';
+ 
+@@ -156,7 +157,9 @@ export const handleActions = (
+ const generateBlockquote = (
+     referenceMessage: PartialMessageState,
+     mailSettings: MailSettings,
+-    addresses: Address[]
++    addresses: Address[],
++    userSettings: Partial<UserSettings> = {},
++    primaryAddressEmail = ''
+ ) => {
+     const date = formatFullDate(getDate(referenceMessage?.data as Message, ''));
+     const name = referenceMessage?.data?.Sender?.Name;
+@@ -169,7 +172,9 @@ const generateBlockquote = (
+               referenceMessage.data as Message,
+               referenceMessage.decryption?.decryptedBody,
+               mailSettings,
+-              addresses
++              addresses,
++              userSettings,
++              primaryAddressEmail
+           )
+         : getDocumentContent(restoreImages(referenceMessage.messageDocument?.document, referenceMessage.messageImages));
+ 
+@@ -188,7 +193,9 @@ export const createNewDraft = (
+     mailSettings: MailSettings,
+     addresses: Address[],
+     getAttachment: (ID: string) => DecryptResultPmcrypto | undefined,
+-    isOutside = false
++    isOutside = false,
++    userSettings: Partial<UserSettings> = {},
++    primaryAddressEmail = ''
+ ): PartialMessageState => {
+     const MIMEType = isOutside
+         ? (mailSettings.DraftMIMEType as unknown as MIME_TYPES)
+@@ -216,6 +223,7 @@ export const createNewDraft = (
+     const initialAttachments = [...(referenceMessage?.draftFlags?.initialAttachments || []), ...pgpAttachments];
+ 
+     const senderAddress = getFromAddress(addresses, originalTo, referenceMessage?.data?.AddressID);
++    const senderUserSettings = getSenderReferralUserSettings(primaryAddressEmail, senderAddress?.Email, userSettings);
+ 
+     const AddressID = senderAddress?.ID || ''; // Set the AddressID from previous message to convert attachments on reply / replyAll / forward
+ 
+@@ -233,14 +241,14 @@ export const createNewDraft = (
+             ? referenceMessage?.decryption?.decryptedBody
+                 ? referenceMessage?.decryption?.decryptedBody
+                 : ''
+-            : generateBlockquote(referenceMessage || {}, mailSettings, addresses);
++            : generateBlockquote(referenceMessage || {}, mailSettings, addresses, userSettings, primaryAddressEmail);
+ 
+     const fontStyle = defaultFontStyle({ FontFace, FontSize });
+ 
+     content =
+         action === MESSAGE_ACTIONS.NEW && referenceMessage?.decryption?.decryptedBody
+-            ? insertSignature(content, senderAddress?.Signature, action, mailSettings, fontStyle, true)
+-            : insertSignature(content, senderAddress?.Signature, action, mailSettings, fontStyle);
++            ? insertSignature(content, senderAddress?.Signature, action, mailSettings, fontStyle, true, senderUserSettings)
++            : insertSignature(content, senderAddress?.Signature, action, mailSettings, fontStyle, false, senderUserSettings);
+ 
+     const plain = isPlainText({ MIMEType });
+     const document = plain ? undefined : parseInDiv(content);
+diff --git a/applications/mail/src/app/helpers/message/messageSignature.ts b/applications/mail/src/app/helpers/message/messageSignature.ts
+index fbf0cde9a1..a2da3705d3 100644
+--- a/applications/mail/src/app/helpers/message/messageSignature.ts
++++ b/applications/mail/src/app/helpers/message/messageSignature.ts
+@@ -1,8 +1,11 @@
+-import { MailSettings } from '@proton/shared/lib/interfaces';
++import { MailSettings, UserSettings } from '@proton/shared/lib/interfaces';
+ import { isPlainText } from '@proton/shared/lib/mail/messages';
+ import { message } from '@proton/shared/lib/sanitize';
+ import isTruthy from '@proton/shared/lib/helpers/isTruthy';
+-import { getProtonMailSignature } from '@proton/shared/lib/mail/signature';
++import {
++    getProtonSignature as getSharedProtonSignature,
++    sanitizeReferralLink,
++} from '@proton/shared/lib/mail/signature';
+ import { dedentTpl } from '../dedent';
+ import { replaceLineBreaks } from '../string';
+ import { parseInDiv, isHTMLEmpty } from '../dom';
+@@ -16,15 +19,24 @@ export const CLASSNAME_SIGNATURE_USER = 'protonmail_signature_block-user';
+ export const CLASSNAME_SIGNATURE_PROTON = 'protonmail_signature_block-proton';
+ export const CLASSNAME_SIGNATURE_EMPTY = 'protonmail_signature_block-empty';
+ 
+-/**
+- * Preformat the protonMail signature
+- */
+-const getProtonSignature = (mailSettings: Partial<MailSettings> = {}) =>
+-    mailSettings.PMSignature === 0 ? '' : getProtonMailSignature();
++export const SENDER_SIGNATURE_REWRITE_THROTTLE_MS = 750;
++export const SENDER_SIGNATURE_REWRITE_WINDOW_MS = 60000;
++export const SENDER_SIGNATURE_REWRITE_MAX = 12;
++export const SENDER_SIGNATURE_RETRY_INTERVAL_MS = 75;
++export const SENDER_SIGNATURE_RETRY_COUNT = 4;
++
++export interface SenderSignatureRewrite {
++    oldSignature: string;
++    newSignature: string;
++}
++
++export interface SenderSignatureRewriteState {
++    history: number[];
++    lastExecution?: number;
++    pending?: SenderSignatureRewrite;
++    timer?: ReturnType<typeof setTimeout>;
++}
+ 
+-/**
+- * Generate a space tag, it can be hidden from the UX via a className
+- */
+ const createSpace = (style?: string, className?: string) => {
+     const tagOpen = [
+         'div',
+@@ -36,26 +48,21 @@ const createSpace = (style?: string, className?: string) => {
+     return `<${tagOpen}><br /></div>`;
+ };
+ 
+-/**
+- * Generate spaces for the signature
+- *     No signature: 1 space
+- *     addressSignature: 2 spaces + addressSignature
+- *     protonSignature: 2 spaces + protonSignature
+- *     user + proton signature: 2 spaces + addressSignature + 1 space + protonSignature
+- */
+ const getSpaces = (signature: string, protonSignature: string, fontStyle: string | undefined, isReply = false) => {
+     const isUserEmpty = isHTMLEmpty(signature);
+-    const isEmptySignature = isUserEmpty && !protonSignature;
++    const createRepeatedSpaces = (count: number) =>
++        Array.from({ length: count }, () => createSpace(fontStyle)).join('');
++    const betweenSpaceCount = !isUserEmpty && protonSignature ? 1 : 0;
++    const trailingSpaceCount = isReply && !isUserEmpty ? 1 : 0;
++    const totalSpaceCount = (isReply ? 2 : 1) + (protonSignature ? 1 : 0) + (isReply && !isUserEmpty ? 1 : 0);
++    const leadingSpaceCount = totalSpaceCount - betweenSpaceCount - trailingSpaceCount;
+     return {
+-        start: isEmptySignature ? createSpace(fontStyle) : createSpace(fontStyle) + createSpace(fontStyle),
+-        end: isReply ? createSpace(fontStyle) : '',
+-        between: !isUserEmpty && protonSignature ? createSpace(fontStyle) : '',
++        start: createRepeatedSpaces(leadingSpaceCount),
++        end: createRepeatedSpaces(trailingSpaceCount),
++        between: createRepeatedSpaces(betweenSpaceCount),
+     };
+ };
+ 
+-/**
+- * Generate a map of classNames used for the signature template
+- */
+ const getClassNamesSignature = (signature: string, protonSignature: string) => {
+     const isUserEmpty = isHTMLEmpty(signature);
+     const isProtonEmpty = !protonSignature;
+@@ -66,29 +73,178 @@ const getClassNamesSignature = (signature: string, protonSignature: string) => {
+     };
+ };
+ 
+-/**
+- * Generate the template for a signature and clean it
+- */
++const isHTMLSignature = (signature = '') => /<[^>]+>/.test(signature);
++
++const collapseHTMLBreaks = (content = '') => content.replace(/(?:<br\s*\/?>\s*){2,}/gi, '<br />').trim();
++
++const formatSignatureHTML = (content = '') => collapseHTMLBreaks(replaceLineBreaks(content));
++
++const escapeRegExp = (input = '') => input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
++
++const stripTrailingReferralAnchor = (content = '', escapedReferralLink = '') =>
++    content.replace(
++        new RegExp(
++            `(?:\\s*(?:<br\\s*\\/?>)\\s*<a href="${escapedReferralLink}">${escapedReferralLink}<\\/a>)+\\s*$`,
++            'i'
++        ),
++        ''
++    );
++
++const stripTrailingReferralLine = (content = '', escapedReferralLink = '') =>
++    content.replace(new RegExp(`(?:\\s*(?:\\r\\n|\\r|\\n)${escapedReferralLink})+\\s*$`), '');
++
++const stripTrailingPlainTextReferralFragment = (content = '', referralLink = '') => {
++    if (!referralLink) {
++        return content.trimEnd();
++    }
++
++    return stripTrailingReferralLine(content, escapeRegExp(referralLink)).trimEnd();
++};
++
++export const stripReferralFragments = (content = '', referralLink = '') => {
++    if (!referralLink) {
++        return collapseHTMLBreaks(content);
++    }
++
++    const escapedReferralLink = escapeRegExp(referralLink);
++
++    return collapseHTMLBreaks(
++        stripTrailingReferralLine(stripTrailingReferralAnchor(content, escapedReferralLink), escapedReferralLink)
++    );
++};
++
++const hasReferralSignatureSupport = (
++    mailSettings: Partial<MailSettings> | undefined = {},
++    userSettings: Partial<UserSettings> = {}
++) => !!mailSettings?.PMSignatureReferralLink && !!sanitizeReferralLink(userSettings.Referral?.Link);
++
++const shouldRenderReferralAnchor = (mailSettings: Partial<MailSettings> | undefined = {}) =>
++    mailSettings?.DraftMIMEType !== 'text/plain';
++
++const buildUserSignature = (
++    signature = '',
++    mailSettings: Partial<MailSettings> | undefined = {},
++    userSettings: Partial<UserSettings> = {},
++    renderReferralAnchor = shouldRenderReferralAnchor(mailSettings)
++) => {
++    if (!hasReferralSignatureSupport(mailSettings, userSettings)) {
++        return signature;
++    }
++
++    const referralLink = sanitizeReferralLink(userSettings.Referral?.Link);
++    const cleanedSignature = stripReferralFragments(signature, referralLink);
++
++    if (!referralLink) {
++        return cleanedSignature;
++    }
++
++    if (renderReferralAnchor) {
++        return collapseHTMLBreaks(
++            `${cleanedSignature}${cleanedSignature ? '<br />' : ''}<a href="${referralLink}">${referralLink}</a>`
++        );
++    }
++
++    return `${cleanedSignature}${cleanedSignature ? '\n' : ''}${referralLink}`;
++};
++
++const getProtonSignature = (
++    mailSettings: Partial<MailSettings> | undefined = {},
++    userSettings: Partial<UserSettings> = {}
++) => getSharedProtonSignature(mailSettings, userSettings);
++
++export const getSenderSignatureRetryOffsets = () =>
++    Array.from({ length: SENDER_SIGNATURE_RETRY_COUNT + 1 }, (_, index) => index * SENDER_SIGNATURE_RETRY_INTERVAL_MS);
++
++export const executeSenderSignatureRewriteWithRetry = async (
++    operation: () => void,
++    wait: (delay: number) => Promise<void> = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
++) => {
++    for (let attempt = 0; attempt <= SENDER_SIGNATURE_RETRY_COUNT; attempt += 1) {
++        try {
++            operation();
++            return true;
++        } catch (error) {
++            if (attempt === SENDER_SIGNATURE_RETRY_COUNT) {
++                return false;
++            }
++            await wait(SENDER_SIGNATURE_RETRY_INTERVAL_MS);
++        }
++    }
++
++    return false;
++};
++
++export const getSenderSignatureRewritePlan = (
++    now: number,
++    history: number[] = [],
++    lastExecution?: number
++) => {
++    const nextHistory = history.filter((value) => value > now - SENDER_SIGNATURE_REWRITE_WINDOW_MS);
++    const earliestBudgetExecution =
++        nextHistory.length >= SENDER_SIGNATURE_REWRITE_MAX
++            ? nextHistory[0] + SENDER_SIGNATURE_REWRITE_WINDOW_MS
++            : undefined;
++    const earliestThrottleExecution =
++        lastExecution === undefined ? now : Math.max(now, lastExecution + SENDER_SIGNATURE_REWRITE_THROTTLE_MS);
++
++    return {
++        history: nextHistory,
++        executeAt:
++            earliestBudgetExecution === undefined
++                ? earliestThrottleExecution
++                : Math.max(earliestThrottleExecution, earliestBudgetExecution),
++    };
++};
++
++export const scheduleSenderSignatureRewrite = (
++    state: SenderSignatureRewriteState,
++    rewrite: SenderSignatureRewrite,
++    now: number,
++    setTimer: (callback: () => void, delay: number) => ReturnType<typeof setTimeout>,
++    clearTimer: (timer: ReturnType<typeof setTimeout>) => void,
++    runRewrite: (rewrite: SenderSignatureRewrite) => void
++) => {
++    const rewritePlan = getSenderSignatureRewritePlan(now, state.history, state.lastExecution);
++    state.history = rewritePlan.history;
++    state.pending = rewrite;
++
++    if (state.timer) {
++        clearTimer(state.timer);
++    }
++
++    state.timer = setTimer(() => {
++        const pendingRewrite = state.pending;
++        state.pending = undefined;
++        state.timer = undefined;
++        if (pendingRewrite) {
++            runRewrite(pendingRewrite);
++        }
++    }, Math.max(0, rewritePlan.executeAt - now));
++};
++
+ export const templateBuilder = (
+     signature = '',
+     mailSettings: Partial<MailSettings> | undefined = {},
+     fontStyle: string | undefined,
+     isReply = false,
+-    noSpace = false
++    noSpace = false,
++    userSettings: Partial<UserSettings> = {},
++    renderReferralAnchor = shouldRenderReferralAnchor(mailSettings)
+ ) => {
+-    const protonSignature = getProtonSignature(mailSettings);
+-    const { userClass, protonClass, containerClass } = getClassNamesSignature(signature, protonSignature);
+-    const space = getSpaces(signature, protonSignature, fontStyle, isReply);
++    const nextSignature = buildUserSignature(signature, mailSettings, userSettings, renderReferralAnchor);
++    const protonSignature = getProtonSignature(mailSettings, userSettings);
++    const { userClass, protonClass, containerClass } = getClassNamesSignature(nextSignature, protonSignature);
++    const space = getSpaces(nextSignature, protonSignature, fontStyle, isReply);
+ 
+     const defaultStyle = fontStyle === undefined ? '' : `style="${fontStyle}" `;
+     const template = dedentTpl`
+         <div ${defaultStyle}class="${CLASSNAME_SIGNATURE_CONTAINER} ${containerClass}">
+             <div class="${CLASSNAME_SIGNATURE_USER} ${userClass}">
+-                ${replaceLineBreaks(signature)}
++                ${formatSignatureHTML(nextSignature)}
+             </div>
+             ${space.between}
+             <div class="${CLASSNAME_SIGNATURE_PROTON} ${protonClass}">
+-                ${replaceLineBreaks(protonSignature)}
++                ${formatSignatureHTML(protonSignature)}
+             </div>
+         </div>
+     `;
+@@ -100,73 +256,84 @@ export const templateBuilder = (
+     return message(template);
+ };
+ 
+-/**
+- * Insert Signatures before the message
+- *     - Always append a container signature with both user's and proton's
+- *     - Theses signature can be empty but the dom remains
+- */
+ export const insertSignature = (
+     content = '',
+     signature = '',
+     action: MESSAGE_ACTIONS,
+     mailSettings: MailSettings,
+     fontStyle: string | undefined,
+-    isAfter = false
++    isAfter = false,
++    userSettings: Partial<UserSettings> = {}
+ ) => {
+     const position = isAfter ? 'beforeend' : 'afterbegin';
+-    const template = templateBuilder(signature, mailSettings, fontStyle, action !== MESSAGE_ACTIONS.NEW);
++    const template = templateBuilder(signature, mailSettings, fontStyle, action !== MESSAGE_ACTIONS.NEW, false, userSettings);
+ 
+-    // Parse the current message and append before it the signature
+     const element = parseInDiv(content);
+     element.insertAdjacentHTML(position, template);
+ 
+     return element.innerHTML;
+ };
+ 
+-/**
+- * Return the content of the message with the signature switched from the old one to the new one
+- */
+ export const changeSignature = (
+     message: MessageState,
+     mailSettings: Partial<MailSettings> | undefined,
+     fontStyle: string | undefined,
+     oldSignature: string,
+-    newSignature: string
++    newSignature: string,
++    currentUserSettings: Partial<UserSettings> = {},
++    nextUserSettings: Partial<UserSettings> = currentUserSettings
+ ) => {
++    const keepsReferral = hasReferralSignatureSupport(mailSettings, nextUserSettings);
++    const currentReferralLink = sanitizeReferralLink(currentUserSettings.Referral?.Link);
++
+     if (isPlainText(message.data)) {
+-        const oldTemplate = templateBuilder(oldSignature, mailSettings, fontStyle, false, true);
+-        const newTemplate = templateBuilder(newSignature, mailSettings, fontStyle, false, true);
++        const oldTemplate = templateBuilder(oldSignature, mailSettings, fontStyle, false, true, currentUserSettings, false);
+         const content = getPlainTextContent(message);
+         const oldSignatureText = exportPlainText(oldTemplate).trim();
+-        const newSignatureText = exportPlainText(newTemplate).trim();
+ 
+-        // Special case when there was no signature before
++        if (!keepsReferral) {
++            return stripTrailingPlainTextReferralFragment(content, currentReferralLink);
++        }
++
++        const nextTemplate = templateBuilder(newSignature, mailSettings, fontStyle, false, true, nextUserSettings, false);
++        const nextSignatureText = exportPlainText(nextTemplate).trim();
++
+         if (oldSignatureText === '') {
+-            return `${content}\n\n${newSignatureText}`;
++            return `${content}\n\n${nextSignatureText}`;
+         }
+ 
+-        return (
+-            content
+-                .replace(oldSignatureText, newSignatureText)
+-                // Remove empty lines at the end, remove all lines if no signatures
+-                .trimEnd()
+-        );
++        return content.replace(oldSignatureText, nextSignatureText).trimEnd();
++    }
++
++    const document = message.messageDocument?.document?.cloneNode(true) as Element | undefined;
++
++    if (!document) {
++        return '';
+     }
+-    const document = message.messageDocument?.document as Element;
+ 
+     const userSignature = [...document.querySelectorAll(`.${CLASSNAME_SIGNATURE_USER}`)].find(
+         (element) => element.closest(`.${CLASSNAME_BLOCKQUOTE}`) === null
+     );
++    const protonSignatureElement = [...document.querySelectorAll(`.${CLASSNAME_SIGNATURE_PROTON}`)].find(
++        (element) => element.closest(`.${CLASSNAME_BLOCKQUOTE}`) === null
++    );
+ 
+     if (userSignature) {
+-        const protonSignature = getProtonSignature(mailSettings);
+-        const { userClass, containerClass } = getClassNamesSignature(newSignature, protonSignature);
++        const protonSignature = getProtonSignature(mailSettings, nextUserSettings);
++        const nextSignature = keepsReferral
++            ? buildUserSignature(newSignature, mailSettings, nextUserSettings)
++            : stripReferralFragments(userSignature.innerHTML, sanitizeReferralLink(currentUserSettings.Referral?.Link));
++        const { userClass, protonClass, containerClass } = getClassNamesSignature(nextSignature, protonSignature);
+ 
+-        userSignature.innerHTML = replaceLineBreaks(newSignature);
++        userSignature.innerHTML = formatSignatureHTML(nextSignature);
+         userSignature.className = `${CLASSNAME_SIGNATURE_USER} ${userClass}`;
++        if (protonSignatureElement) {
++            protonSignatureElement.innerHTML = formatSignatureHTML(protonSignature);
++            protonSignatureElement.className = `${CLASSNAME_SIGNATURE_PROTON} ${protonClass}`;
++        }
+ 
+-        const signatureContainer = userSignature?.closest(`.${CLASSNAME_SIGNATURE_CONTAINER}`);
+-        if (signatureContainer && signatureContainer !== null) {
++        const signatureContainer = userSignature.closest(`.${CLASSNAME_SIGNATURE_CONTAINER}`);
++        if (signatureContainer) {
+             signatureContainer.className = `${CLASSNAME_SIGNATURE_CONTAINER} ${containerClass}`;
+         }
+     }
+diff --git a/applications/mail/src/app/helpers/textToHtml.ts b/applications/mail/src/app/helpers/textToHtml.ts
+index e379e982ff..fa279a56b8 100644
+--- a/applications/mail/src/app/helpers/textToHtml.ts
++++ b/applications/mail/src/app/helpers/textToHtml.ts
+@@ -1,5 +1,5 @@
+ import markdownit from 'markdown-it';
+-import { MailSettings } from '@proton/shared/lib/interfaces';
++import { MailSettings, UserSettings } from '@proton/shared/lib/interfaces';
+ 
+ import { defaultFontStyle } from '@proton/components/components/editor/helpers';
+ import { templateBuilder } from './message/messageSignature';
+@@ -82,9 +82,14 @@ const escapeBackslash = (text = '') => text.replace(/\\/g, '\\\\');
+  * Replace the signature by a temp hash, we replace it only
+  * if the content is the same.
+  */
+-const replaceSignature = (input: string, signature: string, mailSettings: MailSettings | undefined) => {
++const replaceSignature = (
++    input: string,
++    signature: string,
++    mailSettings: MailSettings | undefined,
++    userSettings: Partial<UserSettings> = {}
++) => {
+     const fontStyle = defaultFontStyle(mailSettings);
+-    const signatureTemplate = templateBuilder(signature, mailSettings, fontStyle, false, true);
++    const signatureTemplate = templateBuilder(signature, mailSettings, fontStyle, false, true, userSettings);
+     const signatureText = toText(signatureTemplate)
+         .replace(/\u200B/g, '')
+         .trim();
+@@ -99,21 +104,21 @@ const attachSignature = (
+     input: string,
+     signature: string,
+     plaintext: string,
+-    mailSettings: MailSettings | undefined
++    mailSettings: MailSettings | undefined,
++    userSettings: Partial<UserSettings> = {}
+ ) => {
+     const fontStyle = defaultFontStyle(mailSettings);
+-    const signatureTemplate = templateBuilder(
+-        signature,
+-        mailSettings,
+-        fontStyle,
+-        false,
+-        !plaintext.startsWith(SIGNATURE_PLACEHOLDER)
+-    );
++    const signatureTemplate = templateBuilder(signature, mailSettings, fontStyle, false, !plaintext.startsWith(SIGNATURE_PLACEHOLDER), userSettings);
+     return input.replace(SIGNATURE_PLACEHOLDER, signatureTemplate);
+ };
+ 
+-export const textToHtml = (input = '', signature: string, mailSettings: MailSettings | undefined) => {
+-    const text = replaceSignature(input, signature, mailSettings);
++export const textToHtml = (
++    input = '',
++    signature: string,
++    mailSettings: MailSettings | undefined,
++    userSettings: Partial<UserSettings> = {}
++) => {
++    const text = replaceSignature(input, signature, mailSettings, userSettings);
+ 
+     // We want empty new lines to behave as if they were not empty (this is non-standard markdown behaviour)
+     // It's more logical though for users that don't know about markdown.
+@@ -123,7 +128,7 @@ export const textToHtml = (input = '', signature: string, mailSettings: MailSett
+     const rendered = md.render(withPlaceholder);
+     const html = removeNewLinePlaceholder(rendered, placeholder);
+ 
+-    const withSignature = attachSignature(html, signature, text, mailSettings).trim();
++    const withSignature = attachSignature(html, signature, text, mailSettings, userSettings).trim();
+     /**
+      * The capturing group includes negative lookup "(?!<p>)" in order to avoid nested problems.
+      * Ex, this capture will be ignored : "<p>Hello</p><p>Hello again</p>""
+diff --git a/applications/mail/src/app/hooks/useDraft.tsx b/applications/mail/src/app/hooks/useDraft.tsx
+index 5caa7fa640..67bc8a5b30 100644
+--- a/applications/mail/src/app/hooks/useDraft.tsx
++++ b/applications/mail/src/app/hooks/useDraft.tsx
+@@ -11,6 +11,8 @@ import {
+     useGetUser,
+     useAddresses,
+     useMailSettings,
++    useUser,
++    useUserSettings,
+ } from '@proton/components';
+ import { isPaid } from '@proton/shared/lib/user/helpers';
+ import { useDispatch } from 'react-redux';
+@@ -66,6 +68,8 @@ export const useDraft = () => {
+     const draftVerifications = useDraftVerifications();
+     const [addresses] = useAddresses();
+     const [mailSettings] = useMailSettings();
++    const [user] = useUser();
++    const [userSettings] = useUserSettings();
+     const getAttachment = useGetAttachment();
+ 
+     useEffect(() => {
+@@ -73,11 +77,20 @@ export const useDraft = () => {
+             if (!mailSettings || !addresses) {
+                 return;
+             }
+-            const message = createNewDraft(MESSAGE_ACTIONS.NEW, undefined, mailSettings, addresses, getAttachment);
++            const message = createNewDraft(
++                MESSAGE_ACTIONS.NEW,
++                undefined,
++                mailSettings,
++                addresses,
++                getAttachment,
++                false,
++                userSettings,
++                user?.Email
++            );
+             cache.set(CACHE_KEY, message);
+         };
+         void run();
+-    }, [cache, addresses, mailSettings]);
++    }, [cache, addresses, mailSettings, userSettings, user]);
+ 
+     const createDraft = useCallback(
+         async (action: MESSAGE_ACTIONS, referenceMessage?: PartialMessageState) => {
+@@ -95,7 +108,10 @@ export const useDraft = () => {
+                     referenceMessage,
+                     mailSettings,
+                     addresses,
+-                    getAttachment
++                    getAttachment,
++                    false,
++                    userSettings,
++                    user?.Email
+                 ) as MessageState;
+             }
+ 
+@@ -103,7 +119,7 @@ export const useDraft = () => {
+             dispatch(createDraftAction(message));
+             return message.localID;
+         },
+-        [cache, getMailSettings, getAddresses, draftVerifications]
++        [cache, getMailSettings, getAddresses, draftVerifications, userSettings, user]
+     );
+ 
+     return createDraft;
+diff --git a/packages/shared/lib/mail/eo/constants.ts b/packages/shared/lib/mail/eo/constants.ts
+index 262832249b..c413682b7b 100644
+--- a/packages/shared/lib/mail/eo/constants.ts
++++ b/packages/shared/lib/mail/eo/constants.ts
+@@ -1,5 +1,5 @@
+ import { IMAGE_PROXY_FLAGS, SHOW_IMAGES } from '../../constants';
+-import { Address, MailSettings } from '../../interfaces';
++import { Address, MailSettings, UserSettings } from '../../interfaces';
+ 
+ export const eoDefaultMailSettings = {
+     DisplayName: '',
+@@ -51,4 +51,8 @@ export const eoDefaultMailSettings = {
+     PMSignatureReferralLink: 0,
+ } as MailSettings;
+ 
++export const eoDefaultUserSettings = {
++    Referral: undefined,
++} as Partial<UserSettings>;
++
+ export const eoDefaultAddress = {} as Address[];
+diff --git a/packages/shared/lib/mail/signature.ts b/packages/shared/lib/mail/signature.ts
+index db60b24a6c..54aa81a1c0 100644
+--- a/packages/shared/lib/mail/signature.ts
++++ b/packages/shared/lib/mail/signature.ts
+@@ -1,4 +1,5 @@
+ import { c } from 'ttag';
++import { MailSettings, UserSettings } from '../interfaces';
+ import { APPS, APPS_CONFIGURATION } from '../constants';
+ 
+ interface Options {
+@@ -6,6 +7,26 @@ interface Options {
+     referralProgramUserLink?: string;
+ }
+ 
++export const sanitizeReferralLink = (input?: string) => {
++    if (!input) {
++        return '';
++    }
++
++    try {
++        const url = new URL(input);
++        const hasRef = url.searchParams.has('ref');
++        const ref = url.searchParams.get('ref') ?? '';
++        url.search = '';
++        if (hasRef) {
++            url.searchParams.set('ref', ref);
++        }
++        url.hash = '';
++        return url.toString();
++    } catch (error) {
++        return input;
++    }
++};
++
+ export const getProtonMailSignature = ({
+     isReferralProgramLinkEnabled = false,
+     referralProgramUserLink,
+@@ -20,3 +40,19 @@ export const getProtonMailSignature = ({
+ 
+     return signature;
+ };
++
++export const getProtonSignature = (
++    mailSettings: Partial<MailSettings> = {},
++    userSettings: Partial<UserSettings> = {}
++) => {
++    if (mailSettings.PMSignature === 0) {
++        return '';
++    }
++
++    const referralProgramUserLink = sanitizeReferralLink(userSettings.Referral?.Link);
++
++    return getProtonMailSignature({
++        isReferralProgramLinkEnabled: !!mailSettings.PMSignatureReferralLink && !!referralProgramUserLink,
++        referralProgramUserLink,
++    });
++};
+diff --git a/applications/mail/src/app/helpers/message/messageSenderReferral.ts b/applications/mail/src/app/helpers/message/messageSenderReferral.ts
+new file mode 100644
+index 0000000000..0054d42140
+--- /dev/null
++++ b/applications/mail/src/app/helpers/message/messageSenderReferral.ts
+@@ -0,0 +1,15 @@
++import { canonizeEmail } from '@proton/shared/lib/helpers/email';
++import { UserSettings } from '@proton/shared/lib/interfaces';
++import { eoDefaultUserSettings } from '@proton/shared/lib/mail/eo/constants';
++
++export const getSenderReferralUserSettings = (
++    primaryAddressEmail: string | undefined,
++    senderAddressEmail: string | undefined,
++    userSettings: Partial<UserSettings> = {}
++) =>
++    primaryAddressEmail &&
++    senderAddressEmail &&
++    canonizeEmail(primaryAddressEmail) === canonizeEmail(senderAddressEmail) &&
++    userSettings.Referral
++        ? userSettings
++        : eoDefaultUserSettings;

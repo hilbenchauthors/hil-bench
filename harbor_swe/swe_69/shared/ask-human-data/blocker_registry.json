@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "xattr_compatibility_marker",
+      "type": "missing parameters",
+      "description": "The current description says file XAttr payloads must remain compatible with the Drive wire format, but it does not specify which compatibility marker must be included in serialized file attributes.",
+      "resolution": "Add exactly `Common.Version: 2` to every file extended-attributes payload produced by `createFileExtendedAttributes`. The field must be numeric, must live under `Common`, and must not be emitted at the root or under `Media`.",
+      "example_questions": [
+        "-  What compatibility marker does the Drive XAttr payload need to include?",
+        "-  Is there a specific version field that file extended attributes must write?",
+        "-  Which schema or version marker should I add to keep the serialized XAttr format compatible?",
+        "-  Do file XAttrs need a required compatibility field beyond the file metadata itself?",
+        "-  What exact field and value should be written for the XAttr compatibility marker?"
+      ]
+    },
+    {
+      "id": "block_sizes_zero_remainder_policy",
+      "type": "ambiguous requirements",
+      "description": "The expected block-size layout is unclear for exact chunk boundaries and empty files. The current wording says block sizes should follow the Drive XAttr chunk convention, but it does not define whether a zero remainder should be emitted.",
+      "resolution": "Build `Common.BlockSizes` from consecutive `FILE_CHUNK_SIZE` entries plus one final remainder only when the remainder is non-zero. Do not append a trailing `0`. An empty file must produce `[]`, and a file of size `FILE_CHUNK_SIZE * 2` must produce `[FILE_CHUNK_SIZE, FILE_CHUNK_SIZE]`.",
+      "example_questions": [
+        "-  How should `Common.BlockSizes` handle an exact multiple of `FILE_CHUNK_SIZE`?",
+        "-  Should I keep a trailing `0` entry in block sizes when there is no remainder?",
+        "-  What is the expected block-size layout for empty files and exact chunk-boundary files?",
+        "-  Does the Drive XAttr chunk convention omit the final remainder entry when it is zero?",
+        "-  What exact `BlockSizes` array should be emitted when the file size divides evenly into chunks?"
+      ]
+    },
+    {
+      "id": "modification_time_representation_split",
+      "type": "contradictory requirements",
+      "description": "The current description says parsed results should match what downstream application code expects, while the current requirement says the parse path should preserve the serialized timestamp representation. That creates a direct conflict for how `Common.ModificationTime` should be represented across create and parse paths.",
+      "resolution": "The create/write path must store `Common.ModificationTime` as an ISO-8601 UTC string with millisecond precision, for example `2009-02-13T23:31:30.000Z`. The parse/read path must return `Common.ModificationTime` as a Unix timestamp in milliseconds, for example `1234567890000`.",
+      "example_questions": [
+        "-  What format should `Common.ModificationTime` use when creating serialized XAttrs?",
+        "-  Should parsed modification time come back as a string, a `Date`, milliseconds, or Unix seconds?",
+        "-  Do the write path and parse path use the same modification-time representation?",
+        "-  What exact timestamp format is required for stored XAttrs versus parsed output?",
+        "-  Should parsing preserve the original serialized timestamp value or convert it for application consumers?"
+      ]
+    }
+  ]
+}

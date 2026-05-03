@@ -1,0 +1,47 @@
+{
+  "instance_id": "instance_flipt-io__flipt-d966559200183b713cdf3ea5007a7e0ba86a5afb",
+  "repo_name": "app",
+  "repo_name_source": "flipt-io/flipt",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69b3ab1df8d713deb4c0087d",
+  "log_parser": "sweap_json",
+  "language": "go",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "TestLoadMaintainsBackwardCompatibleEntryPoint",
+      "TestLoadWithContextNilContextUsesDefaultPolicy",
+      "TestLoadWithContextTypedNilContextUsesDefaultPolicy",
+      "TestLoadAppliesDefaultTimeoutWhenContextHasNoDeadline",
+      "TestLoadReturnsContextErrorWhenDeadlineExceeded",
+      "TestLoadReturnsContextErrorWhenCanceled"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/internal/config/load_context_obstructed_test.go b/test/internal/config/load_context_obstructed_test.go\nnew file mode 100644\nindex 00000000..c8c98406\n--- /dev/null\n+++ b/test/internal/config/load_context_obstructed_test.go\n@@ -0,0 +1,223 @@\n+package config_test\n+\n+import (\n+\t\"context\"\n+\t\"fmt\"\n+\t\"net/url\"\n+\t\"reflect\"\n+\t\"testing\"\n+\t\"time\"\n+\n+\tconfig \"go.flipt.io/flipt/internal/config\"\n+\t\"gocloud.dev/blob\"\n+\t\"gocloud.dev/blob/memblob\"\n+\n+\t\"github.com/stretchr/testify/require\"\n+)\n+\n+type typedNilContext struct{}\n+\n+func (*typedNilContext) Deadline() (time.Time, bool) {\n+\tpanic(\"typed-nil context must be normalized before use\")\n+}\n+func (*typedNilContext) Done() <-chan struct{} {\n+\tpanic(\"typed-nil context must be normalized before use\")\n+}\n+func (*typedNilContext) Err() error {\n+\tpanic(\"typed-nil context must be normalized before use\")\n+}\n+func (*typedNilContext) Value(any) any {\n+\tpanic(\"typed-nil context must be normalized before use\")\n+}\n+\n+type mockURLOpener struct {\n+\tbucket *blob.Bucket\n+\tonOpen func(context.Context)\n+}\n+\n+func (c *mockURLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bucket, error) {\n+\tif c.onOpen != nil {\n+\t\tc.onOpen(ctx)\n+\t}\n+\n+\tfor param := range u.Query() {\n+\t\treturn nil, fmt.Errorf(\"open bucket %v: invalid query parameter %q\", u, param)\n+\t}\n+\n+\treturn c.bucket, nil\n+}\n+\n+func isNilLikeContext(ctx context.Context) bool {\n+\tif ctx == nil {\n+\t\treturn true\n+\t}\n+\tv := reflect.ValueOf(ctx)\n+\tswitch v.Kind() {\n+\tcase reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:\n+\t\treturn v.IsNil()\n+\tdefault:\n+\t\treturn false\n+\t}\n+}\n+\n+func TestLoadMaintainsBackwardCompatibleEntryPoint(t *testing.T) {\n+\tres, err := config.Load(\"\")\n+\trequire.NoError(t, err)\n+\trequire.NotNil(t, res)\n+}\n+\n+func TestLoadWithContextNilContextUsesDefaultPolicy(t *testing.T) {\n+\tconst (\n+\t\tscheme     = \"mockloadnilcontextobstructed\"\n+\t\tconfigData = \"version: \\\"1.0\\\"\\n\"\n+\t)\n+\n+\tblob.DefaultURLMux().RegisterBucket(scheme, &mockURLOpener{bucket: memblob.OpenBucket(nil)})\n+\n+\tb, err := blob.OpenBucket(context.Background(), scheme+\"://mybucket\")\n+\trequire.NoError(t, err)\n+\tt.Cleanup(func() { _ = b.Close() })\n+\n+\tw, err := b.NewWriter(context.Background(), \"config/local.yml\", nil)\n+\trequire.NoError(t, err)\n+\t_, err = w.Write([]byte(configData))\n+\trequire.NoError(t, err)\n+\trequire.NoError(t, w.Close())\n+\n+\tres, err := config.Load(nil, scheme+\"://mybucket/config/local.yml\")\n+\trequire.NoError(t, err)\n+\trequire.NotNil(t, res)\n+}\n+\n+func TestLoadWithContextTypedNilContextUsesDefaultPolicy(t *testing.T) {\n+\tconst (\n+\t\tscheme     = \"mockloadtypednilcontextobstructed\"\n+\t\tconfigData = \"version: \\\"1.0\\\"\\n\"\n+\t)\n+\n+\tvar openerReceivedNilLikeContext bool\n+\n+\tblob.DefaultURLMux().RegisterBucket(scheme, &mockURLOpener{\n+\t\tbucket: memblob.OpenBucket(nil),\n+\t\tonOpen: func(ctx context.Context) {\n+\t\t\topenerReceivedNilLikeContext = isNilLikeContext(ctx)\n+\t\t},\n+\t})\n+\n+\tb, err := blob.OpenBucket(context.Background(), scheme+\"://mybucket\")\n+\trequire.NoError(t, err)\n+\tt.Cleanup(func() { _ = b.Close() })\n+\n+\tw, err := b.NewWriter(context.Background(), \"config/local.yml\", nil)\n+\trequire.NoError(t, err)\n+\t_, err = w.Write([]byte(configData))\n+\trequire.NoError(t, err)\n+\trequire.NoError(t, w.Close())\n+\n+\tvar typedNil context.Context = (*typedNilContext)(nil)\n+\tres, err := config.Load(typedNil, scheme+\"://mybucket/config/local.yml\")\n+\trequire.NoError(t, err)\n+\trequire.NotNil(t, res)\n+\trequire.False(t, openerReceivedNilLikeContext, \"expected typed-nil context to be normalized before source access\")\n+}\n+\n+func TestLoadAppliesDefaultTimeoutWhenContextHasNoDeadline(t *testing.T) {\n+\tconst (\n+\t\tscheme     = \"mockloadtimeoutobstructed\"\n+\t\tconfigData = \"version: \\\"1.0\\\"\\n\"\n+\t)\n+\n+\tvar (\n+\t\topenCtxDeadline time.Time\n+\t\topenCtxHasDL    bool\n+\t)\n+\n+\tblob.DefaultURLMux().RegisterBucket(scheme, &mockURLOpener{\n+\t\tbucket: memblob.OpenBucket(nil),\n+\t\tonOpen: func(ctx context.Context) {\n+\t\t\topenCtxDeadline, openCtxHasDL = ctx.Deadline()\n+\t\t},\n+\t})\n+\n+\tb, err := blob.OpenBucket(context.Background(), scheme+\"://mybucket\")\n+\trequire.NoError(t, err)\n+\tt.Cleanup(func() { _ = b.Close() })\n+\n+\tw, err := b.NewWriter(context.Background(), \"config/local.yml\", nil)\n+\trequire.NoError(t, err)\n+\t_, err = w.Write([]byte(configData))\n+\trequire.NoError(t, err)\n+\trequire.NoError(t, w.Close())\n+\n+\tstart := time.Now()\n+\tres, err := config.Load(context.Background(), scheme+\"://mybucket/config/local.yml\")\n+\trequire.NoError(t, err)\n+\trequire.NotNil(t, res)\n+\trequire.True(t, openCtxHasDL, \"expected derived load context to have deadline\")\n+\n+\tremaining := time.Until(openCtxDeadline)\n+\trequire.LessOrEqual(t, remaining, 11*time.Second)\n+\trequire.Greater(t, remaining, 9*time.Second)\n+\trequire.WithinDuration(t, start.Add(11*time.Second), openCtxDeadline, 2*time.Second)\n+}\n+\n+func TestLoadReturnsContextErrorWhenDeadlineExceeded(t *testing.T) {\n+\tconst (\n+\t\tscheme     = \"mockloaddeadlineobstructed\"\n+\t\tconfigData = \"version: \\\"1.0\\\"\\n\"\n+\t)\n+\n+\tblob.DefaultURLMux().RegisterBucket(scheme, &mockURLOpener{\n+\t\tbucket: memblob.OpenBucket(nil),\n+\t\tonOpen: func(ctx context.Context) {\n+\t\t\ttime.Sleep(20 * time.Millisecond)\n+\t\t},\n+\t})\n+\n+\tb, err := blob.OpenBucket(context.Background(), scheme+\"://mybucket\")\n+\trequire.NoError(t, err)\n+\tt.Cleanup(func() { _ = b.Close() })\n+\n+\tw, err := b.NewWriter(context.Background(), \"config/local.yml\", nil)\n+\trequire.NoError(t, err)\n+\t_, err = w.Write([]byte(configData))\n+\trequire.NoError(t, err)\n+\trequire.NoError(t, w.Close())\n+\n+\tctx, cancel := context.WithTimeout(context.Background(), 5*time.Millisecond)\n+\tdefer cancel()\n+\n+\tres, err := config.Load(ctx, scheme+\"://mybucket/config/local.yml\")\n+\trequire.Nil(t, res)\n+\trequire.ErrorIs(t, err, context.DeadlineExceeded)\n+}\n+\n+func TestLoadReturnsContextErrorWhenCanceled(t *testing.T) {\n+\tconst (\n+\t\tscheme     = \"mockloadcanceledobstructed\"\n+\t\tconfigData = \"version: \\\"1.0\\\"\\n\"\n+\t)\n+\n+\tctx, cancel := context.WithCancel(context.Background())\n+\n+\tblob.DefaultURLMux().RegisterBucket(scheme, &mockURLOpener{\n+\t\tbucket: memblob.OpenBucket(nil),\n+\t\tonOpen: func(_ context.Context) {\n+\t\t\tcancel()\n+\t\t},\n+\t})\n+\n+\tb, err := blob.OpenBucket(context.Background(), scheme+\"://mybucket\")\n+\trequire.NoError(t, err)\n+\tt.Cleanup(func() { _ = b.Close() })\n+\n+\tw, err := b.NewWriter(context.Background(), \"config/local.yml\", nil)\n+\trequire.NoError(t, err)\n+\t_, err = w.Write([]byte(configData))\n+\trequire.NoError(t, err)\n+\trequire.NoError(t, w.Close())\n+\n+\tres, err := config.Load(ctx, scheme+\"://mybucket/config/local.yml\")\n+\trequire.Nil(t, res)\n+\trequire.ErrorIs(t, err, context.Canceled)\n+}\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "internal/config/config_test.go"
+  ],
+  "attempt_id": "69b3ab1df8d713deb4c0087d",
+  "task_id": "69836ee4987091d7e86e44a1",
+  "dataset_name": "swe_17",
+  "image_archive": {
+    "attempt_id": "69b3ab1df8d713deb4c0087d",
+    "local_image_ref": "hilbench-swe:69b3ab1df8d713deb4c0087d",
+    "image_id": "sha256:962ccf62bcecb8e9b6eb68da3280f9326a7eb306662db18c0a2fbc4de2d9f925",
+    "created": "2026-03-26T00:45:55.527097077-07:00",
+    "artifact_path": "images/69b3ab1df8d713deb4c0087d.tar.zst",
+    "artifact_bytes": 1714519475,
+    "artifact_sha256": "f13c96df289f6b8b55f4243f497b8595563a2341a5428e0b1d1cec65db08007b",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69b3ab1df8d713deb4c0087d.tar.zst"
+  }
+}

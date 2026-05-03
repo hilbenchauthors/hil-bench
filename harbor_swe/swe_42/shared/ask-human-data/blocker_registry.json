@@ -1,0 +1,59 @@
+{
+  "blockers": [
+    {
+      "id": "missing_min_password_length",
+      "type": "missing parameters",
+      "description": "The requirements state to apply middleware.BasicAuth when the password 'meets the minimum required length' but the specific minimum length threshold is not provided.",
+      "resolution": "The minimum password length for Prometheus BasicAuth activation is 7 characters. This threshold controls whether the metrics endpoint is protected or publicly exposed: passwords shorter than 7 characters must not activate BasicAuth, leaving database model counts, version info, and scan history accessible to any unauthenticated request. Passwords with 7 or more characters must activate BasicAuth. Using a wrong threshold (e.g. 8 or 12) changes which real-world passwords enable or disable authentication.",
+      "example_questions": [
+        "-  What is the minimum password length required for Prometheus BasicAuth to be activated?",
+        "-  How many characters must conf.Server.Prometheus.Password have for middleware.BasicAuth to be applied?",
+        "-  Below what password length should the metrics endpoint remain unprotected?"
+      ]
+    },
+    {
+      "id": "missing_max_bearer_token_length",
+      "type": "missing parameters",
+      "description": "The requirements state tokenFromHeader must return an empty string for 'oversized tokens' but the maximum accepted token length is not specified.",
+      "resolution": "The maximum allowed Bearer token length is 2000 characters. Tokens of 2000 characters or fewer must be accepted and passed to JWT verification, while tokens exceeding 2000 characters must be rejected by returning an empty string, silently blocking authentication. Using a wrong threshold (e.g. 4096 or 1024) changes which tokens are accepted or rejected, affecting both security and user authentication.",
+      "example_questions": [
+        "-  What is the maximum allowed Bearer token length in tokenFromHeader?",
+        "-  At what character count should tokenFromHeader reject a Bearer token as oversized?",
+        "-  How many characters is the cutoff for rejecting an oversized Bearer token?"
+      ]
+    },
+    {
+      "id": "missing_prometheus_max_concurrent",
+      "type": "missing parameters",
+      "description": "The requirements state GetHandler must 'throttle concurrent requests' to the metrics endpoint but the concurrency limit is not specified.",
+      "resolution": "The metrics endpoint must accept at most 6 concurrent scrape requests. When 6 requests are already being served, additional concurrent requests must be rejected with HTTP 429 Too Many Requests.",
+      "example_questions": [
+        "-  What is the maximum number of concurrent requests allowed on the Prometheus metrics endpoint?",
+        "-  How many simultaneous scrape requests should the metrics handler accept before throttling?",
+        "-  What is the exact concurrent request limit for the metrics endpoint?"
+      ]
+    },
+    {
+      "id": "ambiguous_write_after_scan_scope",
+      "type": "ambiguous requirements",
+      "description": "The requirements state the scanner must 'record metrics after scan operations' using WriteAfterScanMetrics, but do not specify whether this includes updating database model counts or only scan-specific metrics (timestamp and counter). The original code updates both, so both interpretations are valid. Additionally, the requirements do not clarify how the success boolean parameter should affect which metrics are recorded: whether both timestamp and counter should always be updated regardless of outcome, or whether the counter should only be incremented on successful scans.",
+      "resolution": "WriteAfterScanMetrics must only record scan-specific metrics and must NOT call processSqlAggregateMetrics or access the DataStore in any way. DB model counts are collected exclusively during WriteInitialMetrics. Additionally, mediaScansCounter must only be incremented when the scan is successful (success=true). On failed scans (success=false), only the lastMediaScan timestamp must be set; the counter must NOT be incremented. This prevents failed scans from inflating success-based alerting metrics.",
+      "example_questions": [
+        "-  Should WriteAfterScanMetrics update database model counts, or only record scan timestamp and counter?",
+        "-  Does 'record metrics after scan operations' include refreshing db_model_totals gauges?",
+        "-  Are database model counts only collected during WriteInitialMetrics, or also after each scan?"
+      ]
+    },
+    {
+      "id": "contradictory_metrics_detail_when_to_record_counts",
+      "type": "contradictory requirements",
+      "description": "The expected behavior states metrics should include database model counts 'whenever the detail level records timestamp data', implying counts for both full and timestamps_only. The requirements state 'database model counts must only be collected during WriteInitialMetrics when the detail level is set to full', restricting counts to full only. These two statements conflict on which detail levels trigger database count collection.",
+      "resolution": "DB model counts must be recorded in WriteInitialMetrics when the detail level is 'full' or 'timestamps_only'. For 'counts_only', 'minimal', and 'off', DB model counts must not be recorded.",
+      "example_questions": [
+        "-  Should DB model counts be recorded only for 'full', only for 'timestamps_only', or for both?",
+        "-  Which detail levels trigger recording database model counts in WriteInitialMetrics?",
+        "-  How should the conflicting statements about 'full reporting' and 'timestamp collection' be reconciled?"
+      ]
+    }
+  ]
+}

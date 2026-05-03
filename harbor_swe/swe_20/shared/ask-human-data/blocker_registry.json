@@ -1,0 +1,37 @@
+{
+  "blockers": [
+    {
+      "id": "ambiguous_eviction_strategy",
+      "type": "ambiguous requirements",
+      "description": "The requirements state the cache should \"ensure the number of stored entries does not exceed the limit\" but do not specify which eviction policy to use. Multiple valid strategies exist (FIFO, LRU, LFU, closest-to-expire, random).",
+      "resolution": "Use FIFO eviction: always evict the entry that was inserted earliest. Eviction must be independent of TTL proximity and access frequency (i.e., not LRU/LFU/nearest-expiry).",
+      "example_questions": [
+        "-  What eviction strategy should be used when the cache reaches its size limit?",
+        "-  Should the cache evict the oldest entry by insertion time, the least recently used, or the one closest to expiring?",
+        "-  How should the cache determine which entry to remove when a new insertion exceeds the SizeLimit?"
+      ]
+    },
+    {
+      "id": "missing_eviction_watermark",
+      "type": "missing parameters",
+      "description": "The requirements state the cache must not exceed the size limit but do not specify how many entries to evict when the limit is reached. The exact eviction count or target occupancy percentage is absent.",
+      "resolution": "When eviction is triggered, evict entries until the cache is at `floor(SizeLimit / 2)` entries (integer division), then insert the new entry. Eviction happens before the new insertion is counted toward the post-eviction size. With SizeLimit=6, inserting a 7th entry reduces the cache to 3 entries before insertion, leaving 4 entries total.",
+      "example_questions": [
+        "-  When the cache reaches its size limit, how many entries should be evicted to make room?",
+        "-  Should the cache evict only one entry per insertion, or evict down to a target occupancy percentage?",
+        "-  Is there a watermark or threshold that determines how aggressively the cache frees space when the size limit is hit?"
+      ]
+    },
+    {
+      "id": "contradictory_default_ttl_cap",
+      "type": "contradictory requirements",
+      "description": "The requirements and public interface describe DefaultTTL as \"the maximum lifetime for cached entries,\" but the field is named \"DefaultTTL,\" implying a default value that per-entry TTLs can exceed. It is unclear whether DefaultTTL is an absolute ceiling or an overridable default.",
+      "resolution": "DefaultTTL acts as an absolute ceiling when DefaultTTL is greater than zero. Any per-entry TTL exceeding DefaultTTL is capped to DefaultTTL. If DefaultTTL is greater than zero, entries added without an explicit per-entry TTL expire after DefaultTTL.",
+      "example_questions": [
+        "-  Does \"maximum lifetime\" in the DefaultTTL description mean no entry can live longer than DefaultTTL, regardless of how it was added?",
+        "-  If a per-entry TTL is specified that exceeds DefaultTTL, which value takes effect?",
+        "-  Can entries with explicit per-entry TTLs live longer than the configured DefaultTTL?"
+      ]
+    }
+  ]
+}

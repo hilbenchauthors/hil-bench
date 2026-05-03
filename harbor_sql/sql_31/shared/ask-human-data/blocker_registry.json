@@ -1,0 +1,66 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for schools in \"Maricopa County,\" but Maricopa County does not exist in California. Maricopa County is located in Arizona (where Phoenix is located). California has \"Mariposa County\" which sounds similar but is a different county. This contradicts real-world geographic facts about California counties.",
+      "example_questions": [
+        "Is Maricopa County located in California or Arizona?",
+        "Does the California schools dataset include Maricopa County or Mariposa County?",
+        "Should the query use \"Maricopa County\" as written or \"Mariposa County\" which exists in California?",
+        "Did you mean Mariposa County (California) instead of Maricopa County (Arizona)?"
+      ],
+      "id": "maricopa_county_not_in_ca",
+      "resolution": "Use \"Mariposa County\" which is the correct California county name. The query should filter for schools in Mariposa County, California, ignoring the \"Maricopa County\" specification which refers to an Arizona county not present in the California dataset.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The requirement \"have fewer test takers than students scoring above 1500\" is logically impossible. Students scoring above 1500 (NumGE1500) are a subset of total test takers (NumTstTakr). It is mathematically impossible for the total number of test takers to be less than the number of high-scoring students.",
+      "example_questions": [
+        "How should the contradiction of \"fewer test takers than students scoring above 1500\" be resolved, given that high scorers are a subset of test takers?",
+        "If NumGE1500 represents a subset of NumTstTakr, should the condition be dropped since it's mathematically impossible?",
+        "Should \"fewer test takers\" simply mean schools with the lowest NumTstTakr values, ignoring the comparison to NumGE1500?"
+      ],
+      "id": "fewer_test_takers_than_high_scorers",
+      "resolution": "Ignore the \"fewer test takers than students scoring above 1500\" condition entirely, as it describes a mathematically impossible scenario where a subset would be larger than the total.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The term \"oldest schools\" can be interpreted in multiple valid ways. It could mean schools with the earliest opening date (OpenDate), schools with the lowest CDS code (CDSCode), or schools with the smallest NCES identifier. Without clarification, different interpretations will yield different results.",
+      "example_questions": [
+        "Should \"oldest schools\" be determined by the earliest OpenDate, lowest CDSCode, or another criterion?",
+        "Does \"oldest\" refer to the date the school opened, or to the order in which schools were registered in the system?",
+        "Should schools be sorted by OpenDate or by CDSCode to identify the oldest ones?"
+      ],
+      "id": "oldest_schools_interpretation",
+      "resolution": "\"Oldest schools\" should be determined by sorting schools by CDSCode in ascending order. The schools with the lowest CDSCode values are considered the oldest.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for \"high academic performance\" but does not define how this metric should be calculated. There are multiple SAT score columns available (Reading, Math, Writing), but it's unclear whether to use an average, a sum, a weighted combination, or another formula.",
+      "example_questions": [
+        "How should \"high academic performance\" be calculated from the SAT scores?",
+        "Should \"high academic performance\" use the average of all three SAT subject scores (Reading, Math, Writing)?",
+        "Should \"high academic performance\" prioritize one SAT subject over others, or weight them equally?",
+        "Is there a specific formula or metric used to calculate academic performance?"
+      ],
+      "id": "high_academic_performance_calculation",
+      "resolution": "\"High academic performance\" should be calculated as the average of the three SAT subject scores: (AvgScrRead + AvgScrMath + AvgScrWrite) / 3.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks for schools that \"offer exclusively virtual instruction,\" but the Virtual column contains coded values (A, B, C, D) without clear definitions. It's unclear which value or values represent \"exclusively virtual\" instruction versus other types of virtual or non-virtual offerings.",
+      "example_questions": [
+        "Which value in the Virtual column represents \"exclusively virtual instruction\"?",
+        "What do the different coded values (A, B, C, D) in the Virtual column represent?",
+        "Does \"exclusively virtual\" mean Virtual = 'C', or could it include other values?"
+      ],
+      "id": "virtual_column_values_unclear",
+      "resolution": "\"Exclusively virtual instruction\" corresponds to Virtual = 'C', which indicates schools with no physical building where all instruction is virtual. Schools with other Virtual codes (A, B, D) should be excluded.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

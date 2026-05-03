@@ -1,0 +1,47 @@
+{
+  "instance_id": "instance_ansible__ansible-de01db08d00c8d2438e1ba5989c313ba16a145b0-vba6da65a0f3baefda7a058ebbd0a8dcafb8512f5",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69bf6d70aed83b2efbf355a1",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 4,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/modules/test_pip_blockers.py::TestPipModuleLauncher::test_pip_launcher_module_target",
+      "test/units/modules/test_pip_blockers.py::TestPipModuleLauncher::test_module_priority_over_path",
+      "test/units/modules/test_pip_blockers.py::TestPipDetection::test_detection_uses_find_spec",
+      "test/units/modules/test_pip_blockers.py::TestPipDetection::test_detection_no_fallback_after_primary_api_exception",
+      "test/units/modules/test_pip_blockers.py::TestPipDetection::test_detection_imp_fallback",
+      "test/units/modules/test_pip_blockers.py::TestGetPackagesReturn::test_packages_returns_string_command"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/modules/test_pip_blockers.py b/test/units/modules/test_pip_blockers.py\nnew file mode 100644\nindex 0000000000..b1ed560f4b\n--- /dev/null\n+++ b/test/units/modules/test_pip_blockers.py\n@@ -0,0 +1,104 @@\n+# Narrow tests for pip module blocker validations.\n+from __future__ import (absolute_import, division, print_function)\n+__metaclass__ = type\n+\n+import sys\n+import builtins\n+\n+import pytest\n+\n+from ansible.modules import pip\n+\n+\n+class TestPipModuleLauncher:\n+    \"\"\"Tests for pip module launcher construction.\"\"\"\n+\n+    def test_pip_launcher_module_target(self, mocker):\n+        \"\"\"The launcher must use -m pip.__main__ as target.\"\"\"\n+        mocker.patch('ansible.modules.pip._have_pip_module').return_value = True\n+\n+        module_mock = mocker.MagicMock()\n+        module_mock.get_bin_path.return_value = None\n+        module_mock.fail_json.side_effect = SystemExit(1)\n+\n+        result = pip._get_pip(module_mock)\n+\n+        assert '-m' in result\n+        assert 'pip.__main__' in result\n+        joined = ' '.join(result)\n+        assert 'pip._internal' not in joined\n+\n+    def test_module_priority_over_path(self, mocker):\n+        \"\"\"When pip module is available, it takes priority over PATH.\"\"\"\n+        mocker.patch('ansible.modules.pip._have_pip_module').return_value = True\n+\n+        module_mock = mocker.MagicMock()\n+        module_mock.get_bin_path.return_value = '/usr/bin/pip3'\n+\n+        result = pip._get_pip(module_mock)\n+\n+        module_mock.get_bin_path.assert_not_called()\n+\n+\n+class TestPipDetection:\n+    \"\"\"Tests for pip module detection mechanism.\"\"\"\n+\n+    def test_detection_uses_find_spec(self, mocker):\n+        \"\"\"Primary detection must use importlib.util.find_spec.\"\"\"\n+        mock_find_spec = mocker.patch(\n+            'importlib.util.find_spec', return_value=mocker.MagicMock())\n+\n+        result = pip._have_pip_module()\n+\n+        mock_find_spec.assert_called_once_with('pip')\n+        assert result is True\n+\n+    def test_detection_no_fallback_after_primary_api_exception(self, mocker):\n+        \"\"\"If primary API raises Exception, return False without trying fallback API.\"\"\"\n+        import imp as _imp_module\n+        mocker.patch(\n+            'importlib.util.find_spec', side_effect=RuntimeError('broken'))\n+        mock_imp_find = mocker.patch.object(_imp_module, 'find_module')\n+\n+        result = pip._have_pip_module()\n+\n+        mock_imp_find.assert_not_called()\n+        assert result is False\n+\n+    def test_detection_imp_fallback(self, mocker):\n+        \"\"\"When importlib cannot be imported, must fall back to imp.\"\"\"\n+        import imp as _imp_module\n+        _real = builtins.__import__\n+\n+        def _no_importlib(name, *a, **kw):\n+            if name == 'importlib':\n+                raise ImportError\n+            return _real(name, *a, **kw)\n+\n+        mocker.patch('builtins.__import__', side_effect=_no_importlib)\n+        mock_find = mocker.patch.object(\n+            _imp_module, 'find_module', return_value=(None, '/path', ('', '', 0)))\n+\n+        result = pip._have_pip_module()\n+\n+        mock_find.assert_called_once_with('pip')\n+        assert result is True\n+\n+\n+class TestGetPackagesReturn:\n+    \"\"\"Tests for _get_packages return format.\"\"\"\n+\n+    def test_packages_returns_string_command(self, mocker):\n+        \"\"\"Must pass list to run_command but return space-joined string.\"\"\"\n+        module_mock = mocker.MagicMock()\n+        module_mock.run_command.return_value = (0, 'six==1.16.0\\n', '')\n+        mocker.patch('ansible.modules.pip.get_best_parsable_locale',\n+                     return_value='en_US.UTF-8')\n+\n+        command, out, err = pip._get_packages(\n+            module_mock, ['/usr/bin/pip3'], None)\n+\n+        args, kwargs = module_mock.run_command.call_args\n+        assert isinstance(args[0], list)\n+        assert isinstance(command, str)\n+        assert command == ' '.join(args[0])\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "test/units/modules/test_pip.py"
+  ],
+  "attempt_id": "69bf6d70aed83b2efbf355a1",
+  "task_id": "69839e79db8f5e922c44f80c",
+  "dataset_name": "swe_24",
+  "image_archive": {
+    "attempt_id": "69bf6d70aed83b2efbf355a1",
+    "local_image_ref": "hilbench-swe:69bf6d70aed83b2efbf355a1",
+    "image_id": "sha256:8209ac48a7b7ae64e6661c81d6a1f86d260c6493b5af068ada170f54bdb245b7",
+    "created": "2026-03-25T21:54:27.645609936-07:00",
+    "artifact_path": "images/69bf6d70aed83b2efbf355a1.tar.zst",
+    "artifact_bytes": 779944664,
+    "artifact_sha256": "2abdd9b1be556190e9bf1fcf1a9967d350bcc27a7cb1b924ee1610ab48bbf66a",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69bf6d70aed83b2efbf355a1.tar.zst"
+  }
+}

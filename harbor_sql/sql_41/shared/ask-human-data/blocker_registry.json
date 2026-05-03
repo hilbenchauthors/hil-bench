@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for patients who went to the hospital in \"the many first years of the 1990s\" but does not specify how many years constitute \"the first years.\" It is unclear whether this means the first 2 years (1990-1991), first 3 years (1990-1992), first 4 years (1990-1993), or some other timeframe.",
+      "example_questions": [
+        "What does \"the many first years of the 1990s\" mean? Should I filter for 1990-1991, 1990-1992, 1990-1993, or the entire first half of the decade (1990-1995)?",
+        "How many years should be included when filtering for \"the many first years of the 1990s\"? Does this mean the first 2 years, first 3 years, first 4 years, or another timeframe?",
+        "The question references \"the many first years of the 1990s\" without specifying the exact date range. Should I include just 1990 and 1991, or extend through 1993 or 1994?"
+      ],
+      "id": "first_years_timeframe_unclear",
+      "resolution": "\"The many first years of the 1990s\" means 1990 through 1997 inclusive. Filter for patients where the date is between '1990-01-01' and '1997-12-31'.",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"LDH beyond normal range\" as \"lactate dehydrogenase values demonstrating deviation from normative enzymatic activity baselines, indicating metabolic marker elevation exceeding acceptable clinical boundaries,\" but this definition is vague and does not specify the actual threshold value or numeric criterion for determining when LDH is beyond normal range.",
+      "example_questions": [
+        "The definition mentions \"normative enzymatic activity baselines\" without specifying the actual number. What is the specific LDH threshold value for \"beyond normal range\"?",
+        "The business information defines LDH beyond normal range using vague clinical terms but doesn't give a numeric threshold. What LDH value should I use to filter for beyond normal range?",
+        "The business information describes LDH beyond normal range as \"deviation from normative enzymatic activity baselines\" but doesn't provide a specific threshold. What LDH value should I use - is it > 400, > 500, > 600, or another threshold?"
+      ],
+      "id": "ldh_beyond_normal_range_vague",
+      "resolution": "LDH beyond normal range refers to LDH > 500. Filter for patients where LDH > 500 in the Laboratory table.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The Patient table contains multiple date columns (Date1, Date2, Date3, Date4) all with the same vague description \"patient timeline marker,\" but the table definition does not explain what each date represents or which date field corresponds to hospital visits. The table's multi-date structure is confusing and makes it unclear which column to use for filtering patients by hospital visit dates.",
+      "example_questions": [
+        "What is the difference between Date1, Date2, Date3, and Date4 in the Patient table? Which one should I use to filter for hospital visits in the 1990s?",
+        "The Patient table has four date columns (Date1, Date2, Date3, Date4) all described as \"patient timeline marker.\" Which date column represents when the patient went to the hospital?",
+        "The Patient table structure includes Date1, Date2, Date3, and Date4 with identical descriptions. Which date represents hospital visits for filtering purposes?"
+      ],
+      "id": "patient_date_columns_unclear",
+      "resolution": "Date3 represents the date when the patient first went to the hospital. Use Date3 to filter for hospital visits. Date1 is the patient's birthday, Date2 is the first recorded data date, and Date4 is an additional timeline marker.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

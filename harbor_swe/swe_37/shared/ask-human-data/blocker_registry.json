@@ -1,0 +1,50 @@
+{
+  "blockers": [
+    {
+      "id": "cancellation_context_parameter",
+      "type": "missing parameters",
+      "description": "The requirements oblige cancellation screens to pass a cancellation-aware signal and to keep existing non-cancellation call sites working, but they do not specify the cancellation context parameter\u2019s name, type, or default when it is omitted (see public interfaces for the utility entry point name).",
+      "resolution": "Implement it as a boolean parameter named 'cancelled' with a default value of false, passed as the second argument to subscriptionExpires.\\nUsage: subscriptionExpires(subscription, true) for cancellation and subscriptionExpires(subscription) for normal behavior.\\nCancellation-flow call sites must import subscriptionExpires from the helpers barrel export (i.e. from '../helpers' or '../../helpers'), not directly from the implementation module, to follow the existing codebase import conventions.",
+      "example_questions": [
+        "-  What type should the cancellation context parameter be in the subscriptionExpires function?",
+        "-  What is the default value for the cancellation context parameter when it is not provided?",
+        "-  How should the cancellation aware mode be passed as a parameter to the utility function?"
+      ]
+    },
+    {
+      "id": "forced_renewal_flags_when_cancelled",
+      "type": "ambiguous requirements",
+      "description": "The requirements require cancellation-aware mode to present a non-renewing picture and require renewal-related utility fields to stay aligned with Renew on billing data unless another requirement mandates different presentation for a mode. When cancellation-aware mode is active while billing still indicates auto-renew, more than one reading of those renewal-related fields could seem defensible (strict billing fidelity versus cancellation UX), and the requirements do not pick one.",
+      "resolution": "When the cancellation-aware mode is active, renewDisabled must be true and subscriptionExpiresSoon must be true, and renewEnabled must be false, regardless of the actual Renew state.\\nFor every subscriptionExpires return value, renewEnabled must be the logical inverse of renewDisabled (renewEnabled = !renewDisabled).",
+      "example_questions": [
+        "-  Should subscriptionExpiresSoon be true when the cancellation-aware mode is active but Renew is Enabled?",
+        "-  When cancellation-aware mode is on but Renew still reads enabled, should renewEnabled stay tied to billing Renew or reflect the non-renewing presentation?",
+        "-  Should renewEnabled always be the opposite of renewDisabled for every helper result?"
+      ]
+    },
+    {
+      "id": "renew_disabled_ignores_upcoming",
+      "type": "missing parameters",
+      "description": "The requirements state that the utility must always incorporate scheduled subscription changes when available, but they do not define the full set of conditions under which scheduled-change data should be bypassed in favor of the base subscription \u2014 specifically, which property and value on the base subscription object should cause the utility to ignore UpcomingSubscription outside of cancellation-aware mode.",
+      "resolution": "When the base subscription's Renew field equals Renew.Disabled, ignore UpcomingSubscription and use the base subscription as latestSubscription for resolving plan name, expiration date, and renewal fields. Example: if subscription.Renew === Renew.Disabled and subscription.UpcomingSubscription exists with a different plan, the utility must return the base subscription's plan name and PeriodEnd, not the upcoming one.",
+      "example_questions": [
+        "-  Are there conditions on the base subscription that should cause the utility to ignore UpcomingSubscription even when it is present?",
+        "-  Which specific property and value on the base subscription object should prevent scheduled-change data from being used?",
+        "-  Should any state of the base subscription cause the utility to bypass UpcomingSubscription when resolving plan and expiration fields?",
+        "-  Is there a base subscription field that determines whether scheduled-change data should drive the primary subscription snapshot?",
+        "-  When UpcomingSubscription is present but the base subscription is in a specific state, which snapshot should the utility use for latestSubscription?"
+      ]
+    },
+    {
+      "id": "conflicting_subscription_data",
+      "type": "contradictory requirements",
+      "description": "The requirements require pending or scheduled subscription changes to be honored when present, while cancellation-aware mode must anchor the expiration timestamp and plan name on the term the user is cancelling. When scheduled-change data exists alongside an active paid term, it is unclear whether cancellation-aware logic should still treat that scheduled configuration as the primary subscription snapshot for the utility or prioritize the cancelling term.",
+      "resolution": "When the cancellation-aware mode is active, use the base subscription only and ignore UpcomingSubscription. The latestSubscription selection must return the base subscription object.",
+      "example_questions": [
+        "-  When cancellation-aware mode is on, does honoring scheduled-change data still require that configuration to drive which subscription snapshot the utility treats as primary?",
+        "-  Cancellation mode calls for the plan name and end for the cancelling term; should that override preferring scheduled-change data when it exists?",
+        "-  How should I reconcile always incorporating scheduled changes with cancellation UX that centers on the current term rather than a future scheduled plan?"
+      ]
+    }
+  ]
+}

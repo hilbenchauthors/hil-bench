@@ -1,0 +1,10 @@
+{
+  "csv_index": 67,
+  "dataset_name": "sql_67",
+  "hf_task_id": "public_sql_67",
+  "task_id": "6977cf5464c4667b98edc52f",
+  "attempt_id": "6998a9dd5c07f4e93cdf7ab0",
+  "task_attempt_id": "6977cf5464c4667b98edc52f_6998a9dd5c07f4e93cdf7ab0",
+  "database_name": "formula_1",
+  "num_blockers": 3
+}

@@ -1,0 +1,67 @@
+{
+  "blockers": [
+    {
+      "description": "\"Prevalent heteroatoms\" is not a standard classification and could include any non-carbon non-hydrogen elements such as N, O, S, Cl, Br, P, F, Na, or various subsets depending on the analytical context.",
+      "example_questions": [
+        "Which chemical elements are classified as prevalent heteroatoms for molecular connectivity queries?",
+        "Does prevalent heteroatoms include halogens like chlorine and bromine, or only nitrogen, oxygen, and sulfur?",
+        "What specific element codes in the atom table should be used to filter for prevalent heteroatoms?",
+        "Are all non-carbon non-hydrogen elements considered prevalent heteroatoms, or only a specific subset?"
+      ],
+      "id": "prevalent_heteroatoms_scope",
+      "resolution": "Interpret prevalent heteroatoms are nitrogen (n), oxygen (o), and sulfur (s).",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "\"Early cataloging phase\" does not specify a concrete date range, and the registration dates span over a decade, making it impossible to determine which portion of the timeline qualifies.",
+      "example_questions": [
+        "What date range does the early cataloging phase correspond to?",
+        "Could you specify the exact start and end dates of the early cataloging phase?",
+        "What are the start and end dates that define the early cataloging phase?"
+      ],
+      "id": "early_cataloging_phase_dates",
+      "resolution": "The early cataloging phase covers molecules with registration_date between January 1, 2010 and December 31, 2011 (inclusive).",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The question references \"high-risk molecules\", but the business information does not define which risk_level values correspond to the high-risk classification. ",
+      "example_questions": [
+        "What is the definition of a high-risk molecule?",
+        "What criteria determine whether a molecule is categorized as high-risk?",
+        "What exact conditions must a molecule meet to be included in the high-risk category?"
+      ],
+      "id": "high_risk_classification",
+      "resolution": "High-risk molecules are those with a value above 60 in the risk_level column in the molecule table. This can be filtered with molecule.risk_level > 60",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The business information describes structural linkages as \"primary bonding interactions\" without clarifying whether this includes all bond orders or only specific bond types.",
+      "example_questions": [
+        "Do \"primary bonding interactions\" in the structural linkage analysis refer to single bonds only, or do they include double and triple bonds?",
+        "When counting structural linkages for atom connectivity, should all bond orders (single, double, triple) be included or only single bonds?",
+        "Are double bonds and triple bonds counted as structural linkages, or should only single bonds be considered?",
+        "Should structural linkage counting include all bond orders, or is there a specific bond order that defines primary bonding interactions?"
+      ],
+      "id": "structural_bond_scope",
+      "resolution": "Structural linkages include only single bonds, represented by the value '-'.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The schema contains three tables with overlapping connectivity data: bond, atom_bonds, and connected, each representing atom-to-atom relationships in a different structure, making it unclear which table should be used for atom-level connectivity queries.",
+      "example_questions": [
+        "Which of the three tables containing bond connectivity data: bond, atom_bonds, or connected, should be used for counting atom-level structural linkages?",
+        "Should atom connectivity queries parse the bond_id in the bond table, use canonical pairs in atom_bonds, or filter pairwise records in the connected table?",
+        "The schema contains three tables with bond and atom pair data, which one is the correct source for atom connectivity analysis?",
+        "For enumerating structural linkages of a specific atom, should the query use the bond table, the atom_bonds table, or the connected table?"
+      ],
+      "id": "connectivity_source_table",
+      "resolution": "Use the connected table, filtering where the target atom appears in the atom_id column, as the primary source for atom-level connectivity queries.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

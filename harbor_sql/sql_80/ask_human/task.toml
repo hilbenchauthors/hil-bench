@@ -1,0 +1,48 @@
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-sql_80-ask_human"
+description = ""
+authors = []
+keywords = []
+[metadata]
+task_id = "ask_human"
+task_type = "sql"
+mode = "ask_human"
+database_name = "formula_1"
+task_attempt_id = "6977cf5464c4667b98edc52b_698f3463a9eb62d3cc315794"
+tags = [ "sql", "ask_human", "hil-bench",]
+[verifier]
+timeout_sec = 300.0
+
+[verifier.env]
+[agent]
+timeout_sec = 1800.0
+[environment]
+build_timeout_sec = 600.0
+os = "linux"
+cpus = 2
+memory_mb = 4096
+storage_mb = 12288
+gpus = 0
+allow_internet = true
+[[environment.mcp_servers]]
+name = "sql-tools"
+transport = "streamable-http"
+url = "http://sql-tools:8000/mcp"
+args = []
+
+[[environment.mcp_servers]]
+name = "business-info"
+transport = "streamable-http"
+url = "http://business-info:8000/mcp"
+args = []
+
+[[environment.mcp_servers]]
+name = "ask-human"
+transport = "streamable-http"
+url = "http://ask-human:8000/mcp"
+args = []
+
+[environment.env]
+[solution.env]

@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "collectchunks_nonpositive_chunk_size_fallback_two",
+      "type": "missing parameters",
+      "description": "      \"description\": \"The Requirements define CollectChunks with a chunk size parameter but do not specify the exact fallback chunk size for non-positive n. Without an explicit numeric value, implementations may choose different behavior (panic, 1, ignore, etc.).",
+      "resolution": "For any n <= 0, CollectChunks must use an effective chunk size of exactly 2. It must not panic. Example: input [10,20,30,40,50] with n=0 or n=-3 must yield [[10,20],[30,40],[50]].\"",
+      "example_questions": [
+        "-  What exact fallback chunk size should CollectChunks use when n is zero or negative?",
+        "-  If n <= 0 in CollectChunks, what numeric replacement value must be used?\"",
+        "-  Should CollectChunks panic or use a concrete default when n is non-positive?",
+        "-  What is the required behavior for invalid chunk sizes in CollectChunks?",
+        "-  Does CollectChunks use 1, 2, or another value for n <= 0?"
+      ]
+    },
+    {
+      "id": "collectchunks_defensive_tight_chunks",
+      "type": "ambiguous requirements",
+      "description": "The Requirements do not define memory-safety semantics for yielded chunks. It is unclear whether CollectChunks may yield internal backing slices directly, potentially retaining larger buffers or exposing mutable aliasing behavior to callers.\n",
+      "resolution": "CollectChunks must yield defensive, tight slices. Every yielded chunk must be copied into a new slice whose capacity equals its length (cap(chunk) == len(chunk)). This applies to full and final partial chunks.",
+      "example_questions": [
+        "-  Should CollectChunks yield raw internal slices or defensive copies?",
+        "-  Must yielded chunks have capacity exactly equal to length?",
+        "-  How should CollectChunks avoid retaining oversized backing arrays?",
+        "-  Is aliasing of yielded chunks allowed in CollectChunks?",
+        "-  Do we need cap(chunk) == len(chunk) for each yielded chunk?"
+      ]
+    },
+    {
+      "id": "collectchunks_argument_order_conflict",
+      "type": "contradictory requirements",
+      "description": "The Problem Statement explicitly says 'the parameter ordering should be preserved' for API consistency (current signature is `CollectChunks(n int, it iter.Seq[T])`), while the Requirements say the function should be 'modernized to align with Go 1.23 iterator patterns' which conventionally use data-first argument order. These instructions conflict on whether to preserve the old order or adopt the new convention.",
+      "resolution": "Prioritize the Go 1.23 data-first convention. The required signature is `CollectChunks[T any](it iter.Seq[T], n int)` with the iterator first and chunk size second. Update call sites to use this order.\n",
+      "example_questions": [
+        "-  What is the correct argument order for CollectChunks?",
+        "-  In CollectChunks, which parameter comes first: the iterator or the chunk size?",
+        "-  Which CollectChunks signature is valid: `CollectChunks(n, it)` or `CollectChunks(it, n)`?",
+        "-  How should CollectChunks parameters be ordered to match the intended API?",
+        "-  What parameter order should callers use for CollectChunks?"
+      ]
+    }
+  ]
+}

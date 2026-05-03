@@ -1,0 +1,45 @@
+{
+  "instance_id": "instance_navidrome__navidrome-3977ef6e0f287f598b6e4009876239d6f13b686d",
+  "repo_name": "app",
+  "repo_name_source": "navidrome/navidrome",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c6ac9f46a2e65fc3988794",
+  "log_parser": "sweap_json",
+  "language": "go",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "TestHasher",
+      "TestAmbiguousSeedInputFraming",
+      "TestMissingHasherDigestAndAutoSeedRules",
+      "TestContradictoryAutoSeedSerializationAndDigestScope"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/utils/hasher/export_test.go b/utils/hasher/export_test.go\nnew file mode 100644\nindex 00000000..9aa58733\n--- /dev/null\n+++ b/utils/hasher/export_test.go\n@@ -0,0 +1,38 @@\n+package hasher\n+\n+import (\n+\t\"hash/maphash\"\n+\t\"reflect\"\n+\t\"unsafe\"\n+)\n+\n+// DigestForTest matches HashFunc payload layout (UTF-8 seed, 0x1F, UTF-8 input).\n+func DigestForTest(seed, input string) uint64 {\n+\tb := make([]byte, 0, len(seed)+1+len(input))\n+\tb = append(b, seed...)\n+\tb = append(b, 0x1f)\n+\tb = append(b, input...)\n+\n+\tv := reflect.ValueOf(instance).Elem()\n+\tseedType := reflect.TypeOf(maphash.Seed{})\n+\tvar digestSeed maphash.Seed\n+\tvar found bool\n+\tfor i := 0; i < v.NumField(); i++ {\n+\t\tf := v.Field(i)\n+\t\tif f.Type() != seedType {\n+\t\t\tcontinue\n+\t\t}\n+\t\tif found {\n+\t\t\tpanic(\"hasher: multiple maphash.Seed fields on Hasher\")\n+\t\t}\n+\t\tif !f.CanAddr() {\n+\t\t\tpanic(\"hasher: maphash.Seed field not addressable\")\n+\t\t}\n+\t\tdigestSeed = *(*maphash.Seed)(unsafe.Pointer(f.UnsafeAddr()))\n+\t\tfound = true\n+\t}\n+\tif !found {\n+\t\tpanic(\"hasher: no maphash.Seed field on Hasher\")\n+\t}\n+\treturn maphash.Bytes(digestSeed, b)\n+}\ndiff --git a/utils/hasher/hasher_test.go b/utils/hasher/hasher_test.go\nindex 3127f787..6e541885 100644\n--- a/utils/hasher/hasher_test.go\n+++ b/utils/hasher/hasher_test.go\n@@ -1,6 +1,10 @@\n package hasher_test\n \n import (\n+\t\"hash/maphash\"\n+\t\"math\"\n+\t\"reflect\"\n+\t\"strconv\"\n \t\"testing\"\n \n \t\"github.com/navidrome/navidrome/utils/hasher\"\n@@ -8,13 +12,18 @@ import (\n \t. \"github.com/onsi/gomega\"\n )\n \n+// Blocker-only tests (task_files/blocker_registry.json) use standalone *testing.T functions below.\n+// TestHasher runs the shared Ginkgo suite without those blocker examples.\n+\n+const blockerTestInput = \"123e4567e89b12d3a456426614174000\"\n+\n func TestHasher(t *testing.T) {\n \tRegisterFailHandler(Fail)\n \tRunSpecs(t, \"Hasher Suite\")\n }\n \n var _ = Describe(\"HashFunc\", func() {\n-\tconst input = \"123e4567e89b12d3a456426614174000\"\n+\tconst input = blockerTestInput\n \n \tIt(\"hashes the input and returns the sum\", func() {\n \t\thashFunc := hasher.HashFunc()\n@@ -40,4 +49,121 @@ var _ = Describe(\"HashFunc\", func() {\n \t\tExpect(sum).To(Equal(hashFunc(\"1\", input)))\n \t\tExpect(sum2).To(Equal(hashFunc(\"2\", input)))\n \t})\n+\n+\tIt(\"keeps the same hash for the same id and seed\", func() {\n+\t\tid := \"1\"\n+\t\thashFunc := hasher.HashFunc()\n+\t\thasher.SetSeed(id, \"original_seed\")\n+\t\tsum := hashFunc(id, input)\n+\t\tExpect(sum).To(Equal(hashFunc(id, input)))\n+\n+\t\thasher.Reseed(id)\n+\t\tExpect(sum).NotTo(Equal(hashFunc(id, input)))\n+\n+\t\thasher.SetSeed(id, \"original_seed\")\n+\t\tExpect(sum).To(Equal(hashFunc(id, input)))\n+\t})\n+\n+\tIt(\"uses map[string]string for per-id seed storage\", func() {\n+\t\thasherType := reflect.TypeOf(*hasher.NewHasher())\n+\t\tseedsField, found := hasherType.FieldByName(\"seeds\")\n+\t\tExpect(found).To(BeTrue())\n+\t\tExpect(seedsField.Type.Kind()).To(Equal(reflect.Map))\n+\t\tExpect(seedsField.Type.Key().Kind()).To(Equal(reflect.String))\n+\t\tExpect(seedsField.Type.Elem().Kind()).To(Equal(reflect.String))\n+\t\tExpect(seedsField.Type.Elem()).NotTo(Equal(reflect.TypeOf(maphash.Seed{})))\n+\t})\n })\n+\n+// ambiguous_seed_input_framing\n+func TestAmbiguousSeedInputFraming(t *testing.T) {\n+\tg := NewWithT(t)\n+\tid := \"test_framing\"\n+\thashFunc := hasher.HashFunc()\n+\n+\thasher.SetSeed(id, \"A\")\n+\thashJoined := hashFunc(id, \"B\")\n+\tg.Expect(hashJoined).To(Equal(hasher.DigestForTest(\"A\", \"B\")))\n+\n+\thasher.SetSeed(id, \"AB\")\n+\thashPretendSplit := hashFunc(id, \"\")\n+\tg.Expect(hashPretendSplit).NotTo(Equal(hashJoined))\n+}\n+\n+// missing_hasher_digest_and_auto_seed_rules\n+func TestMissingHasherDigestAndAutoSeedRules(t *testing.T) {\n+\tt.Run(\"stable_digest_for_fixed_seed_and_input\", func(t *testing.T) {\n+\t\tg := NewWithT(t)\n+\t\tid := \"stable_digest\"\n+\t\thashFunc := hasher.HashFunc()\n+\t\thasher.SetSeed(id, \"seed_value\")\n+\n+\t\tfirst := hashFunc(id, blockerTestInput)\n+\t\tfor i := 0; i < 50; i++ {\n+\t\t\tg.Expect(hashFunc(id, blockerTestInput)).To(Equal(first))\n+\t\t}\n+\t})\n+\n+\tt.Run(\"auto_seeds_are_decimal_int64_range_strings\", func(t *testing.T) {\n+\t\tg := NewWithT(t)\n+\t\tid := \"test_auto_seed_range\"\n+\t\thashFunc := hasher.HashFunc()\n+\n+\t\tinitialHash := hashFunc(id, \"test\")\n+\n+\t\tseed, ok := hasher.GetSeed(id)\n+\t\tg.Expect(ok).To(BeTrue())\n+\n+\t\tseedValue, err := strconv.ParseInt(seed, 10, 64)\n+\t\tg.Expect(err).NotTo(HaveOccurred())\n+\n+\t\tg.Expect(seedValue).To(BeNumerically(\">=\", 0))\n+\t\tg.Expect(seedValue).To(BeNumerically(\"<\", int64(math.MaxInt64)))\n+\n+\t\tpreviousSeed := seed\n+\t\tpreviousHash := initialHash\n+\n+\t\tfor i := 0; i < 10; i++ {\n+\t\t\thasher.Reseed(id)\n+\t\t\tseed, _ = hasher.GetSeed(id)\n+\t\t\tg.Expect(seed).NotTo(Equal(previousSeed))\n+\n+\t\t\tseedValue, err = strconv.ParseInt(seed, 10, 64)\n+\t\t\tg.Expect(err).NotTo(HaveOccurred())\n+\t\t\tg.Expect(seedValue).To(BeNumerically(\">=\", 0))\n+\t\t\tg.Expect(seedValue).To(BeNumerically(\"<\", int64(math.MaxInt64)))\n+\n+\t\t\tcurrentHash := hashFunc(id, \"test\")\n+\t\t\tg.Expect(currentHash).NotTo(Equal(previousHash))\n+\n+\t\t\tfor _, r := range seed {\n+\t\t\t\tg.Expect(r >= '0' && r <= '9').To(BeTrue())\n+\t\t\t}\n+\n+\t\t\tpreviousSeed = seed\n+\t\t\tpreviousHash = currentHash\n+\t\t}\n+\t})\n+}\n+\n+// contradictory_auto_seed_serialization_and_digest_scope\n+func TestContradictoryAutoSeedSerializationAndDigestScope(t *testing.T) {\n+\tg := NewWithT(t)\n+\thashFunc := hasher.HashFunc()\n+\tid1 := \"test_id_1\"\n+\tid2 := \"test_id_2\"\n+\tsameSeedValue := \"001:Shared_Seed-Value\"\n+\tin := \"input\"\n+\n+\thasher.SetSeed(id1, sameSeedValue)\n+\thasher.SetSeed(id2, sameSeedValue)\n+\n+\tstoredSeed, ok := hasher.GetSeed(id1)\n+\tg.Expect(ok).To(BeTrue())\n+\tg.Expect(storedSeed).To(Equal(sameSeedValue))\n+\n+\tsum1 := hashFunc(id1, in)\n+\tsum2 := hashFunc(id2, in)\n+\n+\tg.Expect(sum1).To(Equal(sum2))\n+}\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "utils/hasher/hasher_test.go"
+  ],
+  "attempt_id": "69c6ac9f46a2e65fc3988794",
+  "task_id": "698648c3283d42a760567550",
+  "dataset_name": "swe_4",
+  "image_archive": {
+    "attempt_id": "69c6ac9f46a2e65fc3988794",
+    "local_image_ref": "hilbench-swe:69c6ac9f46a2e65fc3988794",
+    "image_id": "sha256:d17f2c04e18a73402d506f772410d3db18e202d34ede6de46790be9c62ec8fd4",
+    "created": "2026-03-28T04:03:31.608173842-07:00",
+    "artifact_path": "images/69c6ac9f46a2e65fc3988794.tar.zst",
+    "artifact_bytes": 1035161241,
+    "artifact_sha256": "1a4e590ee920f6f74c5e990bbec4f9767b21990dd61c6909fe24d759aacece36",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c6ac9f46a2e65fc3988794.tar.zst"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "blockers": [
+    {
+      "description": "It is unclear what a \"low-performing school in SAT\" is, which could refer to average math scores, reading scores, or excellence rate. ",
+      "example_questions": [
+        "What does \"low-performing in SAT\" mean?",
+        "How do I determine if a school is low-performing in SAT?",
+        "Which SAT metric should I use to identify low-performing schools?",
+        "Does low-performing refer to math scores, reading scores, or something else?"
+      ],
+      "id": "low_performing_sat",
+      "resolution": "A low-performing school is one where the average SAT math score is less than 550.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The term \"small schools\"  is vague and does not specify a threshold.",
+      "example_questions": [
+        "What qualifies as a small school?",
+        "What enrollment threshold defines a small school?",
+        "How many students must a school have to be considered small?",
+        "Which enrollment column should I use to determine school size?"
+      ],
+      "id": "small_schools",
+      "resolution": "A small school is one with an enrollment in grade 12 (enroll12) of a maximum of 30 students.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The term \"recently opened\" does not specify a date range or cutoff for when a school must have opened.",
+      "example_questions": [
+        "What date range qualifies as \"recently opened\"?",
+        "How recent must a school's opening date be?",
+        "What is the cutoff date for a school to be considered recently opened?",
+        "Does \"recently opened\" mean within the last 5 years, 10 years, or something else?"
+      ],
+      "id": "recently_opened",
+      "resolution": "A recently opened school is one with an OpenDate on or after January 1, 1990.",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The term \"academic readiness index\" is not defined anywhere in the business information or database schema.",
+      "example_questions": [
+        "What is the academic readiness index?",
+        "How is academic readiness index calculated?",
+        "What columns are used to compute the academic readiness index?",
+        "What threshold makes an academic readiness index considered \"low\"?"
+      ],
+      "id": "academic_readiness_index",
+      "resolution": "The academic readiness index is calculated as the number of SAT test takers (NumTstTkr) divided by the 12th-grade enrollment (enroll12). A \"low\" academic readiness index is lower than 0.8.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The virtual column contains single-letter codes (F, V, C, N, P), but their meanings are not explained in the column description.",
+      "example_questions": [
+        "What do the values in the virtual column represent?",
+        "Which value in the virtual column indicates an exclusively virtual school?",
+        "What does the \"F\" mean in the virtual column?",
+        "How do I identify exclusively virtual schools using the Virtual column?"
+      ],
+      "id": "exclusively_virtual",
+      "resolution": "A school that is exclusively virtual has a value of \"F\" in the virtual column.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

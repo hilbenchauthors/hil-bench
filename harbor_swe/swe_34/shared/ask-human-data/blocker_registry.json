@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "id": "missing_sort_keys_default_value",
+      "type": "missing parameters",
+      "description": "The requirement states that the filters must apply a default line width when none is provided by the caller, but does not specify the exact numeric value to use. The underlying YAML library has its own default that may not be suitable for the data being serialized.",
+      "resolution": "Use 1048576 as the default width value. Define it as a module-level constant _DEFAULT_TO_YAML_EMIT_WIDTH = 1048576 and pass it via width = kw.pop('width', _DEFAULT_TO_YAML_EMIT_WIDTH) in both to_yaml and to_nice_yaml. NOT 80, NOT 4096, NOT any other value.",
+      "example_questions": [
+        "-  What default line width should the to_yaml and to_nice_yaml filters apply when the caller does not specify one?",
+        "-  Does the project define a constant for the default emit width used by the YAML filters?",
+        "-  What numeric value should be passed to PyYAML's width parameter when no explicit width is provided by the caller?",
+        "-  Is there a project-level convention for the default line width applied by the YAML serialization filters?"
+      ]
+    },
+    {
+      "id": "ambiguous_exception_preservation_mechanism",
+      "type": "ambiguous requirements",
+      "description": "The requirements state that the underlying exception details must be preserved for debugging and available for inspection, but do not specify the mechanism. It is unclear whether the original exception should be preserved as an object attribute (e.g. orig_exc), via Python exception chaining (raise ... from e), or if including the exception text in the error message string is sufficient.",
+      "resolution": "The original exception must be preserved using Python's built-in exception chaining via `raise AnsibleFilterError(...) from e`. This sets the `__cause__` attribute on the raised exception to the original exception object, making it available for programmatic inspection. Do not use the `orig_exc` keyword argument; instead rely on standard Python 3 exception chaining so that `error.__cause__` holds the original exception.",
+      "example_questions": [
+        "-  When raising `AnsibleFilterError` after an underlying exception, what mechanism must be used to preserve the original exception object for inspection?",
+        "-  Should the original exception be preserved via Python exception chaining (`raise ... from e`) or via an attribute/parameter such as `orig_exc`?",
+        "-  Is it required that `AnsibleFilterError.__cause__` be set to the original exception, or is including only the exception text in the message sufficient?",
+        "-  What is the required way for callers to programmatically access the original exception from the raised `AnsibleFilterError`?"
+      ]
+    },
+    {
+      "id": "contradictory_representer_raise_vs_no_raise",
+      "type": "contradictory requirements",
+      "description": "The problem statement says the YAML representer should raise a clear, descriptive error when it encounters AnsibleUndefined, but the requirements state that the YAML representer must not raise exceptions and must only return a value for serialization. These two instructions conflict on whether the representer should raise or return a value.",
+      "resolution": "Follow the requirements: the representer must NOT raise exceptions. Instead, it should return `bool(data)`, which causes Jinja's StrictUndefined to trigger its `_fail_with_undefined_error` during evaluation within `yaml.dump`, surfacing the undefined-variable condition from the templating layer. The instruction to raise an error from the representer is incorrect; the requirements take precedence.",
+      "example_questions": [
+        "-  For `AnsibleUndefined`, should the YAML representer raise an exception, or should it return a value suitable for YAML serialization?",
+        "-  In `represent_undefined(self, data)`, should `AnsibleUndefined` be handled by raising, or by returning a value for YAML serialization?",
+        "-  When an undefined value is present during YAML dumping, where should the undefined-variable failure surface: from the representer itself, or from templating evaluation?",
+        "-  What should the representer do when it receives an undefined value: fail immediately by throwing, or return a serialization value and let evaluation surface the undefined-variable failure?"
+      ]
+    }
+  ]
+}

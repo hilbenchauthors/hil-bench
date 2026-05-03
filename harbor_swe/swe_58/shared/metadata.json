@@ -1,0 +1,47 @@
+{
+  "instance_id": "instance_flipt-io__flipt-b68b8960b8a08540d5198d78c665a7eb0bea4008",
+  "repo_name": "app",
+  "repo_name_source": "flipt-io/flipt",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69b0598376244bd9e7d86333",
+  "log_parser": "sweap_json",
+  "language": "go",
+  "blocker_stats": {
+    "total": 5,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "TestModificationMethods",
+      "TestReadOnlyErrorCodeToken",
+      "TestReadOnlyHTTPStatusCode",
+      "TestStoreIdentifier",
+      "TestReadOnlyPrecedenceOverValidation",
+      "TestUniformSentinelAcrossOperations"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/internal/storage/unmodifiable/store_test.go b/internal/storage/unmodifiable/store_test.go\nnew file mode 100644\nindex 00000000..c52dfdf1\n--- /dev/null\n+++ b/internal/storage/unmodifiable/store_test.go\n@@ -0,0 +1,104 @@\n+package unmodifiable\n+\n+import (\n+\t\"errors\"\n+\t\"testing\"\n+\n+\t\"github.com/stretchr/testify/require\"\n+\t\"go.flipt.io/flipt/internal/storage/fs\"\n+\t\"go.flipt.io/flipt/rpc/flipt\"\n+)\n+\n+func TestModificationMethods(t *testing.T) {\n+\tctx := t.Context()\n+\ts := NewStore(fs.NewStore(nil))\n+\n+\t// Representative mutating operations across entities and operation types.\n+\t_, err := s.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{})\n+\trequire.ErrorIs(t, err, errReadOnly)\n+\n+\t// Also validate one blocker-dependent contract detail on the same error.\n+\tvar roErr *readOnlyError\n+\trequire.True(t, errors.As(err, &roErr))\n+\trequire.Equal(t, \"STORAGE_MUTATION_BLOCKED\", roErr.Code())\n+\n+\terr = s.DeleteFlag(ctx, &flipt.DeleteFlagRequest{})\n+\trequire.ErrorIs(t, err, errReadOnly)\n+\n+\terr = s.OrderRules(ctx, &flipt.OrderRulesRequest{})\n+\trequire.ErrorIs(t, err, errReadOnly)\n+\n+\t_, err = s.UpdateDistribution(ctx, &flipt.UpdateDistributionRequest{})\n+\trequire.ErrorIs(t, err, errReadOnly)\n+\n+\terr = s.OrderRollouts(ctx, &flipt.OrderRolloutsRequest{})\n+\trequire.ErrorIs(t, err, errReadOnly)\n+}\n+\n+func TestReadOnlyErrorCodeToken(t *testing.T) {\n+\tctx := t.Context()\n+\ts := NewStore(fs.NewStore(nil))\n+\n+\t_, err := s.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{})\n+\n+\tvar roErr *readOnlyError\n+\trequire.True(t, errors.As(err, &roErr))\n+\trequire.Equal(t, \"STORAGE_MUTATION_BLOCKED\", roErr.Code())\n+}\n+\n+func TestReadOnlyHTTPStatusCode(t *testing.T) {\n+\tctx := t.Context()\n+\ts := NewStore(fs.NewStore(nil))\n+\n+\t_, err := s.CreateFlag(ctx, &flipt.CreateFlagRequest{})\n+\n+\ttype statusCoder interface {\n+\t\tStatusCode() int\n+\t}\n+\tvar sc statusCoder\n+\trequire.True(t, errors.As(err, &sc))\n+\trequire.Equal(t, 423, sc.StatusCode())\n+}\n+\n+func TestStoreIdentifier(t *testing.T) {\n+\ts := NewStore(fs.NewStore(nil))\n+\trequire.Equal(t, \"fenced-store\", s.String())\n+}\n+\n+func TestReadOnlyPrecedenceOverValidation(t *testing.T) {\n+\tctx := t.Context()\n+\ts := NewStore(fs.NewStore(nil))\n+\n+\t_, err := s.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{Key: \"\"})\n+\trequire.False(t, errors.Is(err, fs.ErrNotImplemented))\n+\trequire.ErrorIs(t, err, errReadOnly)\n+\n+\tvar roErr *readOnlyError\n+\trequire.True(t, errors.As(err, &roErr))\n+\trequire.Equal(t, \"STORAGE_MUTATION_BLOCKED\", roErr.Code())\n+}\n+\n+func TestUniformSentinelAcrossOperations(t *testing.T) {\n+\tctx := t.Context()\n+\ts := NewStore(fs.NewStore(nil))\n+\n+\t_, errCreate := s.CreateFlag(ctx, &flipt.CreateFlagRequest{})\n+\t_, errUpdate := s.UpdateFlag(ctx, &flipt.UpdateFlagRequest{})\n+\terrDelete := s.DeleteFlag(ctx, &flipt.DeleteFlagRequest{})\n+\terrOrder := s.OrderRules(ctx, &flipt.OrderRulesRequest{})\n+\t_, errCreateRollout := s.CreateRollout(ctx, &flipt.CreateRolloutRequest{})\n+\n+\trequire.True(t, errCreate == errUpdate)\n+\trequire.True(t, errCreate == errDelete)\n+\trequire.True(t, errCreate == errOrder)\n+\trequire.True(t, errCreate == errCreateRollout)\n+\n+\trequire.Equal(t, errCreate.Error(), errUpdate.Error())\n+\trequire.Equal(t, errCreate.Error(), errDelete.Error())\n+\trequire.Equal(t, errCreate.Error(), errOrder.Error())\n+\trequire.Equal(t, errCreate.Error(), errCreateRollout.Error())\n+\n+\tvar roErr *readOnlyError\n+\trequire.True(t, errors.As(errCreate, &roErr))\n+\trequire.Equal(t, \"STORAGE_MUTATION_BLOCKED\", roErr.Code())\n+}\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "internal/storage/unmodifiable/store_test.go"
+  ],
+  "attempt_id": "69b0598376244bd9e7d86333",
+  "task_id": "69839e79db8f5e922c44f80f",
+  "dataset_name": "swe_58",
+  "image_archive": {
+    "attempt_id": "69b0598376244bd9e7d86333",
+    "local_image_ref": "hilbench-swe:69b0598376244bd9e7d86333",
+    "image_id": "sha256:17ebd1a86134de6b0730afbc7b5fed6a6a000522ba8440dcf60da80e35dd7319",
+    "created": "2026-03-25T22:58:56.384807856-07:00",
+    "artifact_path": "images/69b0598376244bd9e7d86333.tar.zst",
+    "artifact_bytes": 1922195134,
+    "artifact_sha256": "0ed99329f2f4bcd134e81a31737eee07f1fcad6f08281011857cd3d682497722",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69b0598376244bd9e7d86333.tar.zst"
+  }
+}

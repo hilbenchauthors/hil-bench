@@ -1,0 +1,10 @@
+{
+  "hf_bucket": "ScaleAI/hil-bench-sql-artifacts",
+  "db_artifact_path": "public_sql_43/thrombosis_prediction.sqlite",
+  "desc_artifact_paths": [
+    "public_sql_43/examination.csv",
+    "public_sql_43/laboratory.csv",
+    "public_sql_43/patient.csv",
+    "public_sql_43/table_descriptions.csv"
+  ]
+}

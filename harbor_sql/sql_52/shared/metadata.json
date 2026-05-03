@@ -1,0 +1,10 @@
+{
+  "csv_index": 52,
+  "dataset_name": "sql_52",
+  "hf_task_id": "public_sql_52",
+  "task_id": "6977cf5464c4667b98edc525",
+  "attempt_id": "699353b5636dd7f9620fd033",
+  "task_attempt_id": "6977cf5464c4667b98edc525_699353b5636dd7f9620fd033",
+  "database_name": "financial",
+  "num_blockers": 5
+}

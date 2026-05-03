@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The question references \u201cstructural complexity tier\u201d but does not define what structural feature, metric, or threshold determines membership in the tier. No schema column or business info provides an operational definition.",
+      "example_questions": [
+        "How should \u201cstructural complexity tier\u201d be defined operationally?",
+        "What metric determines whether a molecule belongs to the structural complexity tier?",
+        "What threshold or tiering rule should be used for structural complexity?"
+      ],
+      "id": "structural_complexity_tier_rule",
+      "resolution": "Interpret \u201cstructural complexity tier\u201d as molecules whose hetero-atom fraction is strictly greater than the dataset-wide average hetero-atom fraction: compute per-molecule hetero_fraction using the atom table (excluding NULL molecule_id and requiring total atoms > 0) as hetero_fraction = COUNT(DISTINCT atom_id where element NOT IN ('c','h')) / COUNT(DISTINCT atom_id). Compute the dataset-wide average as AVG(hetero_fraction) across all molecules in scope, and include molecules where hetero_fraction > avg_hetero_fraction.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The question uses \u201cprimary toxicity class\u201d but provides no definition of what \u201cprimary\u201d means and no business info defines how to identify this class from available data.",
+      "example_questions": [
+        "How is \u201cprimary toxicity class\u201d determined from the dataset?",
+        "Does \u201cprimary\u201d refer to frequency, severity, or something else?",
+        "Which molecule.label value should be treated as the primary toxicity class?"
+      ],
+      "id": "primary_toxicity_class_definition",
+      "resolution": "Interpret \u201cprimary toxicity class\u201d as the molecule.label value that appears most frequently in the molecule table (COUNT(*) grouped by label, excluding NULL labels), ordering by count DESC and label ASC, selecting LIMIT 1. A molecule belongs to the primary toxicity class if molecule.label equals that selected label.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The business information describes \u201chalogen activity\u201d qualitatively (halogen-like elements, reporting standards) and states that a \u201csignificant\u201d profile is a \u201cnotable structural feature,\u201d but it does not specify which element codes qualify or what quantitative threshold makes the profile significant.",
+      "example_questions": [
+        "Which element codes count as halogen or halogen-like?",
+        "How should \u201csignificant\u201d halogen activity be measured (count, fraction, percentile, etc.)?",
+        "What cutoff should separate significant vs non-significant halogen activity?"
+      ],
+      "id": "halogen_activity_profile_threshold",
+      "resolution": "Interpret halogen-like elements as atom.element IN ('f','cl','br','i','s','p'): for each molecule, compute halogen_fraction using the atom table (excluding NULL molecule_id and requiring total atoms > 0) as halogen_fraction = COUNT(DISTINCT atom_id where element is halogen-like) / COUNT(DISTINCT atom_id). Define \u201csignificant halogen activity profile\u201d as molecules whose halogen_fraction is strictly greater than the dataset-wide average halogen_fraction, where the average is computed as AVG(halogen_fraction) across all molecules in scope.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question requires a phosphorus\u2013sulfur linkage \u201cbased on the dataset\u2019s bond linkage records,\u201d but the schema provides multiple plausible representations of linkages (e.g., connected vs bond_record vs bond-level tables), with differing granularity and duplication behavior, and the question does not specify which source defines linkage.",
+      "example_questions": [
+        "Which table defines \u201cbond linkage records\u201d for linkage detection (connected, bond_record, or something else)?",
+        "Should linkage be inferred at atom-to-atom level or bond-level only?",
+        "Should duplicated or alternative linkage representations be filtered (e.g., by direction_flag / record_kind)?"
+      ],
+      "id": "bond_linkage_source_for_ps",
+      "resolution": "Interpret \u201cbond linkage records\u201d as rows from the connected table restricted to direction_flag = 1 (the primary representation); a molecule satisfies the phosphorus\u2013sulfur linkage condition if there exists at least one connected row (direction_flag = 1) whose endpoints are a phosphorus atom and a sulfur atom (either direction), both belonging to the same molecule_id, and the total number of such qualifying linkage records for that molecule is between 1 and 2 inclusive (COUNT(*) BETWEEN 1 AND 2). This linkage test must be evaluated using connected (direction_flag=1) and atom only.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

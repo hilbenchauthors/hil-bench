@@ -1,0 +1,47 @@
+{
+  "instance_id": "instance_ansible__ansible-185d41031660a676c43fbb781cd1335902024bfe-vba6da65a0f3baefda7a058ebbd0a8dcafb8512f5",
+  "repo_name": "app",
+  "repo_name_source": "ansible/ansible",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c307ba8c77fc3eec0155f8",
+  "log_parser": "sweap_json",
+  "language": "python",
+  "blocker_stats": {
+    "total": 4,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_missing_delegated_target",
+      "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_missing_delegated_target_empty_metadata",
+      "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_prefers_canonical_delegated_identity",
+      "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_prefers_ansible_hostname_over_other_hints",
+      "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_falls_back_to_ansible_delegated_host",
+      "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_truncates_each_side",
+      "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_quotes_collision_cases",
+      "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_quotes_backslash_only"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/test/units/plugins/callback/test_callback.py b/test/units/plugins/callback/test_callback.py\n--- a/test/units/plugins/callback/test_callback.py\n+++ b/test/units/plugins/callback/test_callback.py\n@@ -27,6 +27,8 @@\n from units.compat import unittest\n from units.compat.mock import MagicMock\n \n+from ansible.executor.task_result import TaskResult\n+from ansible.inventory.host import Host\n from ansible.plugins.callback import CallbackBase\n \n \n@@ -46,6 +48,92 @@\n         display_mock.verbosity = 5\n         cb = CallbackBase(display=display_mock)\n         self.assertIs(cb._display, display_mock)\n+\n+    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_missing_delegated_target\n+    def test_host_label_missing_delegated_target(self):\n+        result = TaskResult(\n+            host=Host('host1'),\n+            task=None,\n+            return_data={'_ansible_delegated_vars': {'ansible_host': '   ', 'ansible_hostname': ''}},\n+        )\n+        self.assertEqual(CallbackBase.host_label(result), 'host1 -> unavailable')\n+\n+    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_missing_delegated_target_empty_metadata\n+    def test_host_label_missing_delegated_target_empty_metadata(self):\n+        result = TaskResult(\n+            host=Host('host1'),\n+            task=None,\n+            return_data={'_ansible_delegated_vars': {}},\n+        )\n+        self.assertEqual(CallbackBase.host_label(result), 'host1 -> unavailable')\n+\n+    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_prefers_canonical_delegated_identity\n+    def test_host_label_prefers_canonical_delegated_identity(self):\n+        result = TaskResult(\n+            host=Host('host1'),\n+            task=None,\n+            return_data={'_ansible_delegated_vars': {\n+                'delegated_host_name': 'relay-display',\n+                'ansible_host': '10.0.0.25',\n+                'ansible_hostname': 'relay-fallback',\n+                'inventory_hostname': 'delegate.example.com',\n+            }},\n+        )\n+        self.assertEqual(CallbackBase.host_label(result), 'host1 -> relay-display')\n+\n+    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_prefers_ansible_hostname_over_other_hints\n+    def test_host_label_prefers_ansible_hostname_over_other_hints(self):\n+        result = TaskResult(\n+            host=Host('host1'),\n+            task=None,\n+            return_data={'_ansible_delegated_vars': {\n+                'delegated_host_name': '   ',\n+                'ansible_host': '  relay-address  ',\n+                'ansible_hostname': 'relay-name',\n+                'inventory_hostname': 'delegate.example.com',\n+            }},\n+        )\n+        self.assertEqual(CallbackBase.host_label(result), 'host1 -> relay-name')\n+\n+    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_falls_back_to_ansible_delegated_host\n+    def test_host_label_falls_back_to_ansible_delegated_host(self):\n+        result = TaskResult(\n+            host=Host('host1'),\n+            task=None,\n+            return_data={'_ansible_delegated_vars': {\n+                'delegated_host_name': '',\n+                'ansible_hostname': '   ',\n+                'ansible_delegated_host': '  delegate-host  ',\n+            }},\n+        )\n+        self.assertEqual(CallbackBase.host_label(result), 'host1 -> delegate-host')\n+\n+    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_truncates_each_side\n+    def test_host_label_truncates_each_side(self):\n+        result = TaskResult(\n+            host=Host('abcdefghijklmnopqrstuv'),\n+            task=None,\n+            return_data={'_ansible_delegated_vars': {'ansible_delegated_host': 'zyxwvutsrqponmlkjihg'}},\n+        )\n+        self.assertEqual(CallbackBase.host_label(result), 'abcdefghijklmno... -> zyxwvutsrqponml...')\n+\n+    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_quotes_collision_cases\n+    def test_host_label_quotes_collision_cases(self):\n+        result = TaskResult(\n+            host=Host('host1 -> west'),\n+            task=None,\n+            return_data={'_ansible_delegated_vars': {'ansible_delegated_host': \"edge\\'two\"}},\n+        )\n+        self.assertEqual(CallbackBase.host_label(result), \"'host1 -> west' -> 'edge\\\\\\'two'\")\n+\n+    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_quotes_backslash_only\n+    def test_host_label_quotes_backslash_only(self):\n+        result = TaskResult(\n+            host=Host('host1'),\n+            task=None,\n+            return_data={'_ansible_delegated_vars': {'ansible_delegated_host': 'edge\\\\path'}},\n+        )\n+        self.assertEqual(CallbackBase.host_label(result), \"host1 -> 'edge\\\\\\\\path'\")\n \n     # TODO: import callback module so we can patch callback.cli/callback.C\n \n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [],
+  "attempt_id": "69c307ba8c77fc3eec0155f8",
+  "task_id": "69b37d1c972ca8745b4e8f68",
+  "dataset_name": "swe_80",
+  "image_archive": {
+    "attempt_id": "69c307ba8c77fc3eec0155f8",
+    "local_image_ref": "hilbench-swe:69c307ba8c77fc3eec0155f8",
+    "image_id": "sha256:e1f50398eeffe3ee50947d7cc0ef096d26e287c2f27b4ced6ca1fd9c2efd4421",
+    "created": "2026-03-29T11:13:35.832264566-07:00",
+    "artifact_path": "images/69c307ba8c77fc3eec0155f8.tar.zst",
+    "artifact_bytes": 780756335,
+    "artifact_sha256": "de4c90076b74f4620a591037d9b0858f1b886678a1fa516cebda1a37d932a3f3",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c307ba8c77fc3eec0155f8.tar.zst"
+  }
+}

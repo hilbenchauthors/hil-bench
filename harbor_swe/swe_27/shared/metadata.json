@@ -1,0 +1,44 @@
+{
+  "instance_id": "instance_protonmail__webclients-32ff10999a06455cb2147f6873d627456924ae13",
+  "repo_name": "app",
+  "repo_name_source": "protonmail/webclients",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69c6dd541a158080dce1dee6",
+  "log_parser": "sweap_json",
+  "language": "js",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx | should limit compose recipients to maximum allowed count",
+      "packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx | should display contacts in simplified mode with copy actions",
+      "packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx | should keep modal open after compose action"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx b/packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx\n--- a/packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx\n+++ b/packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx\n@@ -1,5 +1,6 @@\n import { LABEL_TYPE } from '@proton/shared/lib/constants';\n import { ContactEmail, ContactGroup } from '@proton/shared/lib/interfaces/contacts';\n+import { fireEvent } from '@testing-library/react';\n import { STATUS } from '@proton/shared/lib/models/cache';\n \n import { cache, clearAll, minimalCache, render } from '../tests/render';\n@@ -63,9 +64,69 @@ describe('ContactGroupDetailsModal', () => {\n         const { getByText } = render(<ContactGroupDetailsModal open={true} {...props} />, false);\n \n         getByText(group.Name);\n-        getByText('3 members');\n+        getByText('3 email addresses');\n         getByText(contactEmail1.Name);\n         getByText(contactEmail2.Name);\n         getByText(contactEmail3.Name);\n     });\n+\n+    it('should limit compose recipients to maximum allowed count', () => {\n+        const manyEmails = Array.from({ length: 30 }, (_, i) => ({\n+            ID: `ce-${i}`,\n+            Email: `user${i}@test.com`,\n+            Name: `User ${i}`,\n+            LabelIDs: ['ContactGroupID'],\n+            ContactID: `contact-${i}`,\n+            Type: [],\n+            Defaults: 0,\n+            Order: i,\n+            LastUsedTime: 0,\n+        }));\n+\n+        minimalCache();\n+        cache.set('Labels', { status: STATUS.RESOLVED, value: [group] });\n+        cache.set('ContactEmails', { status: STATUS.RESOLVED, value: manyEmails });\n+\n+        const onCompose = jest.fn();\n+        const { getByTestId } = render(\n+            <ContactGroupDetailsModal open={true} {...props} onCompose={onCompose} />,\n+            false\n+        );\n+        fireEvent.click(getByTestId('group-summary:compose'));\n+        expect(onCompose).toHaveBeenCalled();\n+        const [recipients] = onCompose.mock.calls[0];\n+        expect(recipients).toHaveLength(25);\n+    });\n+\n+    it('should display contacts in simplified mode with copy actions', () => {\n+        minimalCache();\n+        cache.set('Labels', { status: STATUS.RESOLVED, value: [group] });\n+        cache.set('ContactEmails', { status: STATUS.RESOLVED, value: [contactEmail1, contactEmail2, contactEmail3] });\n+\n+        const onCompose = jest.fn();\n+        const { getAllByTestId } = render(\n+            <ContactGroupDetailsModal open={true} {...props} onCompose={onCompose} />,\n+            false\n+        );\n+        const contactNames = getAllByTestId('recipient:dropdown-item--contact-name');\n+        expect(contactNames).toHaveLength(3);\n+        const copyButtons = getAllByTestId('recipient:dropdown-item--copy-address-button');\n+        expect(copyButtons).toHaveLength(3);\n+    });\n+\n+    it('should keep modal open after compose action', () => {\n+        minimalCache();\n+        cache.set('Labels', { status: STATUS.RESOLVED, value: [group] });\n+        cache.set('ContactEmails', { status: STATUS.RESOLVED, value: [contactEmail1, contactEmail2, contactEmail3] });\n+\n+        const onCompose = jest.fn();\n+        const onClose = jest.fn();\n+        const { getByTestId } = render(\n+            <ContactGroupDetailsModal open={true} {...props} onCompose={onCompose} onClose={onClose} />,\n+            false\n+        );\n+        fireEvent.click(getByTestId('group-summary:compose'));\n+        expect(onCompose).toHaveBeenCalled();\n+        expect(onClose).not.toHaveBeenCalled();\n+    });\n });\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx"
+  ],
+  "attempt_id": "69c6dd541a158080dce1dee6",
+  "task_id": "6978fa4d0df9703f1e96f3e4",
+  "dataset_name": "swe_27",
+  "image_archive": {
+    "attempt_id": "69c6dd541a158080dce1dee6",
+    "local_image_ref": "hilbench-swe:69c6dd541a158080dce1dee6",
+    "image_id": "sha256:24ada7dbd0a7499c1e6ca5a19b26e22b15e4df7165753a0740882b81553244cf",
+    "created": "2026-03-29T10:36:37.306668768-07:00",
+    "artifact_path": "images/69c6dd541a158080dce1dee6.tar.zst",
+    "artifact_bytes": 7846420189,
+    "artifact_sha256": "c077192250af5fdff68b5fca93fd1b1935ded3e9f62cf101ee3e243063b1af45",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69c6dd541a158080dce1dee6.tar.zst"
+  }
+}

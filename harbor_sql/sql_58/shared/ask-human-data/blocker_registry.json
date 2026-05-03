@@ -1,0 +1,65 @@
+{
+  "blockers": [
+    {
+      "description": "Is not clear which 'status' value to use for problematic loan. A, B, C or D could be used.",
+      "example_questions": [
+        "What is consider as a 'problematic loan'?",
+        "Which status value should be consider as problematic loan?",
+        "How would you define a problematic loan?"
+      ],
+      "id": "problematic_loan",
+      "resolution": "Use B 'status' for a problematic loan.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The population is data that change over time and requires real time information to resolve it.",
+      "example_questions": [
+        "What population reference should I use to calculate current residents?",
+        "Could you provide specific values for the current population?",
+        "Which values should I use for current population?"
+      ],
+      "id": "current_population",
+      "resolution": "Use the following populations:\nHl.m. Praha 1397880\nBenesov 103908\nBeroun 102562\nKladno 171506\nKolin 108281\nKutna Hora 78565\nMelnik 114783\nMlada Boleslav 137726\nNymburk 107638\nPraha - vychod 204547\nPraha - zapad 161920\nPribram 118285\nRakovnik 56494\nCeske Budejovice 202172\nCesky Krumlov 61655\nJindrichuv Hradec 89564\nPelhrimov 72912\nPisek 72912\nPrachatice 51061\nStrakonice 69773\nTabor 101363\nDomazlice 54391\nCheb 87958\nKarlovy Vary 110052\nKlatovy 84614\nPlzen - mesto 188407\nPlzen - jih 68918\nPlzen - sever 80666\nRokycany 48770\nSokolov 85200\nTachov 52941\nCeska Lipa 106256\nDecin 126294\nChomutov 121480\nJablonec n. Nisou 90569\nLiberec 170410\nLitomerice 117582\nLouny 85381\nMost 106773\nTeplice 124472\nUsti nad Labem 121699\nHavlickuv Brod 100000\nHradec Kralove 160000\nChrudim 100000\nJicin 77368\nNachod 112294\nPardubice 92319\nRychnov nad Kneznou 90000\nSemily 50000\nSvitavy 50000\nTrutnov 50000\nUsti nad Orlici 50000\nBlansko 106884\nBrno - mesto 371371\nBrno - venkov 203216\nBreclav 113842\nHodonin 156524\nJihlava 100000\nKromeriz 108055\nProstejov 110182\nTrebic 100000\nUherske Hradiste 144203\nVyskov 89097\nZlin 192639\nZnojmo 100000\nZdar nad Sazavou 50000\nBruntal 50000\nFrydek - Mistek 50000\nJesenik 50000\nKarvina 50000\nNovy Jicin 50000\nOlomouc 100000\nOpava 100000\nOstrava - mesto 300000\nPrerov 50000\nSumperk 50000\nVsetin 50000\n",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The US never had a 5 year long recession. This is contradictory to real life so it is not known which year is being referred to.",
+      "example_questions": [
+        "The US has had many recessions, but none that span 5 years. Could you provide me with a year you're interested in filtering for problematic loans?",
+        "I'm not sure which recession you're referring to. There's the 2007 to 2009 recession, which only lasted two years. There's also the Great Depression from 1929 to 1933 which lasted 3.5 years. Are you interested in any of these?",
+        "I'll help you with finding problematic loans on the first year of a US recession, but there are many recessions and none lasted 5 years. Could you give me more information related to the year you're interested in?"
+      ],
+      "id": "us_recession",
+      "resolution": "Filter the table using the loan.date equal to the year 1998.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "There's no clarification for the term 'High-performing district' and is not clear how to retrieve the metric.",
+      "example_questions": [
+        "How would you define a high-performing district?",
+        "What does a high-performing district means?",
+        "What metric should I use to retrieve a high-performing district?"
+      ],
+      "id": "high_performing_districts",
+      "resolution": "Use the three districts with highest value in district.A15.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The account.frequency column shows values 'S', 'T' and 'O', 'R', 'Q' with no clear indication on the meaning.",
+      "example_questions": [
+        "Which frequency value should I use for the accounts?",
+        "Could you explain the values of the field account.frequency?",
+        "Which frequency value corresponds to weekly frequency?",
+        "Which field represents a weekly frequency?"
+      ],
+      "id": "accounts_frequency",
+      "resolution": "The query should use account.frequency value 'T' to consider weekly frequency accounts.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

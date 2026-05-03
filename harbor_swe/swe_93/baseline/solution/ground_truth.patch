@@ -1,0 +1,63 @@
+diff --git a/lib/ansible/utils/vars.py b/lib/ansible/utils/vars.py
+index 66f872f4f4..3632f64db4 100644
+--- a/lib/ansible/utils/vars.py
++++ b/lib/ansible/utils/vars.py
+@@ -85,11 +85,11 @@ def combine_vars(a, b, merge=None):
+ 
+     if merge or merge is None and C.DEFAULT_HASH_BEHAVIOUR == "merge":
+         return merge_hash(a, b)
+-    else:
+-        # HASH_BEHAVIOUR == 'replace'
+-        _validate_mutable_mappings(a, b)
+-        result = a | b
+-        return result
++
++    # HASH_BEHAVIOUR == 'replace'
++    _validate_mutable_mappings(a, b)
++    result = a | b
++    return dict(result)
+ 
+ 
+ def merge_hash(x, y, recursive=True, list_merge='replace'):
+diff --git a/lib/ansible/vars/manager.py b/lib/ansible/vars/manager.py
+index 93a1b9ad38..f76d2a0036 100644
+--- a/lib/ansible/vars/manager.py
++++ b/lib/ansible/vars/manager.py
+@@ -786,3 +786,37 @@ class VarsWithSources(MutableMapping):
+ 
+     def copy(self):
+         return VarsWithSources.new_vars_with_sources(self.data.copy(), self.sources.copy())
++
++    @staticmethod
++    def _is_union_operand(other):
++        required_names = ('keys', '__getitem__', '__iter__', '__len__')
++        return all(hasattr(other, name) for name in required_names)
++
++    def __or__(self, other):
++        if not self._is_union_operand(other):
++            return NotImplemented
++
++        new_data = self.data.copy()
++        new_data.update(other)
++        return new_data
++
++    def __ror__(self, other):
++        if not self._is_union_operand(other):
++            return NotImplemented
++
++        new_data = dict(other)
++        new_data.update(self.data)
++        return new_data
++
++    def __ior__(self, other):
++        if not self._is_union_operand(other):
++            return NotImplemented
++
++        self.data.update(other)
++
++        if isinstance(other, VarsWithSources):
++            for key, source in other.sources.items():
++                if key in other.data:
++                    self.sources[key] = source
++
++        return self

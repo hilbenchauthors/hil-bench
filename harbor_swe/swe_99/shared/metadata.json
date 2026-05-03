@@ -1,0 +1,46 @@
+{
+  "instance_id": "instance_navidrome__navidrome-669c8f4c49a7ef51ac9a53c725097943f67219eb",
+  "repo_name": "app",
+  "repo_name_source": "navidrome/navidrome",
+  "base_commit": "HEAD",
+  "image_name": "hilbench-swe:69b20ba49f2a8eecabafb554",
+  "log_parser": "sweap_json",
+  "language": "go",
+  "blocker_stats": {
+    "total": 3,
+    "missing_parameter": 0,
+    "ambiguous_requirement": 0,
+    "contradictory_requirement": 0
+  },
+  "swe_bench_metadata": {
+    "FAIL_TO_PASS": [
+      "TestCollectChunksUsesIteratorFirstSignature",
+      "TestCollectChunksUsesFallbackTwoForNonPositiveN",
+      "TestCollectChunksYieldsDefensiveTightChunks",
+      "TestDeprecatedSliceChunkingAPIsWereRemoved"
+    ],
+    "PASS_TO_PASS": []
+  },
+  "test_cmd": "bash /root/run_script.sh > /tmp/stdout.log 2> /tmp/stderr.log; python /root/parser.py /tmp/stdout.log /tmp/stderr.log /tmp/output.json; python -c \"print('SWEAP_JSON_START'); print(open('/tmp/output.json').read()); print('SWEAP_JSON_END')\"",
+  "test_patch": "diff --git a/tests/blocker_contract_test.go b/tests/blocker_contract_test.go\nnew file mode 100644\nindex 00000000..f6adef3e\n--- /dev/null\n+++ b/tests/blocker_contract_test.go\n@@ -0,0 +1,191 @@\n+package tests\n+\n+import (\n+\t\"os\"\n+\t\"os/exec\"\n+\t\"path/filepath\"\n+\t\"strings\"\n+\t\"testing\"\n+)\n+\n+const snippetRunName = \"Test\" + \"Snippet\"\n+const snippetFuncPlaceholder = \"SNIPPET_FUNC_NAME\"\n+\n+func renderSnippet(snippet string) string {\n+\treturn strings.ReplaceAll(snippet, snippetFuncPlaceholder, snippetRunName)\n+}\n+\n+func runSnippetTest(t *testing.T, snippet string) {\n+\tt.Helper()\n+\n+\ttmp := t.TempDir()\n+\tsnippet = renderSnippet(snippet)\n+\tgoMod := `module blockercheck\n+\n+go 1.23\n+\n+require github.com/navidrome/navidrome v0.0.0\n+\n+replace github.com/navidrome/navidrome => /app\n+`\n+\n+\tif err := os.WriteFile(filepath.Join(tmp, \"go.mod\"), []byte(goMod), 0o644); err != nil {\n+\t\tt.Fatalf(\"failed writing go.mod: %v\", err)\n+\t}\n+\tif err := os.WriteFile(filepath.Join(tmp, \"snippet_test.go\"), []byte(snippet), 0o644); err != nil {\n+\t\tt.Fatalf(\"failed writing snippet_test.go: %v\", err)\n+\t}\n+\n+\tcmd := exec.Command(\"go\", \"test\", \"-count=1\", \"-run\", snippetRunName, \"-v\")\n+\tcmd.Dir = tmp\n+\tout, err := cmd.CombinedOutput()\n+\tif err != nil {\n+\t\tt.Fatalf(\"snippet test failed:\\n%s\", string(out))\n+\t}\n+}\n+\n+func runSnippetCompileFailureTest(t *testing.T, snippet string, expectedErrorParts ...string) {\n+\tt.Helper()\n+\n+\ttmp := t.TempDir()\n+\tsnippet = renderSnippet(snippet)\n+\tgoMod := `module blockercheck\n+\n+go 1.23\n+\n+require github.com/navidrome/navidrome v0.0.0\n+\n+replace github.com/navidrome/navidrome => /app\n+`\n+\n+\tif err := os.WriteFile(filepath.Join(tmp, \"go.mod\"), []byte(goMod), 0o644); err != nil {\n+\t\tt.Fatalf(\"failed writing go.mod: %v\", err)\n+\t}\n+\tif err := os.WriteFile(filepath.Join(tmp, \"snippet_test.go\"), []byte(snippet), 0o644); err != nil {\n+\t\tt.Fatalf(\"failed writing snippet_test.go: %v\", err)\n+\t}\n+\n+\tcmd := exec.Command(\"go\", \"test\", \"-count=1\", \"-run\", snippetRunName, \"-v\")\n+\tcmd.Dir = tmp\n+\tout, err := cmd.CombinedOutput()\n+\tif err == nil {\n+\t\tt.Fatalf(\"expected snippet to fail compilation, but it passed:\\n%s\", string(out))\n+\t}\n+\n+\toutput := string(out)\n+\tfor _, part := range expectedErrorParts {\n+\t\tif !strings.Contains(output, part) {\n+\t\t\tt.Fatalf(\"expected compile output to contain %q, got:\\n%s\", part, output)\n+\t\t}\n+\t}\n+}\n+\n+func TestCollectChunksUsesIteratorFirstSignature(t *testing.T) {\n+\trunSnippetTest(t, `package blockercheck\n+\n+import (\n+\t\"reflect\"\n+\t\"slices\"\n+\t\"testing\"\n+\n+\tsliceutil \"github.com/navidrome/navidrome/utils/slice\"\n+)\n+\n+func SNIPPET_FUNC_NAME(t *testing.T) {\n+\tinput := []int{1, 2, 3, 4, 5}\n+\tvar got [][]int\n+\tfor chunk := range sliceutil.CollectChunks(slices.Values(input), 3) {\n+\t\tgot = append(got, chunk)\n+\t}\n+\twant := [][]int{{1, 2, 3}, {4, 5}}\n+\tif !reflect.DeepEqual(got, want) {\n+\t\tt.Fatalf(\"got=%v want=%v\", got, want)\n+\t}\n+}`)\n+}\n+\n+func TestCollectChunksUsesFallbackTwoForNonPositiveN(t *testing.T) {\n+\trunSnippetTest(t, `package blockercheck\n+\n+import (\n+\t\"reflect\"\n+\t\"slices\"\n+\t\"testing\"\n+\n+\tsliceutil \"github.com/navidrome/navidrome/utils/slice\"\n+)\n+\n+func SNIPPET_FUNC_NAME(t *testing.T) {\n+\tinput := []int{10, 20, 30, 40, 50}\n+\twant := [][]int{{10, 20}, {30, 40}, {50}}\n+\n+\tvar gotZero [][]int\n+\tfor chunk := range sliceutil.CollectChunks(slices.Values(input), 0) {\n+\t\tgotZero = append(gotZero, chunk)\n+\t}\n+\tif !reflect.DeepEqual(gotZero, want) {\n+\t\tt.Fatalf(\"n=0 got=%v want=%v\", gotZero, want)\n+\t}\n+\n+\tvar gotNeg [][]int\n+\tfor chunk := range sliceutil.CollectChunks(slices.Values(input), -3) {\n+\t\tgotNeg = append(gotNeg, chunk)\n+\t}\n+\tif !reflect.DeepEqual(gotNeg, want) {\n+\t\tt.Fatalf(\"n=-3 got=%v want=%v\", gotNeg, want)\n+\t}\n+}`)\n+}\n+\n+func TestCollectChunksYieldsDefensiveTightChunks(t *testing.T) {\n+\trunSnippetTest(t, `package blockercheck\n+\n+import (\n+\t\"reflect\"\n+\t\"slices\"\n+\t\"testing\"\n+\n+\tsliceutil \"github.com/navidrome/navidrome/utils/slice\"\n+)\n+\n+func SNIPPET_FUNC_NAME(t *testing.T) {\n+\tinput := []int{1, 2, 3, 4, 5}\n+\tchunks := make([][]int, 0, 2)\n+\tfor chunk := range sliceutil.CollectChunks(slices.Values(input), 3) {\n+\t\tchunks = append(chunks, chunk)\n+\t}\n+\n+\tif len(chunks) != 2 {\n+\t\tt.Fatalf(\"chunks=%v\", chunks)\n+\t}\n+\tif !reflect.DeepEqual(chunks[0], []int{1, 2, 3}) || !reflect.DeepEqual(chunks[1], []int{4, 5}) {\n+\t\tt.Fatalf(\"chunks=%v\", chunks)\n+\t}\n+\tfor i, c := range chunks {\n+\t\tif cap(c) != len(c) {\n+\t\t\tt.Fatalf(\"chunk %d must be tight, len=%d cap=%d\", i, len(c), cap(c))\n+\t\t}\n+\t}\n+\n+\tchunks[0][0] = 99\n+\tif !reflect.DeepEqual(chunks[1], []int{4, 5}) {\n+\t\tt.Fatalf(\"second chunk was aliased: %v\", chunks[1])\n+\t}\n+}`)\n+}\n+\n+func TestDeprecatedSliceChunkingAPIsWereRemoved(t *testing.T) {\n+\trunSnippetCompileFailureTest(t, `package blockercheck\n+\n+import (\n+\t\"testing\"\n+\n+\tsliceutil \"github.com/navidrome/navidrome/utils/slice\"\n+)\n+\n+func SNIPPET_FUNC_NAME(t *testing.T) {\n+\t_ = sliceutil.BreakUp([]int{1, 2, 3}, 2)\n+\t_ = sliceutil.RangeByChunks([]int{1, 2, 3}, 2, func(_ []int) error { return nil })\n+}`, \"undefined: sliceutil.BreakUp\", \"undefined: sliceutil.RangeByChunks\")\n+}\n+\n",
+  "run_script_path": "/root/run_script.sh",
+  "parser_script_path": "/root/parser.py",
+  "test_files": [
+    "persistence/playqueue_repository_test.go",
+    "utils/slice/slice_test.go"
+  ],
+  "attempt_id": "69b20ba49f2a8eecabafb554",
+  "task_id": "69839e79db8f5e922c44f816",
+  "dataset_name": "swe_99",
+  "image_archive": {
+    "attempt_id": "69b20ba49f2a8eecabafb554",
+    "local_image_ref": "hilbench-swe:69b20ba49f2a8eecabafb554",
+    "image_id": "sha256:47401fc315e1bd4eabf3ca59f67502629180d53a25c538b5c1d914997550cb5d",
+    "created": "2026-03-25T23:40:22.890789318-07:00",
+    "artifact_path": "images/69b20ba49f2a8eecabafb554.tar.zst",
+    "artifact_bytes": 1181311036,
+    "artifact_sha256": "520a9357cd2fd272037be2473306acefcedb490d35f264c0d97d345fcdd2b828",
+    "hf_bucket": "ScaleAI/hil-bench-swe-images",
+    "hf_url": "https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images/resolve/main/images/69b20ba49f2a8eecabafb554.tar.zst"
+  }
+}

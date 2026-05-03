@@ -1,0 +1,56 @@
+{
+  "blockers": [
+    {
+      "id": "missing_path_env_default_value",
+      "type": "missing parameters",
+      "description": "The implementation constructs a minimal environment dictionary (krb5env) for the kinit subprocess including PATH, but neither the problem statement nor the requirements specify what value to use for PATH if the environment variable is not defined in the current process.",
+      "resolution": "Use `os.environ.get('PATH', '')` with an empty string as the default when constructing krb5env. Example: `krb5env = dict(PATH=os.environ.get('PATH', ''), KRB5CCNAME=krb5ccname)`. Do NOT use `os.defpath` (which resolves to '/bin:/usr/bin'), do NOT use a hardcoded path like '/usr/bin:/bin', and do NOT let it raise a KeyError by accessing `os.environ['PATH']` directly.",
+      "example_questions": [
+        "-  What default value should be used for PATH in the kinit environment when it is not set?",
+        "-  How should the code handle a missing PATH environment variable when building krb5env?",
+        "-  Should the kinit subprocess environment fall back to os.defpath or an empty string when PATH is undefined?",
+        "-  What happens if os.environ does not contain a PATH key during krb5env construction?",
+        "-  Is there a specific fallback value required for PATH in the kinit subprocess environment?"
+      ]
+    },
+    {
+      "id": "missing_communicate_timeout_value",
+      "type": "missing parameters",
+      "description": "Both the problem statement and the requirements mention that the kinit process must complete within 'an appropriate time limit,' but neither specifies the exact timeout value in seconds.",
+      "resolution": "The timeout value is 30 seconds. NOT 60, NOT 45, NOT 120. The exact value to use is 30.",
+      "example_questions": [
+        "-  What is the exact timeout value for the kinit subprocess communication?",
+        "-  How many seconds should we wait before considering kinit to be hung?",
+        "-  What is the specific timeout value in seconds for the kinit process?",
+        "-  Is there a specific time limit for the kinit process to complete?",
+        "-  What is the maximum allowed duration for the kinit authentication process?"
+      ]
+    },
+    {
+      "id": "ambiguous_timeout_cleanup_sequence",
+      "type": "ambiguous requirements",
+      "description": "The requirements state that if the kinit process exceeds the time limit it must be terminated and reported, but do not specify the exact cleanup method. There are multiple plausible approaches: (a) p.terminate() followed by p.communicate(), (b) p.kill() followed by p.communicate(), (c) p.terminate() then escalate to p.kill(), (d) p.kill() followed by p.wait(), (e) process-group signaling via os.killpg(), or various escalation patterns with or without timeouts on cleanup operations.",
+      "resolution": "After subprocess.TimeoutExpired is caught, call `p.kill()` to send SIGKILL (not `p.terminate()` which sends SIGTERM), then call `p.wait()` to reap the child process. Do NOT use `p.terminate()` as kinit may not respond to SIGTERM in all configurations. Do NOT use `p.communicate()` for the cleanup step; since all input has already been sent and the output will be discarded, `p.wait()` is sufficient to reap the zombie. The required sequence is: `p.kill()` then `p.wait()`.",
+      "example_questions": [
+        "-  What is the correct cleanup method when kinit times out?",
+        "-  Should I use p.kill(), p.terminate(), or os.killpg() for a timed-out kinit process?",
+        "-  After forcefully stopping a timed-out process, should I call communicate() or wait() to reap it?",
+        "-  Should the cleanup use SIGTERM or SIGKILL for the kinit process?",
+        "-  Is p.wait() or p.communicate() more appropriate when cleaning up a killed process whose output will be discarded?"
+      ]
+    },
+    {
+      "id": "contradictory_password_input_format",
+      "type": "contradictory requirements",
+      "description": "The problem statement says 'the password should be sent as raw bytes without any modifications or extra characters' while the requirements state 'the password input must include proper line termination for the kinit prompt.' These two instructions contradict each other: one says no modifications, the other says add line termination.",
+      "resolution": "Send the password bytes WITHOUT any appended characters. Pass only `b_password` as the subprocess stdin input. Closing stdin after writing signals EOF to kinit, which is sufficient. Do NOT append `b'\\\\n'`, `b'\\\\r\\\\n'`, or any other terminator. The problem statement is correct, not the requirements.",
+      "example_questions": [
+        "-  Should I send the password as-is or append a newline character?",
+        "-  Do I need to add any termination character when sending the password to kinit via stdin?",
+        "-  Does kinit need a newline after the password or does EOF suffice?",
+        "-  Should the password bytes be modified before sending to the subprocess stdin?",
+        "-  Will kinit accept the password if stdin is closed without a trailing newline?"
+      ]
+    }
+  ]
+}

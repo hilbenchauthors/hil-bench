@@ -1,0 +1,69 @@
+{
+  "blockers": [
+    {
+      "id": "missing_max_verification_retries_value",
+      "type": "missing parameters",
+      "description": "The requirements specify that a constant named MAX_BLOCK_VERIFICATION_RETRIES should govern the retry logic for block verification and be defined in constants.ts, but the numeric value for this constant is not provided anywhere in the problem statement or requirements, and no derivable value exists in the codebase.\n",
+      "resolution": "Set MAX_BLOCK_VERIFICATION_RETRIES to 1. Example: `export const MAX_BLOCK_VERIFICATION_RETRIES = 1;` in constants.ts. This means one retry is permitted after the initial failure (two total encryption attempts per block). Do NOT use common retry defaults like 3 or 5.\n",
+      "example_questions": [
+        "-  What value should MAX_BLOCK_VERIFICATION_RETRIES be set to in constants.ts?",
+        "-  How many retry attempts should be allowed for encrypted block verification failures?",
+        "-  Is there a specific number I should use for the block verification retry limit?",
+        "-  What should the MAX_BLOCK_VERIFICATION_RETRIES constant be initialized to?",
+        "-  Should I use a standard retry count like 3, or is a different value expected for block verification?"
+      ]
+    },
+    {
+      "id": "ambiguous_sentry_notification_scope",
+      "type": "ambiguous requirements",
+      "description": "The requirements mention reporting verification failures to Sentry via postNotifySentry but do not clarify whether this should happen on every failure, only on the first failure for each individual block's retry sequence, or only on the very first failure across the entire upload session.\n",
+      "resolution": "Report to Sentry on the first verification failure for each individual block by checking retryCount === 0 within the block's retry loop. Each block that fails verification should independently trigger one Sentry notification on its first attempt, not on subsequent retries of the same block. Example: `if (retryCount === 0) { postNotifySentry(e as Error); }`. Do NOT use a global flag to report only once across the entire upload, and do NOT report on every retry failure.\n",
+      "example_questions": [
+        "-  Should postNotifySentry be called on the first failure for each block independently, or only the very first failure across the entire upload?",
+        "-  How should the Sentry error notification be scoped \u2014 per block or per upload session?",
+        "-  If multiple blocks fail verification, should each one trigger its own Sentry notification on its first attempt?",
+        "-  Should postNotifySentry be invoked on every verification failure or only the initial one per block?",
+        "-  Is the Sentry notification meant to fire once per block that encounters a verification issue, or once total for the whole upload?"
+      ]
+    },
+    {
+      "id": "ambiguous_thumbnail_verification_scope",
+      "type": "ambiguous requirements",
+      "description": "The problem statement says encrypted blocks should be verified unconditionally, and the requirements refer to verifying blocks produced by encryption functions, but it is unclear whether this applies only to file content blocks or also to thumbnail blocks, which are encrypted through a separate code path.\n",
+      "resolution": "Verification should only be applied to file content blocks via the encryptBlock function. The encryptThumbnail function should NOT include any verification or retry logic. Only blocks produced by encryptBlock need to be verified via attemptDecryptBlock. Do NOT add verification to thumbnail encryption.\n",
+      "example_questions": [
+        "-  Should the block verification logic also apply to encrypted thumbnail blocks, or only to file content blocks?",
+        "-  Does 'all encrypted blocks' include the thumbnail block, which uses a separate encryption function?",
+        "-  Should I add verification and retry logic to the encryptThumbnail function as well?",
+        "-  Are thumbnail blocks considered part of the blocks that need unconditional verification?",
+        "-  Which encryption functions specifically need the verification logic \u2014 only encryptBlock or also encryptThumbnail?"
+      ]
+    },
+    {
+      "id": "contradictory_verification_scope",
+      "type": "contradictory requirements",
+      "description": "The problem statement contains conflicting directives regarding block verification scope: one section emphasizes preserving performance by applying verification only when file size warrants the overhead, while another section mandates that verification be applied unconditionally regardless of file size.\n",
+      "resolution": "Verify ALL file content blocks unconditionally, regardless of file size. Remove all file-size threshold-based conditions (such as file.size >= 100 * MB) that gate whether verification is performed. Every encrypted file content block must go through decryption-based verification. Do NOT preserve any file-size-based gating that skips verification for smaller files.\n",
+      "example_questions": [
+        "-  Should block verification be applied unconditionally to all file blocks, or only to blocks from files exceeding a certain size threshold?",
+        "-  Do I need to verify every encrypted block regardless of file size, or can I skip verification for smaller files to save on performance?",
+        "-  Should I preserve the performance optimization of only verifying blocks for large files, or verify every block regardless of size?",
+        "-  Is there a minimum file size below which block verification can be skipped for performance?",
+        "-  Can I gate block verification behind a file size check, or must every block go through decryption-based verification?"
+      ]
+    },
+    {
+      "id": "contradictory_environment_context_retention",
+      "type": "contradictory requirements",
+      "description": "The problem statement and requirements contain directly conflicting directives: one requires that all Environment typed parameters and deployment-context awareness be completely removed from the upload pipeline to reduce architectural complexity, while another requires that deployment environment context be preserved throughout worker messages, function signatures, and initialization hooks for diagnostics and observability.",
+      "resolution": "Completely remove the Environment parameter from generateEncryptedBlocks so it no longer accepts or uses deployment environment context. The function signature should be (file, thumbnailData, addressPrivateKey, privateKey, sessionKey, postNotifySentry, hashInstance) with no environment parameter. Callers throughout the upload pipeline must be updated accordingly to stop passing environment context. Do NOT retain any environment parameter in generateEncryptedBlocks for future use or observability.",
+      "example_questions": [
+        "-  Should I remove the Environment parameter from generateEncryptedBlocks, or keep it for diagnostics and observability?",
+        "-  Should the block encryption function retain deployment environment awareness, or should environment context be stripped out entirely?",
+        "-  Is it correct to eliminate the environment parameter from the encryption pipeline, or should it be preserved for future feature gating?",
+        "-  Should generateEncryptedBlocks still accept an environment parameter for observability purposes, or should it be removed?",
+        "-  Should I strip out the environment parameter from block generation entirely, or is it still needed for diagnostics and observability?"
+      ]
+    }
+  ]
+}

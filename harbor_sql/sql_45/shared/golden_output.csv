@@ -1,0 +1,5 @@
+circuit_name,location,good_place_to_visit,winner_name,winner_avg_lap_time,winner_balanced_avg_lap_time,verstappen_current_avg_lap_time
+Bahrain International Circuit,Sakhir,No,Felipe Massa,95911.75438596492,15683.919285554826,88792
+Circuit de Barcelona-Catalunya,Montmeló,Yes,Kimi Räikkönen,89379.56060606061,14110.503399637095,88792
+Circuit de Monaco,Monte-Carlo,Yes,Lewis Hamilton,95299.23684210527,12989.1065654715,88792
+Istanbul Park,Istanbul,No,Felipe Massa,89818.12068965517,15934.94788498151,88792
