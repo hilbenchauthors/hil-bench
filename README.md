@@ -106,44 +106,42 @@ uv run hil sql /path/to/sql_task_dir \
 ```
 
 
-## Harbor (SWE Only)
+## Harbor
 
-Harbor support is currently provided for SWE tasks.
+Harbor supports three modes for every task: `baseline`, `ask_human`, `full_info`.
 
-## Harbor Assets
-
-The Harbor-specific packaging assets live under `harbor_swe/`.
-
-- `harbor_swe/swe_0` through `harbor_swe/swe_99` contain the per-task Harbor packages.
-- `harbor_swe/warmup_images.sh` resolves task images from local Docker, a local archive tree, or the configured HF bucket.
-- `harbor_swe/build_images.sh` builds the packaged sidecar images used by the Harbor tasks.
-- `harbor_swe/shared/image_source_defaults.json` points at the default image bucket.
-
-## Running Harbor
-
-To build the Harbor helper images:
+- Local layout (this repo): `harbor_sql/sql_<i>/<mode>` and `harbor_swe/swe_<j>/<mode>`
+- Registry layout (published): one dataset `scale-ai/hil-bench` containing all SQL+SWE mode tasks
 
 ```bash
-cd harbor_swe
-bash build_images.sh
+# 1) One-time setup (from models/hil_bench)
+uv tool install harbor
+harbor auth login
+
+# 2) Build MCP/server images
+bash harbor_sql/build_images.sh
+bash harbor_swe/build_images.sh
+
+# 3) Warm task artifacts
+bash harbor_sql/warmup_data.sh
+bash harbor_swe/warmup_images.sh
+
+# 4) Run examples
+harbor run -p harbor_sql/sql_3/baseline -a claude-code -m anthropic/claude-opus-4-1
+harbor run -p harbor_swe/swe_5/ask_human -a claude-code -m anthropic/claude-opus-4-1
 ```
 
-To warm or fetch the SWE task images:
+For `ask_human` mode, set judge env vars before `harbor run` (for example `ASK_HUMAN_MODEL`, `LITELLM_BASE_URL`, `LITELLM_API_KEY`).
+
+Registry examples:
 
 ```bash
-cd harbor_swe
-bash warmup_images.sh
+# Run the full published dataset (all tasks)
+harbor run -d scale-ai/hil-bench@v1 -a claude-code -m anthropic/claude-opus-4-1
+
+# Run one specific published task
+harbor run -t scale-ai/hil-bench-sql_3-baseline@v1 -a claude-code -m anthropic/claude-opus-4-1
 ```
-
-The SWE Harbor images are hosted externally at [ScaleAI/hil-bench-swe-images](https://huggingface.co/buckets/ScaleAI/hil-bench-swe-images).
-
-To run a single SWE task:
-
-```bash
-uvx harbor run -p harbor_swe/swe_0/baseline
-```
-
-Or similarly, for `ask_human` or `full_info`. 
 
 ## Output Structure
 
