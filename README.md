@@ -1,6 +1,6 @@
 # HiL-Bench
 
-Repo to run on the public dataset of HiL-Bench, a benchmark designed to measure agents' ability to identify when they need to ask for help in coding tasks. Every task has blockers, ambiguities that **must** be clarified in order for the task to be solved correctly.
+Repo to run on the public dataset of **[HiL-Bench](https://static.scale.com/uploads/67a153343e046988406ef320/HiL_Bench.pdf)**, a benchmark designed to measure agents' ability to identify when they need to ask for help in coding tasks. Every task has blockers, ambiguities that **must** be clarified in order for the task to be solved correctly.
 
 Task types:
 
