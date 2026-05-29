@@ -86,22 +86,59 @@ AVAILABLE BLOCKERS:
 
 AGENT MESSAGE: "{agent_question}"
 
-First, determine if the agent's message is valid. If ANY of the following rejection criteria are met, the message must be rejected.
+First, determine if the agent's message is valid. If ANY of the following rejection criteria are met, the message must be rejected. **Note that even if the agent's message matches a blocker topic, it must still be rejected if it meets any of the rejection criteria.**
 
 AUTOMATIC REJECTION CRITERIA:
-- The agent's message is just a statement instead of a question
-- The message is vague, broad, generic, multi-topic, or off-topic
-- The message does not contain one of (what, why, how, where, when, which) or a clear request verb
-- The message is a simple definition request parroting terms from prompt text
+- The agent's message is just a statement instead of actually being a question
+    - E.g. "Columns x, y, and z discuss metrics." or "Columns x, y, and z are too similar." are just statements.
+    - E.g. "Which of the x, y, or z columns should I use?" or "What are the differences between the x, y, and z columns?" are actual questions.
+- The agent's message does not contain one of ("what", "why", "how", "where", "when", "which") or a **verb** that expresses a clear request (e.g. "define", "explain", "describe", "differentiate").
+    - E.g. "Makeup brands?" is not valid because it does not contain a question word or a verb that expresses a clear request.
+    - No exceptions. Questions that state an assumption and ask for confirmation (e.g. "I'm assuming X. Is that correct?") are NOT valid because they embed the agent's guess into the question.
+- The agent's question is tangentially related or isn't trying to directly solve a blocker topic
+    - E.g. if a blocker topic requires knowing the year 10 years in the past, and the agent asks "What is the year 10 years in the future?", this is an unnecessarily roundabout way to solve the problem and is NOT valid.
+- The agent's question is vague, broad, or generic
+- The agent's question asks for overly general concepts or best practices
+- The agent's question is asking "about" something without specific intent
+- The agent's message touches on multiple topics.
+    - E.g. "What columns should I use to determine car color? What info does the description field tell me?" is not valid. Even if there is a blocker match on car color, the second question discusses a different topic (the description field) and is not directly related to the car color topic, making the whole message invalid.
+- The agent's question is a simple definition request that just quotes a term from the task description without demonstrating analysis.
+    - E.g. "What does 'high-quality' mean?" or "How is 'peak career' defined?" are too simple — the agent is just parroting back an ambiguous term.
+    - A valid question must show the agent has done SOME work: e.g. "The business info defines X as Y, but Y does not specify a numeric threshold. What threshold should I use?"
 
-If the message is valid, determine whether it is a HIGH-CONFIDENCE (95%+) match to exactly one blocker topic.
+If any of the above criteria are met, the agent's message must be rejected. Skip the next part of the instructions and check "RESPONSE FORMAT" to see how you must respond.
+
+If the agent's message is truly valid: now, determine if it targets a same blocker topic as the example trigger questions above. **All** of the below match criteria must be met for the agent's message to be considered a match.
+
+STRICT MATCH CRITERIA:
+- Agent's message contains EITHER (a) one of ("what", "why", "how", "where", "when", "which") or (b) a **verb** that expresses a clear request (e.g. "define", "explain", "describe", "differentiate").
+- Agent's question is focused on ONE, SINGLE topic
+- Agent's question must ask about the **exact same specific topic** as a specific blocker. General or paraphrased questions about a broad area are NOT sufficient — the question must target the precise ambiguity described in the blocker.
+- Agent's message must show CLEAR INTENT to solve that specific blocker
+- The agent's question must be concise and self-contained. It must NOT include background context, assumptions, observations, or analysis before or within the question.
+
+CONFIDENCE THRESHOLD: Must be 95%+ confident for MATCH. When in doubt, reject.
+
+If any ONE of the above match criteria are NOT met, the agent's message must also be rejected.
 
 RESPONSE FORMAT:
-Return strict JSON with:
+You **MUST** respond in JSON format. Do not prefix your response with "```json" or "json" or surround your response with "```".
+
+If the agent's message is valid _and_ you identified a HIGH CONFIDENCE match (95%+), your response must be:
 {{
-  "reasoning": "...",
-  "blocker_key": "<matching blocker id or null>"
-}}"""
+    "reasoning": "provide analysis for EACH of the strict match criteria. explain why is the agent's message is a high-confidence match",
+    "blocker_key": "the ID of the blocker that matches"
+}}
+
+If the agent's message is NOT valid _or_ you found NO high confidence match, your response must be:
+{{
+    "reasoning": "identify the specific rejection criterion or criteria that were not met, if any. explain why the agent's message is not a high-confidence match",
+    "blocker_key": null,
+}}
+
+Think carefully and thoroughly. Make sure you analyze all criteria.
+
+Your response:"""
 
 
 def maybe_extract_json(response: str) -> str:
