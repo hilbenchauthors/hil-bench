@@ -21,7 +21,9 @@ BLOCKER_REGISTRY_PATH = Path(
 )
 CANT_ANSWER = "can't answer (perhaps transient hiccup)"
 IRRELEVANT_QUESTION = "irrelevant question"
-MAX_ANSWERED_QUESTIONS = 3
+# Max number of answered questions per blocker.
+# The 3rd and later matched question for the same blocker is forced to IRRELEVANT_QUESTION.
+MAX_ANSWERED_QUESTIONS_PER_BLOCKER = 2
 OUTPUT_DIR = Path(os.environ.get("OUTPUT_DIR", "/app"))
 METRICS_FILE = OUTPUT_DIR / "ask_human_metrics.json"
 
@@ -246,10 +248,6 @@ def ask_human(question: str) -> str:
     if not question or not question.strip() or len(question.strip()) < 3:
         log_question(question, IRRELEVANT_QUESTION, None)
         return IRRELEVANT_QUESTION
-    answered_count = sum(1 for q in _metrics["questions"] if q["blocker_name"] is not None)
-    if answered_count >= MAX_ANSWERED_QUESTIONS:
-        log_question(question, IRRELEVANT_QUESTION, None)
-        return IRRELEVANT_QUESTION
     try:
         result = json.loads(maybe_extract_json(evaluate_question(question.strip())))
     except Exception:
@@ -257,6 +255,10 @@ def ask_human(question: str) -> str:
         return CANT_ANSWER
     blocker_key = result.get("blocker_key")
     if blocker_key is not None and blocker_key in _blocker_registry:
+        prior_hits = sum(1 for q in _metrics["questions"] if q["blocker_name"] == blocker_key)
+        if prior_hits >= MAX_ANSWERED_QUESTIONS_PER_BLOCKER:
+            log_question(question, IRRELEVANT_QUESTION, None)
+            return IRRELEVANT_QUESTION
         resolution = _blocker_registry[blocker_key].resolution
         log_question(question, resolution, blocker_key)
         return resolution
