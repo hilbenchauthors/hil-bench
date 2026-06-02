@@ -63,9 +63,9 @@ TASKS_DIR: Path | None = None
 # Maps instance_id -> {blocker_id -> BlockerEntry}
 CACHED_BLOCKERS: dict[str, dict[str, BlockerEntry]] | None = None
 
-# Max number of questions per instance that can receive a real answer.
-# After this many answered questions, all subsequent questions return IRRELEVANT_QUESTION.
-MAX_ANSWERED_QUESTIONS_PER_INSTANCE = 3
+# Max number of answered questions per blocker for each instance.
+# The 3rd and later matched question for the same blocker is forced to IRRELEVANT_QUESTION.
+MAX_ANSWERED_QUESTIONS_PER_BLOCKER = 2
 
 
 class LogEntry(TypedDict):
@@ -591,21 +591,6 @@ def ask():
             logger.warning(f"No blocker registry found for instance {instance_id}")
             return jsonify({"response": CANT_ANSWER})
 
-        # Enforce per-instance question cap
-        if instance_id in GLOBAL_LOGS:
-            answered = sum(
-                1 for q in GLOBAL_LOGS[instance_id]["questions"] if q["blocker_name"] is not None
-            )
-            if answered >= MAX_ANSWERED_QUESTIONS_PER_INSTANCE:
-                logger.info(
-                    f"Question cap reached for {instance_id} "
-                    f"({answered}/{MAX_ANSWERED_QUESTIONS_PER_INSTANCE})"
-                )
-                GLOBAL_LOGS[instance_id]["questions"].append(
-                    {"question": question, "response": IRRELEVANT_QUESTION, "blocker_name": None}
-                )
-                return jsonify({"response": IRRELEVANT_QUESTION})
-
         tool = AskHuman(blockers)
         response = tool.ask_human(question)
 
@@ -616,6 +601,29 @@ def ask():
                     "n_blockers": tool.log["n_blockers"],
                     "blockers": tool.log["blockers"].copy(),
                 }
+
+            # Enforce per-blocker cap: allow only two answered hits per blocker.
+            # On the 3rd+ matched question for the same blocker, force irrelevant.
+            latest_entry = tool.log["questions"][-1] if tool.log["questions"] else None
+            if latest_entry and latest_entry.get("blocker_name") is not None:
+                blocker_name = latest_entry["blocker_name"]
+                prior_hits = sum(
+                    1
+                    for q in GLOBAL_LOGS[instance_id]["questions"]
+                    if q.get("blocker_name") == blocker_name
+                )
+                if prior_hits >= MAX_ANSWERED_QUESTIONS_PER_BLOCKER:
+                    logger.info(
+                        "Per-blocker cap reached for %s blocker=%s (%d/%d)",
+                        instance_id,
+                        blocker_name,
+                        prior_hits,
+                        MAX_ANSWERED_QUESTIONS_PER_BLOCKER,
+                    )
+                    latest_entry["response"] = IRRELEVANT_QUESTION
+                    latest_entry["blocker_name"] = None
+                    response = IRRELEVANT_QUESTION
+
             GLOBAL_LOGS[instance_id]["questions"].extend(tool.log["questions"])
             # Update blockers status (merge True values)
             for blocker_key, resolved in tool.log["blockers"].items():
