@@ -1,0 +1,105 @@
+diff --git a/test/units/plugins/callback/test_callback.py b/test/units/plugins/callback/test_callback.py
+--- a/test/units/plugins/callback/test_callback.py
++++ b/test/units/plugins/callback/test_callback.py
+@@ -27,6 +27,8 @@
+ from units.compat import unittest
+ from units.compat.mock import MagicMock
+ 
++from ansible.executor.task_result import TaskResult
++from ansible.inventory.host import Host
+ from ansible.plugins.callback import CallbackBase
+ 
+ 
+@@ -46,6 +48,92 @@
+         display_mock.verbosity = 5
+         cb = CallbackBase(display=display_mock)
+         self.assertIs(cb._display, display_mock)
++
++    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_missing_delegated_target
++    def test_host_label_missing_delegated_target(self):
++        result = TaskResult(
++            host=Host('host1'),
++            task=None,
++            return_data={'_ansible_delegated_vars': {'ansible_host': '   ', 'ansible_hostname': ''}},
++        )
++        self.assertEqual(CallbackBase.host_label(result), 'host1 -> unavailable')
++
++    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_missing_delegated_target_empty_metadata
++    def test_host_label_missing_delegated_target_empty_metadata(self):
++        result = TaskResult(
++            host=Host('host1'),
++            task=None,
++            return_data={'_ansible_delegated_vars': {}},
++        )
++        self.assertEqual(CallbackBase.host_label(result), 'host1 -> unavailable')
++
++    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_prefers_canonical_delegated_identity
++    def test_host_label_prefers_canonical_delegated_identity(self):
++        result = TaskResult(
++            host=Host('host1'),
++            task=None,
++            return_data={'_ansible_delegated_vars': {
++                'delegated_host_name': 'relay-display',
++                'ansible_host': '10.0.0.25',
++                'ansible_hostname': 'relay-fallback',
++                'inventory_hostname': 'delegate.example.com',
++            }},
++        )
++        self.assertEqual(CallbackBase.host_label(result), 'host1 -> relay-display')
++
++    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_prefers_ansible_hostname_over_other_hints
++    def test_host_label_prefers_ansible_hostname_over_other_hints(self):
++        result = TaskResult(
++            host=Host('host1'),
++            task=None,
++            return_data={'_ansible_delegated_vars': {
++                'delegated_host_name': '   ',
++                'ansible_host': '  relay-address  ',
++                'ansible_hostname': 'relay-name',
++                'inventory_hostname': 'delegate.example.com',
++            }},
++        )
++        self.assertEqual(CallbackBase.host_label(result), 'host1 -> relay-name')
++
++    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_falls_back_to_ansible_delegated_host
++    def test_host_label_falls_back_to_ansible_delegated_host(self):
++        result = TaskResult(
++            host=Host('host1'),
++            task=None,
++            return_data={'_ansible_delegated_vars': {
++                'delegated_host_name': '',
++                'ansible_hostname': '   ',
++                'ansible_delegated_host': '  delegate-host  ',
++            }},
++        )
++        self.assertEqual(CallbackBase.host_label(result), 'host1 -> delegate-host')
++
++    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_truncates_each_side
++    def test_host_label_truncates_each_side(self):
++        result = TaskResult(
++            host=Host('abcdefghijklmnopqrstuv'),
++            task=None,
++            return_data={'_ansible_delegated_vars': {'ansible_delegated_host': 'zyxwvutsrqponmlkjihg'}},
++        )
++        self.assertEqual(CallbackBase.host_label(result), 'abcdefghijklmno... -> zyxwvutsrqponml...')
++
++    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_quotes_collision_cases
++    def test_host_label_quotes_collision_cases(self):
++        result = TaskResult(
++            host=Host('host1 -> west'),
++            task=None,
++            return_data={'_ansible_delegated_vars': {'ansible_delegated_host': "edge\'two"}},
++        )
++        self.assertEqual(CallbackBase.host_label(result), "'host1 -> west' -> 'edge\\\'two'")
++
++    # test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_quotes_backslash_only
++    def test_host_label_quotes_backslash_only(self):
++        result = TaskResult(
++            host=Host('host1'),
++            task=None,
++            return_data={'_ansible_delegated_vars': {'ansible_delegated_host': 'edge\\path'}},
++        )
++        self.assertEqual(CallbackBase.host_label(result), "host1 -> 'edge\\\\path'")
+ 
+     # TODO: import callback module so we can patch callback.cli/callback.C
+ 

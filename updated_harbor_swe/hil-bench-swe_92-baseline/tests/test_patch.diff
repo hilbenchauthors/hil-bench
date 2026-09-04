@@ -1,0 +1,49 @@
+diff --git a/test/units/utils/test_isidentifier.py b/test/units/utils/test_isidentifier.py
+new file mode 100644
+index 0000000000..cd082548ea
+--- /dev/null
++++ b/test/units/utils/test_isidentifier.py
+@@ -0,0 +1,43 @@
++# -*- coding: utf-8 -*-
++# Copyright: (c) 2020 Ansible Project
++# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
++
++# Make coding more python3-ish
++from __future__ import (absolute_import, division, print_function)
++__metaclass__ = type
++
++
++def test_py2_additional_keywords_rejected():
++    """ADDITIONAL_PY2_KEYWORDS must be frozenset(('True','False','None'); _isidentifier_PY2 rejects them."""
++    import ansible.utils.vars as vars_module
++    ADDITIONAL_PY2_KEYWORDS = getattr(vars_module, 'ADDITIONAL_PY2_KEYWORDS', None)
++    _isidentifier_PY2 = getattr(vars_module, '_isidentifier_PY2', None)
++    assert ADDITIONAL_PY2_KEYWORDS is not None, "ADDITIONAL_PY2_KEYWORDS not defined in ansible.utils.vars"
++    assert _isidentifier_PY2 is not None, "_isidentifier_PY2 not defined in ansible.utils.vars"
++    assert type(ADDITIONAL_PY2_KEYWORDS) is frozenset, "ADDITIONAL_PY2_KEYWORDS must be a frozenset, not %s" % type(ADDITIONAL_PY2_KEYWORDS).__name__
++    assert ADDITIONAL_PY2_KEYWORDS == frozenset(('True', 'False', 'None'))
++    assert not _isidentifier_PY2('True')
++    assert not _isidentifier_PY2('False')
++    assert not _isidentifier_PY2('None')
++
++
++def test_string_type_check_in_each_helper():
++    """Both _isidentifier_PY2 and _isidentifier_PY3 must perform string_types check at start; reject non-strings."""
++    import ansible.utils.vars as vars_module
++    _isidentifier_PY2 = getattr(vars_module, '_isidentifier_PY2', None)
++    _isidentifier_PY3 = getattr(vars_module, '_isidentifier_PY3', None)
++    assert _isidentifier_PY2 is not None, "_isidentifier_PY2 not defined in ansible.utils.vars"
++    assert _isidentifier_PY3 is not None, "_isidentifier_PY3 not defined in ansible.utils.vars"
++    non_strings = [None, 42, 3.14, [], {}, b'bytes']
++    for val in non_strings:
++        assert not _isidentifier_PY2(val), "_isidentifier_PY2 must reject non-string %r" % (val,)
++        assert not _isidentifier_PY3(val), "_isidentifier_PY3 must reject non-string %r" % (val,)
++
++
++def test_isidentifier_bound_at_module_load():
++    """Public isidentifier must be bound at module load to the version-specific function, not a wrapper."""
++    import ansible.utils.vars as vars_module
++    from ansible.module_utils.six import PY3
++    assert vars_module.isidentifier is (
++        vars_module._isidentifier_PY3 if PY3 else vars_module._isidentifier_PY2
++    ), "isidentifier must be the version-specific function itself, not a per-call dispatch wrapper"

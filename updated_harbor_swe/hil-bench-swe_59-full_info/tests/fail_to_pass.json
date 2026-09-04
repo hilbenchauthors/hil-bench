@@ -1,0 +1,9 @@
+[
+  "packages/components/containers/calendar/subscribeCalendarModal/SubscribeCalendarModal.test.tsx | keeps submission and messaging aligned across representative inputs",
+  "packages/components/containers/calendar/subscribeCalendarModal/SubscribeCalendarModal.test.tsx | handles similar Google feed inputs consistently",
+  "packages/components/containers/calendar/subscribeCalendarModal/SubscribeCalendarModal.test.tsx | handles close Outlook-like inputs consistently",
+  "packages/components/containers/calendar/subscribeCalendarModal/SubscribeCalendarModal.test.tsx | uses parsed path information for extension checks",
+  "packages/components/containers/calendar/subscribeCalendarModal/SubscribeCalendarModal.test.tsx | uses the shared limit for boundary comparisons",
+  "packages/components/containers/calendar/subscribeCalendarModal/SubscribeCalendarModal.test.tsx | shows one warning when checks overlap",
+  "packages/components/containers/calendar/subscribeCalendarModal/SubscribeCalendarModal.test.tsx | normalizes whitespace from the URL before storing it"
+]

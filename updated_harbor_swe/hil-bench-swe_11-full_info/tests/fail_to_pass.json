@@ -1,0 +1,7 @@
+[
+  "test/units/module_utils/common/validation/test_check_type_dict.py::test_check_type_dict_fail",
+  "test/units/module_utils/common/validation/test_check_type_dict.py::test_check_type_dict_max_length_limit",
+  "test/units/module_utils/common/validation/test_check_type_dict.py::test_check_type_dict_max_fields_limit",
+  "test/units/module_utils/common/validation/test_check_type_dict.py::test_check_type_dict_max_nesting_depth",
+  "test/units/module_utils/common/validation/test_check_type_dict.py::test_check_type_dict_max_nesting_depth_python_literal"
+]

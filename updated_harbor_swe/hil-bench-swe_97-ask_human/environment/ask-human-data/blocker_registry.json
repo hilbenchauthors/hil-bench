@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "missing_modal_focus_restoration_scope",
+      "type": "missing parameters",
+      "description": "The searchForScheduled interface accepts handleShowModal(ownProps: unknown), but the exact callback key within ownProps that the modal host uses to restore focus after dismissal is not specified.",
+      "resolution": "Pass { isMessage, onCloseCustomAction: () => setContainFocus?.(true) } to handleShowModal and call setContainFocus?.(false) immediately before it. The required restoration key is onCloseCustomAction \u2014 do NOT use onClose, afterClose, or any other key.",
+      "example_questions": [
+        "-  What property key should be passed inside ownProps to handleShowModal for restoring focus after the scheduled-items modal is dismissed?",
+        "-  Which callback name does the modal host contract expect for the focus-restoration action in searchForScheduled?",
+        "-  Should the focus-restoration callback be named onClose, onCloseCustomAction, afterClose, or something else when calling handleShowModal?",
+        "-  What is the expected shape of the ownProps object passed to handleShowModal in the scheduled-items flow?",
+        "-  What contract does the modal host impose on the ownProps payload for lifecycle callbacks like focus restoration after dismiss?"
+      ]
+    },
+    {
+      "id": "from_spam_notification_excludes_trash",
+      "type": "ambiguous requirements",
+      "description": "The requirements say getNotificationTextMoved should generate text for moves originating from Spam, but do not specify whether this applies to all destination folders or excludes Trash.",
+      "resolution": "getNotificationTextMoved must check both fromLabelID === SPAM AND folderID !== TRASH for the \"not spam list\" notification. Moving from Spam to Trash is a deletion that should produce the default \"moved to Trash\" text; only non-Trash destinations get the \"not spam\" notification.",
+      "example_questions": [
+        "-  When moving messages from Spam to Trash, should the notification say \"added to your not spam list\" or just \"moved to Trash\"?",
+        "-  Does the \"not spam list\" notification text apply to all moves originating from Spam, or only non-Trash destinations?",
+        "-  Should getNotificationTextMoved treat Spam-to-Trash differently from Spam-to-Inbox or Spam-to-Archive?",
+        "-  Is moving from Spam to Trash semantically an un-spam action or a deletion?",
+        "-  What destination folder restriction, if any, should the from-Spam notification text have?"
+      ]
+    },
+    {
+      "id": "scheduled_evaluation_scope_trash_only",
+      "type": "contradictory requirements",
+      "description": "The problem statement says scheduled-move handling applies \"when moving exclusively scheduled items to Trash\", but the requirements say searchForScheduled should evaluate scheduled-selection outcomes \"for the move path being handled\", suggesting all destinations.",
+      "resolution": "searchForScheduled must only evaluate scheduled items when folderID === TRASH; for all other move destinations, the function returns immediately without calling setCanUndo or showing a modal.",
+      "example_questions": [
+        "-  Should searchForScheduled evaluate scheduled items only for Trash moves, or for all destination folders?",
+        "-  If the destination is Inbox or Archive, should searchForScheduled still count scheduled items and potentially disable undo?",
+        "-  Does the scheduled-evaluation logic apply exclusively to Trash, or to every move path the hook handles?",
+        "-  When moving scheduled messages to a non-Trash folder, should searchForScheduled return immediately without any side effects?",
+        "-  Is the folderID === TRASH guard required at the top of searchForScheduled, or should it run unconditionally?"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[
+  "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_error_subprocess",
+  "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_error_pass_in_output_subprocess",
+  "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_start_new_session",
+  "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_password_raw_bytes",
+  "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_timeout_value",
+  "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_timeout_cleanup_sequence",
+  "test/units/plugins/connection/test_winrm.py::TestWinRMKerbAuth::test_kinit_path_env_default"
+]

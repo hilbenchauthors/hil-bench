@@ -1,0 +1,305 @@
+diff --git a/core/agents/lastfm/agent_test.go b/core/agents/lastfm/agent_test.go
+index c4154826..9d909c54 100644
+--- a/core/agents/lastfm/agent_test.go
++++ b/core/agents/lastfm/agent_test.go
+@@ -10,14 +10,10 @@ import (
+ 	"strconv"
+ 	"time"
+ 
+-	"github.com/navidrome/navidrome/core/scrobbler"
+-
+-	"github.com/navidrome/navidrome/model/request"
+-
+-	"github.com/navidrome/navidrome/model"
+-
+ 	"github.com/navidrome/navidrome/conf"
+ 	"github.com/navidrome/navidrome/core/agents"
++	"github.com/navidrome/navidrome/core/scrobbler"
++	"github.com/navidrome/navidrome/model"
+ 	"github.com/navidrome/navidrome/tests"
+ 	. "github.com/onsi/ginkgo"
+ 	. "github.com/onsi/gomega"
+@@ -232,8 +228,7 @@ var _ = Describe("lastfmAgent", func() {
+ 		var httpClient *tests.FakeHttpClient
+ 		var track *model.MediaFile
+ 		BeforeEach(func() {
+-			ctx = request.WithUser(ctx, model.User{ID: "user-1"})
+-			_ = ds.UserProps(ctx).Put(sessionKeyProperty, "SK-1")
++			_ = ds.UserProps(ctx).Put("user-1", sessionKeyProperty, "SK-1")
+ 			httpClient = &tests.FakeHttpClient{}
+ 			client := NewClient("API_KEY", "SECRET", "en", httpClient)
+ 			agent = lastFMConstructor(ds)
+@@ -304,6 +299,61 @@ var _ = Describe("lastfmAgent", func() {
+ 				Expect(err).ToNot(HaveOccurred())
+ 				Expect(httpClient.SavedRequest).To(BeNil())
+ 			})
++
++			It("truncates scrobbles exceeding the maximum batch size", func() {
++				var many []scrobbler.Scrobble
++				for i := 0; i < 100; i++ {
++					many = append(many, scrobbler.Scrobble{
++						MediaFile: *track,
++						TimeStamp: time.Unix(int64(i), 0),
++					})
++				}
++
++				httpClient.Res = http.Response{Body: ioutil.NopCloser(bytes.NewBufferString("{}")), StatusCode: 200}
++				err := agent.Scrobble(ctx, "user-1", many)
++
++				Expect(err).ToNot(HaveOccurred())
++				Expect(httpClient.RequestCount).To(Equal(80))
++
++				for i := 0; i < 80; i++ {
++					Expect(httpClient.Requests[i].URL.Query().Get("timestamp")).To(Equal(strconv.FormatInt(int64(79-i), 10)))
++				}
++			})
++
++			It("processes all scrobbles when below the maximum", func() {
++				var few []scrobbler.Scrobble
++				for i := 0; i < 60; i++ {
++					few = append(few, scrobbler.Scrobble{MediaFile: *track, TimeStamp: time.Now()})
++				}
++
++				httpClient.Res = http.Response{Body: ioutil.NopCloser(bytes.NewBufferString("{}")), StatusCode: 200}
++				err := agent.Scrobble(ctx, "user-1", few)
++
++				Expect(err).ToNot(HaveOccurred())
++				Expect(httpClient.RequestCount).To(Equal(60))
++			})
++
++			It("sorts scrobbles by timestamp ascending before submitting", func() {
++				timestamps := []int64{500, 300, 100, 400, 200}
++				var unordered []scrobbler.Scrobble
++				for _, ts := range timestamps {
++					unordered = append(unordered, scrobbler.Scrobble{
++						MediaFile: *track,
++						TimeStamp: time.Unix(ts, 0),
++					})
++				}
++
++				httpClient.Res = http.Response{Body: ioutil.NopCloser(bytes.NewBufferString("{}")), StatusCode: 200}
++				err := agent.Scrobble(ctx, "user-1", unordered)
++
++				Expect(err).ToNot(HaveOccurred())
++				Expect(httpClient.RequestCount).To(Equal(5))
++
++				expectedOrder := []string{"500", "400", "300", "200", "100"}
++				for i, expected := range expectedOrder {
++					Expect(httpClient.Requests[i].URL.Query().Get("timestamp")).To(Equal(expected))
++				}
++			})
+ 		})
+ 	})
+ 
+diff --git a/core/agents/lastfm/lastfm_suite_test.go b/core/agents/lastfm/lastfm_suite_test.go
+index 9be5fabe..b3e3e7fe 100644
+--- a/core/agents/lastfm/lastfm_suite_test.go
++++ b/core/agents/lastfm/lastfm_suite_test.go
+@@ -9,6 +9,7 @@ import (
+ 	. "github.com/onsi/gomega"
+ )
+ 
++// TestLastFM is the Ginkgo entry point for all specs in package lastfm (agent, client, auth router, etc.).
+ func TestLastFM(t *testing.T) {
+ 	tests.Init(t, false)
+ 	log.SetLevel(log.LevelCritical)
+diff --git a/persistence/persistence_suite_test.go b/persistence/persistence_suite_test.go
+index 3aeb39a3..15398c3a 100644
+--- a/persistence/persistence_suite_test.go
++++ b/persistence/persistence_suite_test.go
+@@ -17,6 +17,7 @@ import (
+ 	. "github.com/onsi/gomega"
+ )
+ 
++// TestPersistence is the Ginkgo entry point for all specs in package persistence (repositories, migrations-backed stores, etc.).
+ func TestPersistence(t *testing.T) {
+ 	tests.Init(t, true)
+ 
+diff --git a/persistence/user_props_repository_test.go b/persistence/user_props_repository_test.go
+new file mode 100644
+index 00000000..7aef49c1
+--- /dev/null
++++ b/persistence/user_props_repository_test.go
+@@ -0,0 +1,64 @@
++package persistence
++
++import (
++	"context"
++
++	"github.com/astaxie/beego/orm"
++	"github.com/navidrome/navidrome/log"
++	"github.com/navidrome/navidrome/model"
++	. "github.com/onsi/ginkgo"
++	. "github.com/onsi/gomega"
++)
++
++var _ = Describe("UserPropsRepository", func() {
++	var repo model.UserPropsRepository
++	bareCtx := context.Background()
++
++	BeforeEach(func() {
++		repo = NewUserPropsRepository(log.NewContext(bareCtx), orm.NewOrm())
++	})
++
++	It("uses explicit userId when context has no authenticated user", func() {
++		Expect(repo.Put("u-props-ctx-a", "prop-key", "val-a")).To(BeNil())
++		got, err := repo.Get("u-props-ctx-a", "prop-key")
++		Expect(err).To(BeNil())
++		Expect(got).To(Equal("val-a"))
++	})
++
++	It("isolates rows per userId for the same key", func() {
++		Expect(repo.Put("u-props-iso-1", "shared-key", "one")).To(BeNil())
++		Expect(repo.Put("u-props-iso-2", "shared-key", "two")).To(BeNil())
++		v1, err := repo.Get("u-props-iso-1", "shared-key")
++		Expect(err).To(BeNil())
++		Expect(v1).To(Equal("one"))
++		v2, err := repo.Get("u-props-iso-2", "shared-key")
++		Expect(err).To(BeNil())
++		Expect(v2).To(Equal("two"))
++	})
++
++	It("DefaultGet returns the default when the row is missing", func() {
++		got, err := repo.DefaultGet("u-props-missing", "no-such-key", "fallback")
++		Expect(err).To(BeNil())
++		Expect(got).To(Equal("fallback"))
++	})
++
++	It("Delete removes only the row for the given userId", func() {
++		Expect(repo.Put("u-props-del-a", "k-del", "keep-other")).To(BeNil())
++		Expect(repo.Put("u-props-del-b", "k-del", "stay")).To(BeNil())
++		Expect(repo.Delete("u-props-del-a", "k-del")).To(BeNil())
++		_, err := repo.Get("u-props-del-a", "k-del")
++		Expect(err).To(Equal(model.ErrNotFound))
++		v, err := repo.Get("u-props-del-b", "k-del")
++		Expect(err).To(BeNil())
++		Expect(v).To(Equal("stay"))
++	})
++
++	It("Put updates the value when userId and key already exist", func() {
++		Expect(repo.Put("u-props-upd", "k-upd", "first")).To(BeNil())
++		Expect(repo.Put("u-props-upd", "k-upd", "second")).To(BeNil())
++		v, err := repo.Get("u-props-upd", "k-upd")
++		Expect(err).To(BeNil())
++		Expect(v).To(Equal("second"))
++	})
++})
++
+diff --git a/tests/fake_http_client.go b/tests/fake_http_client.go
+index 88f0e95a..59bc2e0d 100644
+--- a/tests/fake_http_client.go
++++ b/tests/fake_http_client.go
+@@ -1,19 +1,39 @@
+ package tests
+ 
+-import "net/http"
++import (
++	"bytes"
++	"io"
++	"net/http"
++)
+ 
+ type FakeHttpClient struct {
+ 	Res          http.Response
+ 	Err          error
+ 	SavedRequest *http.Request
++	Requests     []*http.Request
+ 	RequestCount int
++	// bodySnapshot holds a copy of Res.Body after first read so every Do() can return a fresh Reader (http.Response.Body is single-use).
++	bodySnapshot []byte
+ }
+ 
+ func (c *FakeHttpClient) Do(req *http.Request) (*http.Response, error) {
+ 	c.RequestCount++
+ 	c.SavedRequest = req
++	c.Requests = append(c.Requests, req)
+ 	if c.Err != nil {
+ 		return nil, c.Err
+ 	}
+-	return &c.Res, nil
++	resp := c.Res
++	if c.Res.Body != nil {
++		if c.bodySnapshot == nil {
++			var err error
++			c.bodySnapshot, err = io.ReadAll(c.Res.Body)
++			_ = c.Res.Body.Close()
++			if err != nil {
++				return nil, err
++			}
++		}
++		resp.Body = io.NopCloser(bytes.NewReader(c.bodySnapshot))
++	}
++	return &resp, nil
+ }
+diff --git a/tests/mock_user_props_repo.go b/tests/mock_user_props_repo.go
+index 71aa2c1b..7fa581bb 100644
+--- a/tests/mock_user_props_repo.go
++++ b/tests/mock_user_props_repo.go
+@@ -4,9 +4,8 @@ import "github.com/navidrome/navidrome/model"
+ 
+ type MockedUserPropsRepo struct {
+ 	model.UserPropsRepository
+-	UserID string
+-	data   map[string]string
+-	err    error
++	data map[string]string
++	err  error
+ }
+ 
+ func (p *MockedUserPropsRepo) init() {
+@@ -15,44 +14,44 @@ func (p *MockedUserPropsRepo) init() {
+ 	}
+ }
+ 
+-func (p *MockedUserPropsRepo) Put(key string, value string) error {
++func (p *MockedUserPropsRepo) Put(userId, key string, value string) error {
+ 	if p.err != nil {
+ 		return p.err
+ 	}
+ 	p.init()
+-	p.data[p.UserID+"_"+key] = value
++	p.data[userId+key] = value
+ 	return nil
+ }
+ 
+-func (p *MockedUserPropsRepo) Get(key string) (string, error) {
++func (p *MockedUserPropsRepo) Get(userId, key string) (string, error) {
+ 	if p.err != nil {
+ 		return "", p.err
+ 	}
+ 	p.init()
+-	if v, ok := p.data[p.UserID+"_"+key]; ok {
++	if v, ok := p.data[userId+key]; ok {
+ 		return v, nil
+ 	}
+ 	return "", model.ErrNotFound
+ }
+ 
+-func (p *MockedUserPropsRepo) Delete(key string) error {
++func (p *MockedUserPropsRepo) Delete(userId, key string) error {
+ 	if p.err != nil {
+ 		return p.err
+ 	}
+ 	p.init()
+-	if _, ok := p.data[p.UserID+"_"+key]; ok {
+-		delete(p.data, p.UserID+"_"+key)
++	if _, ok := p.data[userId+key]; ok {
++		delete(p.data, userId+key)
+ 		return nil
+ 	}
+ 	return model.ErrNotFound
+ }
+ 
+-func (p *MockedUserPropsRepo) DefaultGet(key string, defaultValue string) (string, error) {
++func (p *MockedUserPropsRepo) DefaultGet(userId, key string, defaultValue string) (string, error) {
+ 	if p.err != nil {
+ 		return "", p.err
+ 	}
+ 	p.init()
+-	v, err := p.Get(p.UserID + "_" + key)
++	v, err := p.Get(userId, key)
+ 	if err != nil {
+ 		return defaultValue, nil
+ 	}
+ 	return v, nil
+ }

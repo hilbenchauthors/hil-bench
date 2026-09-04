@@ -1,0 +1,8 @@
+[
+  "test/units/module_utils/urls/test_prepare_multipart.py::test_prepare_multipart",
+  "test/units/module_utils/urls/test_prepare_multipart.py::test_unknown_wrong_multipart_encoding",
+  "test/units/module_utils/urls/test_prepare_multipart.py::test_encoding_scope_file_vs_content",
+  "test/units/module_utils/urls/test_prepare_multipart.py::test_default_encoding_and_explicit",
+  "test/units/module_utils/urls/test_prepare_multipart.py::test_confusable_encoding_names_rejected",
+  "test/units/module_utils/urls/test_prepare_multipart.py::test_default_encoding_none_and_empty"
+]

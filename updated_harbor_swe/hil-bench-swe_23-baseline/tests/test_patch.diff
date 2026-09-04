@@ -1,0 +1,184 @@
+diff --git a/applications/drive/src/test/usePublicSession.test.tsx b/applications/drive/src/test/usePublicSession.test.tsx
+new file mode 100644
+index 0000000000..0dfd883172
+--- /dev/null
++++ b/applications/drive/src/test/usePublicSession.test.tsx
+@@ -0,0 +1,178 @@
++import { act, render } from '@testing-library/react';
++
++import { useApi, useAuthentication } from '@proton/components';
++import { STORAGE_PREFIX } from '@proton/shared/lib/authentication/persistedSessionStorage';
++import { resumeSession } from '@proton/shared/lib/authentication/persistedSessionHelper';
++
++import { getLastActivePersistedUserSession } from '../app/utils/lastActivePersistedUserSession';
++import usePublicSession, { PublicSessionProvider } from '../app/store/_api/usePublicSession';
++
++jest.mock('@proton/components', () => ({
++    useApi: jest.fn(),
++    useAuthentication: jest.fn(),
++}));
++
++jest.mock('@proton/shared/lib/authentication/persistedSessionHelper', () => ({
++    ...jest.requireActual('@proton/shared/lib/authentication/persistedSessionHelper'),
++    resumeSession: jest.fn(),
++}));
++
++jest.mock('../app/utils/lastActivePersistedUserSession', () => ({
++    ...jest.requireActual('../app/utils/lastActivePersistedUserSession'),
++    getLastActivePersistedUserSession: jest.fn(),
++}));
++
++jest.mock('../app/store/_api/useDebouncedRequest', () => ({
++    __esModule: true,
++    default: () => jest.fn(),
++}));
++
++const getLastActivePersistedUserSessionActual = jest.requireActual(
++    '../app/utils/lastActivePersistedUserSession'
++).getLastActivePersistedUserSession as () => any;
++
++describe('usePublicSessionProvider', () => {
++    const mockApi = jest.fn().mockResolvedValue({ Flags: 0 });
++    const mockAuth = {
++        setPassword: jest.fn(),
++        setUID: jest.fn(),
++        setLocalID: jest.fn(),
++        getLocalID: jest.fn().mockReturnValue(7),
++    };
++
++    let capturedHook: ReturnType<typeof usePublicSession> | undefined;
++
++    const Probe = () => {
++        capturedHook = usePublicSession();
++        return null;
++    };
++
++    beforeEach(() => {
++        jest.clearAllMocks();
++        window.localStorage.clear();
++        jest.mocked(useApi).mockReturnValue(mockApi as any);
++        jest.mocked(useAuthentication).mockReturnValue(mockAuth as any);
++        jest.mocked(getLastActivePersistedUserSession).mockReturnValue({
++            UID: 'persisted-uid',
++            localID: 42,
++            persistedAt: 100,
++        } as any);
++        jest.mocked(resumeSession).mockResolvedValue({
++            UID: 'resumed-uid',
++            keyPassword: '',
++            User: {},
++        } as any);
++    });
++
++    afterEach(() => {
++        jest.useRealTimers();
++    });
++
++    const runInitHandshake = async () => {
++        render(
++            <PublicSessionProvider>
++                <Probe />
++            </PublicSessionProvider>
++        );
++
++        await act(async () => {
++            await capturedHook?.initHandshake('token');
++        });
++    };
++
++    it('calls auth setters when resumedSession is truthy but keyPassword is empty', async () => {
++        await runInitHandshake();
++
++        expect(mockAuth.setPassword).toHaveBeenCalledWith('');
++        expect(mockAuth.setUID).toHaveBeenCalledWith('persisted-uid');
++        expect(mockAuth.setLocalID).toHaveBeenCalledWith(42);
++    });
++
++    it('uses persistedSession.UID instead of resumedSession.UID for auth.setUID', async () => {
++        jest.mocked(resumeSession).mockResolvedValue({
++            UID: 'resumed-uid',
++            keyPassword: 'resumed-password',
++            User: {},
++        } as any);
++
++        await runInitHandshake();
++
++        expect(mockAuth.setUID).toHaveBeenCalledWith('persisted-uid');
++        expect(mockAuth.setUID).not.toHaveBeenCalledWith('resumed-uid');
++    });
++
++    it('uses persistedSession.localID when resuming session', async () => {
++        jest.mocked(resumeSession).mockResolvedValue({
++            UID: 'resumed-uid',
++            keyPassword: 'resumed-password',
++            User: {},
++        } as any);
++
++        await runInitHandshake();
++
++        expect(resumeSession).toHaveBeenCalledWith({
++            api: mockApi,
++            localID: 42,
++        });
++    });
++
++    it('returns null when all sessions are stale according to freshness policy', () => {
++        const now = 2_000_000_000_000;
++        jest.useFakeTimers();
++        jest.setSystemTime(now);
++
++        localStorage.setItem(
++            `${STORAGE_PREFIX}0`,
++            JSON.stringify({ UserID: 'stale-user-1', UID: 'stale-uid-1', persistedAt: now - 1_036_800_001 })
++        );
++
++        const result = getLastActivePersistedUserSessionActual();
++        expect(result).toBeNull();
++    });
++
++    it('keeps sessions persisted at the exact freshness threshold', () => {
++        const now = 2_000_000_000_000;
++        jest.useFakeTimers();
++        jest.setSystemTime(now);
++
++        localStorage.setItem(
++            `${STORAGE_PREFIX}0`,
++            JSON.stringify({ UserID: 'fresh-user-threshold', UID: 'fresh-uid-threshold', persistedAt: now - 1_036_800_000 })
++        );
++
++        const boundaryResult = getLastActivePersistedUserSessionActual();
++        expect(boundaryResult?.UID).toBe('fresh-uid-threshold');
++
++        // Complementary boundary check: just-over-threshold must be treated as stale.
++        localStorage.clear();
++        localStorage.setItem(
++            `${STORAGE_PREFIX}0`,
++            JSON.stringify({
++                UserID: 'stale-user-over-threshold',
++                UID: 'stale-uid-over-threshold',
++                persistedAt: now - 1_036_800_001,
++            })
++        );
++
++        const overThresholdResult = getLastActivePersistedUserSessionActual();
++        expect(overThresholdResult).toBeNull();
++    });
++
++    it('returns null when multiple sessions are all stale', () => {
++        const now = 2_000_000_000_000;
++        jest.useFakeTimers();
++        jest.setSystemTime(now);
++
++        localStorage.setItem(
++            `${STORAGE_PREFIX}0`,
++            JSON.stringify({ UserID: 'stale-user-1', UID: 'stale-uid-1', persistedAt: now - 1_036_800_500 })
++        );
++        localStorage.setItem(
++            `${STORAGE_PREFIX}1`,
++            JSON.stringify({ UserID: 'stale-user-2', UID: 'stale-uid-2', persistedAt: now - 1_036_800_001 })
++        );
++
++        const result = getLastActivePersistedUserSessionActual();
++        expect(result).toBeNull();
++    });
++});

@@ -175,6 +175,7 @@ def _call_vllm(prompt: str) -> str:
 
 
 def _call_litellm(prompt: str, use_proxy: bool) -> str:
+    completion_kwargs: dict[str, Any] = {}
     if use_proxy:
         base = os.getenv("LITELLM_BASE_URL") or os.getenv("API_BASE")
         if base:
@@ -182,6 +183,16 @@ def _call_litellm(prompt: str, use_proxy: bool) -> str:
         key = os.getenv("LITELLM_API_KEY")
         if key:
             litellm.api_key = key
+        user = (os.getenv("LITELLM_USER") or "").strip()
+        if not user:
+            raise RuntimeError(
+                "LITELLM_USER is required so every ask-human proxy call is attributed"
+            )
+        # LiteLLM may drop its top-level `user` argument for unrecognized proxy
+        # model aliases. extra_body guarantees the attribution reaches the wire.
+        completion_kwargs = {"user": user, "extra_body": {"user": user}}
+    elif user := (os.getenv("LITELLM_USER") or "").strip():
+        completion_kwargs = {"user": user}
     model = os.getenv("ASK_HUMAN_MODEL", "openai/gpt-4o")
     resp = litellm.completion(
         model=model,
@@ -189,6 +200,7 @@ def _call_litellm(prompt: str, use_proxy: bool) -> str:
         temperature=0.05,
         timeout=90,
         num_retries=0,
+        **completion_kwargs,
     )
     return resp.choices[0].message.content.strip()
 

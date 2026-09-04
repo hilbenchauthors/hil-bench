@@ -1,0 +1,54 @@
+{
+  "blockers": [
+    {
+      "description": "The question refers to the 2013 European Girls' Olympiad in Informatics, but the competition was founded in 2021, therefore the request contradicts real world information.",
+      "example_questions": [
+        "The European Girls' Olympiad in Informatics was first held in June 2021. Are you referring specifically to that month, or to a later edition of the event?",
+        "Since the European Girls\u2019 Olympiad in Informatics has only been held since 2021, which exact month and year should be used for filtering?",
+        "The European Girls\u2019 Olympiad in Informatics began in June 2021. Could you clarify which edition (year) of the event you mean?"
+      ],
+      "id": "olympiad_year_contradiction",
+      "resolution": "Interpret \"2013 European Girls' Olympiad\" as 2023 European Girls' Olympiad, which was held in July 2023. ",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for posts by \"adult teenagers,\" but these are contradictory age categories since teenagers are defined as ages 13\u201318 and adults as ages 19\u201365, with no overlapping range.",
+      "example_questions": [
+        "Does \"adult teenagers\" mean the overlap between the teenage and adult ranges, or a different combined age bracket entirely?",
+        "What specific age range does \"adult teenagers\" refer to in the users table?",
+        "Since \"adult\" and \"teenager\" are mutually exclusive age categories, which age boundaries should be used for filtering \"adult teenagers\"?"
+      ],
+      "id": "contradictory_age_group",
+      "resolution": "\"Adult teenagers\" refers to users whose age is between 17 and 19, inclusive.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The business information states that eligible accounts hold a \"high-tier intellectual badge,\" but this phrase is vague and does not specify which badge names qualify.",
+      "example_questions": [
+        "Which specific badge names in the badges table qualify as \"high-tier intellectual\" badges?",
+        "Out of the 153 distinct badge names in the database, which ones should be considered \"high-tier intellectual\" for determining account eligibility?",
+        "Does \"high-tier intellectual badge\" refer to specific named badges like 'Analytical' or 'Enlightened', or to badges above a certain threshold?",
+        "How should \"high-tier intellectual badge\" be translated into a concrete list of badge names for the SQL filter?"
+      ],
+      "id": "confusing_badge_eligibility",
+      "resolution": "High-tier intellectual badges are 'Analytical', 'Socratic', and 'Enlightened'.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "Multiple tables contain status-related columns (postHistory.State, postHistory.PostResolution, posts.ClosedDate) with no guidance on which one determines whether a post is unresolved.",
+      "example_questions": [
+        "Should \"unresolved posts\" be identified using the State column in the postHistory table, the PostResolution column in the postHistory table, or the ClosedDate column in the posts table?",
+        "Which table and column contain the definitive status for determining whether a post is unresolved?",
+        "When postHistory.State, postHistory.PostResolution, and posts.ClosedDate all track post status, which column should be used to filter for unresolved posts?",
+        "What specific value in the State or PostResolution column indicates that a post is unresolved?"
+      ],
+      "id": "confusing_resolution_status",
+      "resolution": "Unresolved posts are those where the State column in the postHistory table equals 'Pending'.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

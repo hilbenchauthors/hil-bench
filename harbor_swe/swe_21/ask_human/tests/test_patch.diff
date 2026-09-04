@@ -1,0 +1,123 @@
+diff --git a/scanner/metadata/metadata_internal_test.go b/scanner/metadata/metadata_internal_test.go
+index 3b2b198b..427d5749 100644
+--- a/scanner/metadata/metadata_internal_test.go
++++ b/scanner/metadata/metadata_internal_test.go
+@@ -1,8 +1,12 @@
+ package metadata
+ 
+ import (
++	"github.com/navidrome/navidrome/log"
+ 	. "github.com/onsi/ginkgo/v2"
+ 	. "github.com/onsi/gomega"
++	"github.com/sirupsen/logrus"
++	logrustest "github.com/sirupsen/logrus/hooks/test"
++	"testing"
+ )
+ 
+ var _ = Describe("Tags", func() {
+@@ -130,3 +134,105 @@ var _ = Describe("Tags", func() {
+ 		)
+ 	})
+ })
++
++func TestBlockerMissingLoudnessNormalizationDefinition(t *testing.T) {
++	tags := Tags{Tags: ParsedTags{
++		"r128_track_gain": {"0"},
++		"r128_album_gain": {"-3776"},
++	}}
++
++	if got := tags.RGTrackGain(); got != 4.637 {
++		t.Fatalf("RGTrackGain normalization mismatch: got %v, want %v", got, 4.637)
++	}
++	// Use arithmetic to avoid float literal rounding mismatch.
++	wantAlbum := (-3776.0 / 256.0) + 4.637
++	if got := tags.RGAlbumGain(); got != wantAlbum {
++		t.Fatalf("RGAlbumGain normalization mismatch: got %v, want %v", got, wantAlbum)
++	}
++}
++
++func TestBlockerConflictingCompatibilityVsNewFormatSupport(t *testing.T) {
++	r128Only := Tags{Tags: ParsedTags{
++		"r128_track_gain": {"0"},
++		"r128_album_gain": {"0"},
++	}}
++	if got := r128Only.RGTrackGain(); got != 4.637 {
++		t.Fatalf("R128 fallback mismatch (track): got %v, want %v", got, 4.637)
++	}
++	if got := r128Only.RGAlbumGain(); got != 4.637 {
++		t.Fatalf("R128 fallback mismatch (album): got %v, want %v", got, 4.637)
++	}
++
++	trackFallback := Tags{Tags: ParsedTags{
++		"replaygain_track_gain": {"1.2dB"},
++	}}
++	if got := trackFallback.RGTrackGain(); got != 1.2 {
++		t.Fatalf("Track fallback mismatch: got %v, want %v", got, 1.2)
++	}
++
++	tags := Tags{Tags: ParsedTags{
++		"replaygain_track_gain": {"1.2dB"},
++		"r128_track_gain":       {"0"},
++		"replaygain_album_gain": {"-3.00dB"},
++		"r128_album_gain":       {"0"},
++	}}
++	if got := tags.RGTrackGain(); got != 4.637 {
++		t.Fatalf("Format preference mismatch (track): got %v, want %v", got, 4.637)
++	}
++	if got := tags.RGAlbumGain(); got != -3.0 {
++		t.Fatalf("Format preference mismatch (album): got %v, want %v", got, -3.0)
++	}
++}
++
++func TestBlockerAmbiguousGainProcessingStage(t *testing.T) {
++	// If multiple values exist for the same gain tag key, the last value must be used.
++	tags := Tags{Tags: ParsedTags{
++		"r128_track_gain": {"0", "-3776"},
++	}}
++	want := (-3776.0 / 256.0) + 4.637
++	if got := tags.RGTrackGain(); got != want {
++		t.Fatalf("Multi-value selection mismatch: got %v, want %v", got, want)
++	}
++}
++
++func TestSafeDefaultAndNoisesError(t *testing.T) {
++	l, hook := logrustest.NewNullLogger()
++	log.SetLevel(log.LevelTrace)
++	log.SetDefaultLogger(l)
++
++	// Missing tags: safe default + warning.
++	{
++		hook.Reset()
++		tags := Tags{Tags: ParsedTags{}}
++		if got := tags.RGTrackGain(); got != 0.0 {
++			t.Fatalf("Safe default mismatch (missing): got %v, want %v", got, 0.0)
++		}
++		if hook.LastEntry() == nil || hook.LastEntry().Level != logrus.WarnLevel {
++			t.Fatalf("Expected warning log for missing gain tags")
++		}
++	}
++
++	// Invalid value: safe default + warning.
++	{
++		hook.Reset()
++		tags := Tags{Tags: ParsedTags{"r128_track_gain": {"INVALID"}}}
++		if got := tags.RGTrackGain(); got != 0.0 {
++			t.Fatalf("Safe default mismatch (invalid): got %v, want %v", got, 0.0)
++		}
++		if hook.LastEntry() == nil || hook.LastEntry().Level != logrus.WarnLevel {
++			t.Fatalf("Expected warning log for invalid gain tag value")
++		}
++	}
++
++	// Non-finite value: safe default + warning.
++	{
++		hook.Reset()
++		tags := Tags{Tags: ParsedTags{"replaygain_track_gain": {"Infinity"}}}
++		if got := tags.RGTrackGain(); got != 0.0 {
++			t.Fatalf("Safe default mismatch (non-finite): got %v, want %v", got, 0.0)
++		}
++		if hook.LastEntry() == nil || hook.LastEntry().Level != logrus.WarnLevel {
++			t.Fatalf("Expected warning log for non-finite gain tag value")
++		}
++	}
++}

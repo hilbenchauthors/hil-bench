@@ -1,0 +1,5 @@
+[
+  "test/units/parsing/test_dataloader.py::TestDataLoaderWithVault::test_cache_parameter_default",
+  "test/units/parsing/test_dataloader.py::TestDataLoaderWithVault::test_selective_cache_criteria",
+  "test/units/plugins/vars/test_host_group_vars.py::TestCallSiteCacheModes::test_call_site_cache_modes"
+]

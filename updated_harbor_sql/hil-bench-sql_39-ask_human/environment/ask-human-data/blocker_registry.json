@@ -1,0 +1,55 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \"past few years\" does not specify how many years of evaluations to include. The database spans multiple years, and \"few\" is inherently vague, producing different player rankings depending on the time window selected.",
+      "example_questions": [
+        "How many years does 'past few years' cover?",
+        "What date range should I use for 'past few years'?",
+        "What specific time window falls within 'past few years'?"
+      ],
+      "id": "timeframe_scope",
+      "resolution": "Filter evaluations where date >= '2015-01-01' AND date < '2017-01-01', covering the two most recent years of data.",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The question refers to players noted for 'high' attacking effort, but the dataset contains multiple distinct categorical labels representing different effort classifications, including several labels near the high-effort tier. The question does not specify which exact labels should be treated as a match.",
+      "example_questions": [
+        "Which values count as 'high' attacking effort?",
+        "Does 'high' attacking effort refer to one specific label or a group of similar labels?",
+        "What exactly should I match when filtering for 'high' attacking effort?",
+        "How strictly should I interpret 'high' when there are related labels in the data?"
+      ],
+      "id": "effort_match",
+      "resolution": "Filter records where attacking_work_rate IN ('high', 'high_output'), which represent the high-effort classification tier. Other labels like 'high_press' and 'medium_high' should not be included.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The question references a \"proficiency index\" threshold, but no definition or formula for this metric is provided anywhere. Multiple player attributes could be used to compute it, and there is no way to determine the correct calculation.",
+      "example_questions": [
+        "How is the proficiency index calculated?",
+        "What metrics make up the proficiency index?",
+        "Which player attributes are used to compute the proficiency index?",
+        "Is the proficiency index threshold applied per evaluation or per player after averaging?"
+      ],
+      "id": "index_definition",
+      "resolution": "Compute proficiency index per evaluation record as (vision + short_passing + long_passing) / 3.0. Filter to evaluation records where this value exceeds 80, then compute each player\u2019s average long passing as AVG(CAST(long_passing AS REAL)) over the remaining records.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": " The question asks for players with a \"confirmed roster standing,\" and the Player table contains a roster_tag column, but its values are single-letter codes with no documented meaning, making it impossible to determine which code represents a confirmed standing.",
+      "example_questions": [
+        "What do the roster tag codes mean?",
+        "Which code represents a confirmed roster standing?",
+        "How should I interpret the values in the roster classification?",
+        "What does each roster tag value stand for?"
+      ],
+      "id": "unknown_affiliated_values",
+      "resolution": "Filter players where roster_tag = 'Q'. This value indicates a confirmed roster standing.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

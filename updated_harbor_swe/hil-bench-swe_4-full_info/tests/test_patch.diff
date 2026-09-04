@@ -1,0 +1,201 @@
+diff --git a/utils/hasher/export_test.go b/utils/hasher/export_test.go
+new file mode 100644
+index 00000000..9aa58733
+--- /dev/null
++++ b/utils/hasher/export_test.go
+@@ -0,0 +1,38 @@
++package hasher
++
++import (
++	"hash/maphash"
++	"reflect"
++	"unsafe"
++)
++
++// DigestForTest matches HashFunc payload layout (UTF-8 seed, 0x1F, UTF-8 input).
++func DigestForTest(seed, input string) uint64 {
++	b := make([]byte, 0, len(seed)+1+len(input))
++	b = append(b, seed...)
++	b = append(b, 0x1f)
++	b = append(b, input...)
++
++	v := reflect.ValueOf(instance).Elem()
++	seedType := reflect.TypeOf(maphash.Seed{})
++	var digestSeed maphash.Seed
++	var found bool
++	for i := 0; i < v.NumField(); i++ {
++		f := v.Field(i)
++		if f.Type() != seedType {
++			continue
++		}
++		if found {
++			panic("hasher: multiple maphash.Seed fields on Hasher")
++		}
++		if !f.CanAddr() {
++			panic("hasher: maphash.Seed field not addressable")
++		}
++		digestSeed = *(*maphash.Seed)(unsafe.Pointer(f.UnsafeAddr()))
++		found = true
++	}
++	if !found {
++		panic("hasher: no maphash.Seed field on Hasher")
++	}
++	return maphash.Bytes(digestSeed, b)
++}
+diff --git a/utils/hasher/hasher_test.go b/utils/hasher/hasher_test.go
+index 3127f787..6e541885 100644
+--- a/utils/hasher/hasher_test.go
++++ b/utils/hasher/hasher_test.go
+@@ -1,6 +1,10 @@
+ package hasher_test
+ 
+ import (
++	"hash/maphash"
++	"math"
++	"reflect"
++	"strconv"
+ 	"testing"
+ 
+ 	"github.com/navidrome/navidrome/utils/hasher"
+@@ -8,13 +12,18 @@ import (
+ 	. "github.com/onsi/gomega"
+ )
+ 
++// Blocker-only tests (task_files/blocker_registry.json) use standalone *testing.T functions below.
++// TestHasher runs the shared Ginkgo suite without those blocker examples.
++
++const blockerTestInput = "123e4567e89b12d3a456426614174000"
++
+ func TestHasher(t *testing.T) {
+ 	RegisterFailHandler(Fail)
+ 	RunSpecs(t, "Hasher Suite")
+ }
+ 
+ var _ = Describe("HashFunc", func() {
+-	const input = "123e4567e89b12d3a456426614174000"
++	const input = blockerTestInput
+ 
+ 	It("hashes the input and returns the sum", func() {
+ 		hashFunc := hasher.HashFunc()
+@@ -40,4 +49,121 @@ var _ = Describe("HashFunc", func() {
+ 		Expect(sum).To(Equal(hashFunc("1", input)))
+ 		Expect(sum2).To(Equal(hashFunc("2", input)))
+ 	})
++
++	It("keeps the same hash for the same id and seed", func() {
++		id := "1"
++		hashFunc := hasher.HashFunc()
++		hasher.SetSeed(id, "original_seed")
++		sum := hashFunc(id, input)
++		Expect(sum).To(Equal(hashFunc(id, input)))
++
++		hasher.Reseed(id)
++		Expect(sum).NotTo(Equal(hashFunc(id, input)))
++
++		hasher.SetSeed(id, "original_seed")
++		Expect(sum).To(Equal(hashFunc(id, input)))
++	})
++
++	It("uses map[string]string for per-id seed storage", func() {
++		hasherType := reflect.TypeOf(*hasher.NewHasher())
++		seedsField, found := hasherType.FieldByName("seeds")
++		Expect(found).To(BeTrue())
++		Expect(seedsField.Type.Kind()).To(Equal(reflect.Map))
++		Expect(seedsField.Type.Key().Kind()).To(Equal(reflect.String))
++		Expect(seedsField.Type.Elem().Kind()).To(Equal(reflect.String))
++		Expect(seedsField.Type.Elem()).NotTo(Equal(reflect.TypeOf(maphash.Seed{})))
++	})
+ })
++
++// ambiguous_seed_input_framing
++func TestAmbiguousSeedInputFraming(t *testing.T) {
++	g := NewWithT(t)
++	id := "test_framing"
++	hashFunc := hasher.HashFunc()
++
++	hasher.SetSeed(id, "A")
++	hashJoined := hashFunc(id, "B")
++	g.Expect(hashJoined).To(Equal(hasher.DigestForTest("A", "B")))
++
++	hasher.SetSeed(id, "AB")
++	hashPretendSplit := hashFunc(id, "")
++	g.Expect(hashPretendSplit).NotTo(Equal(hashJoined))
++}
++
++// missing_hasher_digest_and_auto_seed_rules
++func TestMissingHasherDigestAndAutoSeedRules(t *testing.T) {
++	t.Run("stable_digest_for_fixed_seed_and_input", func(t *testing.T) {
++		g := NewWithT(t)
++		id := "stable_digest"
++		hashFunc := hasher.HashFunc()
++		hasher.SetSeed(id, "seed_value")
++
++		first := hashFunc(id, blockerTestInput)
++		for i := 0; i < 50; i++ {
++			g.Expect(hashFunc(id, blockerTestInput)).To(Equal(first))
++		}
++	})
++
++	t.Run("auto_seeds_are_decimal_int64_range_strings", func(t *testing.T) {
++		g := NewWithT(t)
++		id := "test_auto_seed_range"
++		hashFunc := hasher.HashFunc()
++
++		initialHash := hashFunc(id, "test")
++
++		seed, ok := hasher.GetSeed(id)
++		g.Expect(ok).To(BeTrue())
++
++		seedValue, err := strconv.ParseInt(seed, 10, 64)
++		g.Expect(err).NotTo(HaveOccurred())
++
++		g.Expect(seedValue).To(BeNumerically(">=", 0))
++		g.Expect(seedValue).To(BeNumerically("<", int64(math.MaxInt64)))
++
++		previousSeed := seed
++		previousHash := initialHash
++
++		for i := 0; i < 10; i++ {
++			hasher.Reseed(id)
++			seed, _ = hasher.GetSeed(id)
++			g.Expect(seed).NotTo(Equal(previousSeed))
++
++			seedValue, err = strconv.ParseInt(seed, 10, 64)
++			g.Expect(err).NotTo(HaveOccurred())
++			g.Expect(seedValue).To(BeNumerically(">=", 0))
++			g.Expect(seedValue).To(BeNumerically("<", int64(math.MaxInt64)))
++
++			currentHash := hashFunc(id, "test")
++			g.Expect(currentHash).NotTo(Equal(previousHash))
++
++			for _, r := range seed {
++				g.Expect(r >= '0' && r <= '9').To(BeTrue())
++			}
++
++			previousSeed = seed
++			previousHash = currentHash
++		}
++	})
++}
++
++// contradictory_auto_seed_serialization_and_digest_scope
++func TestContradictoryAutoSeedSerializationAndDigestScope(t *testing.T) {
++	g := NewWithT(t)
++	hashFunc := hasher.HashFunc()
++	id1 := "test_id_1"
++	id2 := "test_id_2"
++	sameSeedValue := "001:Shared_Seed-Value"
++	in := "input"
++
++	hasher.SetSeed(id1, sameSeedValue)
++	hasher.SetSeed(id2, sameSeedValue)
++
++	storedSeed, ok := hasher.GetSeed(id1)
++	g.Expect(ok).To(BeTrue())
++	g.Expect(storedSeed).To(Equal(sameSeedValue))
++
++	sum1 := hashFunc(id1, in)
++	sum2 := hashFunc(id2, in)
++
++	g.Expect(sum1).To(Equal(sum2))
++}

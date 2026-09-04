@@ -1,0 +1,60 @@
+diff --git a/applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts b/applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts
+index 428866bd30..6a952a738e 100644
+--- a/applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts
++++ b/applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts
+@@ -1,6 +1,8 @@
++import fs from 'fs';
++import path from 'path';
+ import { act, renderHook } from '@testing-library/react-hooks';
+ 
+-import { useSelectionControls } from './useSelectionControls';
++import { SelectionState, parseSelectionState, serializeSelectionState, useSelectionControls } from './useSelectionControls';
+ 
+ const ALL_IDS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+ 
+@@ -68,17 +70,40 @@ describe('useSelection', () => {
+         expect(hook.current.isSelected('1')).toBe(false);
+     });
+ 
+-    it('isIndeterminate', () => {
++    it('SelectionState serializes and restores the canonical wire labels', () => {
++        expect(serializeSelectionState(SelectionState.NONE)).toBe('clear');
++        expect(serializeSelectionState(SelectionState.SOME)).toBe('mixed');
++        expect(serializeSelectionState(SelectionState.ALL)).toBe('complete');
++
++        expect(parseSelectionState('clear')).toBe(SelectionState.NONE);
++        expect(parseSelectionState('mixed')).toBe(SelectionState.SOME);
++        expect(parseSelectionState('complete')).toBe(SelectionState.ALL);
++    });
++
++    it('SelectionState is defined in useSelectionControls.ts and not in useSelection.tsx', () => {
++        const hookSource = fs.readFileSync(path.join(__dirname, 'useSelectionControls.ts'), 'utf8');
++        const selectionContextSource = fs.readFileSync(path.join(__dirname, '../state/useSelection.tsx'), 'utf8');
++
++        expect(hookSource).toContain('export enum SelectionState');
++        expect(selectionContextSource).not.toContain('enum SelectionState');
++    });
++
++    it('toggleAllSelected clears partial selection and selects all from empty', () => {
+         act(() => {
+-            hook.current.selectItem('2');
+-            hook.current.selectItem('1');
++            hook.current.toggleSelectItem('1');
++            hook.current.toggleSelectItem('2');
+         });
+ 
+-        expect(hook.current.isIndeterminate).toBe(true);
++        expect(hook.current.selectedItemIds).toMatchObject(['1', '2']);
++
++        act(() => {
++            hook.current.toggleAllSelected();
++        });
++        expect(hook.current.selectedItemIds).toEqual([]);
+ 
+         act(() => {
+             hook.current.toggleAllSelected();
+         });
+-        expect(hook.current.isIndeterminate).toBe(false);
++        expect(hook.current.selectedItemIds).toMatchObject(ALL_IDS);
+     });
+ });

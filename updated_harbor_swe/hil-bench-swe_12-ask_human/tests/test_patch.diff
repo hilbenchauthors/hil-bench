@@ -1,0 +1,129 @@
+diff --git a/applications/drive/src/app/components/useSpotlight.test.tsx b/applications/drive/src/app/components/useSpotlight.test.tsx
+new file mode 100644
+index 0000000000..5f4bf56bf1
+--- /dev/null
++++ b/applications/drive/src/app/components/useSpotlight.test.tsx
+@@ -0,0 +1,98 @@
++import { renderHook, act } from '@testing-library/react-hooks';
++import { ReactNode } from 'react';
++
++const mockGetCachedChildrenCount = jest.fn();
++const mockGetDefaultShare = jest.fn();
++const mockUseSpotlightOnFeature = jest.fn();
++const mockUseSpotlightShow = jest.fn();
++
++jest.mock('../store/links', () => ({
++    useLinksListing: () => ({
++        getCachedChildrenCount: mockGetCachedChildrenCount,
++    }),
++}));
++
++jest.mock('../store/shares', () => ({
++    useDefaultShare: () => ({
++        getDefaultShare: mockGetDefaultShare,
++    }),
++}));
++
++jest.mock('../store/utils', () => ({
++    reportError: jest.fn(),
++}));
++
++jest.mock('@proton/components', () => {
++    const actual = jest.requireActual('@proton/components');
++    return {
++        ...actual,
++        FeatureCode: {
++            ...actual.FeatureCode,
++            DriveSearchFeatureDiscovery: 'DriveSearchFeatureDiscovery',
++        },
++        useSpotlightOnFeature: (...args: any[]) => mockUseSpotlightOnFeature(...args),
++        useSpotlightShow: (...args: any[]) => mockUseSpotlightShow(...args),
++    };
++});
++
++import { FeatureCode } from '@proton/components';
++import { SpotlightProvider, useSpotlight } from './useSpotlight';
++
++describe('useSpotlight', () => {
++    beforeEach(() => {
++        jest.clearAllMocks();
++        mockGetDefaultShare.mockResolvedValue({ shareId: 'share1', rootLinkId: 'root1' });
++        mockUseSpotlightOnFeature.mockReturnValue({ show: false, onDisplayed: jest.fn(), onClose: jest.fn() });
++        mockUseSpotlightShow.mockReturnValue(false);
++    });
++
++    const wrapper = ({ children }: { children: ReactNode }) => (
++        <SpotlightProvider>{children}</SpotlightProvider>
++    );
++
++    describe('missing_spotlight_eligibility_cutoff', () => {
++        it('should NOT show spotlight when cached children count is exactly 8', async () => {
++            mockGetCachedChildrenCount.mockReturnValue(8);
++
++            await act(async () => {
++                renderHook(() => useSpotlight(), { wrapper });
++                await Promise.resolve();
++            });
++
++            const calls = mockUseSpotlightOnFeature.mock.calls;
++            const lastCall = calls[calls.length - 1];
++            expect(lastCall[0]).toBe(FeatureCode.DriveSearchFeatureDiscovery);
++            expect(lastCall[1]).toBe(false);
++        });
++
++        it('should show spotlight when cached children count is greater than 8', async () => {
++            mockGetCachedChildrenCount.mockReturnValue(9);
++
++            await act(async () => {
++                renderHook(() => useSpotlight(), { wrapper });
++                await Promise.resolve();
++            });
++
++            const calls = mockUseSpotlightOnFeature.mock.calls;
++            const lastCall = calls[calls.length - 1];
++            expect(lastCall[0]).toBe(FeatureCode.DriveSearchFeatureDiscovery);
++            expect(lastCall[1]).toBe(true);
++        });
++    });
++
++    describe('ambiguous_feature_toggle_token', () => {
++        it('should use FeatureCode.DriveSearchFeatureDiscovery for spotlight visibility', async () => {
++            mockGetCachedChildrenCount.mockReturnValue(20);
++
++            await act(async () => {
++                renderHook(() => useSpotlight(), { wrapper });
++                await Promise.resolve();
++            });
++
++            expect(mockUseSpotlightOnFeature).toHaveBeenCalledWith(
++                'DriveSearchFeatureDiscovery',
++                expect.any(Boolean)
++            );
++        });
++    });
++});
+diff --git a/applications/drive/src/app/components/useSpotlightArchitecture.test.tsx b/applications/drive/src/app/components/useSpotlightArchitecture.test.tsx
+new file mode 100644
+index 0000000000..2a84bd6651
+--- /dev/null
++++ b/applications/drive/src/app/components/useSpotlightArchitecture.test.tsx
+@@ -0,0 +1,19 @@
++import fs from 'fs';
++import path from 'path';
++
++describe('spotlight architecture', () => {
++    it('should keep spotlight feature hooks centralized in useSpotlight provider only', () => {
++        const appRoot = path.resolve(__dirname, '..');
++        const searchFieldSource = fs.readFileSync(
++            path.join(appRoot, 'components/layout/search/SearchField.tsx'),
++            'utf8'
++        );
++        const spotlightSource = fs.readFileSync(path.join(appRoot, 'components/useSpotlight.tsx'), 'utf8');
++
++        expect(spotlightSource).toContain('SEARCH_DISCOVERY_MIN_ELIGIBLE_ITEMS');
++        expect(searchFieldSource).not.toContain('useSpotlightOnFeature(');
++        expect(searchFieldSource).not.toContain('useSpotlightShow(');
++        expect(spotlightSource).toContain('useSpotlightOnFeature(');
++        expect(spotlightSource).toContain('useSpotlightShow(');
++    });
++});

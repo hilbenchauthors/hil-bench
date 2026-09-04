@@ -1,0 +1,157 @@
+diff --git a/test/units/cli/test_adhoc.py b/test/units/cli/test_adhoc.py
+index 2697e8a41f..c7592153ce 100644
+--- a/test/units/cli/test_adhoc.py
++++ b/test/units/cli/test_adhoc.py
+@@ -113,3 +113,110 @@ def test_ansible_version(capsys, mocker):
+     assert re.match('  executable location = .*$', version_lines[5]), 'Incorrect executable locaction in "ansible --version" output'
+     assert re.match('  python version = .*$', version_lines[6]), 'Incorrect python version in "ansible --version" output'
+     assert re.match('  libyaml = .*$', version_lines[7]), 'Missing libyaml in "ansible --version" output'
++
++
++def _cliargs_for_play_ds(task_timeout, module_name='command', module_args='echo hi'):
++    """Minimal CLIARGS-like dict for _play_ds (module_name, module_args, task_timeout)."""
++    return {'module_name': module_name, 'module_args': module_args, 'task_timeout': task_timeout}
++
++
++def test_task_timeout_exceeds_maximum_rejected(monkeypatch):
++    """Timeout > 7200 must be rejected during semantic validation in _play_ds."""
++    monkeypatch.setattr(context, 'CLIARGS', _cliargs_for_play_ds(7201))
++    adhoc_cli = AdHocCLI(['/bin/ansible', 'localhost', '-m', 'command', '-a', 'echo hi'])
++    with pytest.raises(AnsibleOptionsError) as exc_info:
++        adhoc_cli._play_ds('localhost', 0, 0)
++    assert '7201' in str(exc_info.value)
++    assert '7200' in str(exc_info.value)
++
++
++@pytest.mark.parametrize('timeout_val', [1, 2, 3, 4])
++def test_task_timeout_below_minimum_rejected(monkeypatch, timeout_val):
++    """Enabled timeouts 1-4 must be rejected; 0 or >= 5 required."""
++    monkeypatch.setattr(context, 'CLIARGS', _cliargs_for_play_ds(timeout_val))
++    adhoc_cli = AdHocCLI(['/bin/ansible', 'localhost', '-m', 'command', '-a', 'echo hi'])
++    with pytest.raises(AnsibleOptionsError) as exc_info:
++        adhoc_cli._play_ds('localhost', 0, 0)
++    assert str(timeout_val) in str(exc_info.value)
++
++
++@pytest.mark.parametrize('timeout_val', [
++    pytest.param(11, id='61'),
++    pytest.param(25, id='130'),
++    pytest.param(59, id='7199'),
++])
++def test_task_timeout_granularity_rejected(monkeypatch, timeout_val):
++    """Enabled timeouts from 10 through 59 seconds must be multiples of 10."""
++    monkeypatch.setattr(context, 'CLIARGS', _cliargs_for_play_ds(timeout_val))
++    adhoc_cli = AdHocCLI(['/bin/ansible', 'localhost', '-m', 'command', '-a', 'echo hi'])
++    with pytest.raises(AnsibleOptionsError) as exc_info:
++        adhoc_cli._play_ds('localhost', 0, 0)
++    assert str(timeout_val) in str(exc_info.value)
++
++
++@pytest.mark.parametrize('timeout_val', [
++    5,
++    pytest.param(10, id='37'),
++    pytest.param(50, id='59'),
++    60,
++    61,
++    120,
++    7200,
++])
++def test_task_timeout_valid_values_accepted(monkeypatch, timeout_val):
++    """Valid timeout values preserve task_timeout when polling is active."""
++    monkeypatch.setattr(context, 'CLIARGS', _cliargs_for_play_ds(timeout_val))
++    adhoc_cli = AdHocCLI(['/bin/ansible', 'localhost', '-m', 'command', '-a', 'echo hi'])
++    ret = adhoc_cli._play_ds('localhost', 3, 1)
++    assert len(ret['tasks']) == 1
++    expected = timeout_val
++    assert ret['tasks'][0]['timeout'] == expected
++
++
++def test_task_timeout_effective_min_with_async(monkeypatch):
++    """When both timeout and async > 0 with poll>0, effective timeout is task_timeout."""
++    monkeypatch.setattr(context, 'CLIARGS', _cliargs_for_play_ds(73))
++    adhoc_cli = AdHocCLI(['/bin/ansible', 'localhost', '-m', 'command', '-a', 'echo hi'])
++    ret = adhoc_cli._play_ds('localhost', 30, 2)
++    assert ret['tasks'][0]['timeout'] == 73
++    assert ret['tasks'][0]['async_val'] == 30
++    assert ret['tasks'][0]['poll'] == 2
++
++
++def test_task_timeout_async_positive_poll_zero(monkeypatch):
++    """When both task_timeout and async_val are positive but poll is 0, task_timeout takes precedence."""
++    monkeypatch.setattr(context, 'CLIARGS', _cliargs_for_play_ds(125))
++    adhoc_cli = AdHocCLI(['/bin/ansible', 'localhost', '-m', 'command', '-a', 'echo hi'])
++    ret = adhoc_cli._play_ds('localhost', 75, 0)
++    assert ret['tasks'][0]['timeout'] == 125
++    assert ret['tasks'][0]['async_val'] == 75
++    assert ret['tasks'][0]['poll'] == 0
++
++
++def test_task_timeout_effective_timeout_only(monkeypatch):
++    """Timeout only (async disabled) -> effective timeout is task_timeout."""
++    monkeypatch.setattr(context, 'CLIARGS', _cliargs_for_play_ds(299))
++    adhoc_cli = AdHocCLI(['/bin/ansible', 'localhost', '-m', 'command', '-a', 'echo hi'])
++    ret = adhoc_cli._play_ds('localhost', 0, 0)
++    assert ret['tasks'][0]['timeout'] == 299
++    assert 'async_val' not in ret['tasks'][0]
++    assert 'poll' not in ret['tasks'][0]
++
++
++def test_task_timeout_effective_async_only(monkeypatch):
++    """Async only (timeout 0) -> effective is async_val."""
++    monkeypatch.setattr(context, 'CLIARGS', _cliargs_for_play_ds(0))
++    adhoc_cli = AdHocCLI(['/bin/ansible', 'localhost', '-m', 'command', '-a', 'echo hi'])
++    ret = adhoc_cli._play_ds('localhost', 25, 5)
++    assert ret['tasks'][0]['timeout'] == 25
++    assert ret['tasks'][0]['async_val'] == 25
++    assert ret['tasks'][0]['poll'] == 5
++
++
++def test_task_timeout_effective_zero_and_async_only_paths(monkeypatch):
++    """Validate both-zero and async-only branches for effective timeout."""
++    monkeypatch.setattr(context, 'CLIARGS', _cliargs_for_play_ds(0))
++    adhoc_cli = AdHocCLI(['/bin/ansible', 'localhost', '-m', 'command', '-a', 'echo hi'])
++    ret = adhoc_cli._play_ds('localhost', 0, 0)
++    assert ret['tasks'][0]['timeout'] == 0
++    assert 'async_val' not in ret['tasks'][0]
+diff --git a/test/units/cli/test_console.py b/test/units/cli/test_console.py
+index 3acc4faaaf..56752a4aa1 100644
+--- a/test/units/cli/test_console.py
++++ b/test/units/cli/test_console.py
+@@ -49,3 +49,37 @@ class TestConsoleCLI(unittest.TestCase):
+         self.assertTrue(cli.parser is not None)
+         self.assertTrue(len(mock_display.call_args_list) > 0,
+                         "display.display should have been called but was not")
++
++    @patch('ansible.cli.console.display.error')
++    @patch('ansible.cli.console.display.display')
++    def test_do_timeout_validates_and_updates_timeout(self, mock_display, mock_error):
++        cli = ConsoleCLI(['ansible-console', 'localhost'])
++        cli.parse()
++
++        cli.do_timeout('')
++        mock_display.assert_called_with('Usage: timeout <seconds>')
++
++        cli.do_timeout('abc')
++        mock_error.assert_called_with('The timeout must be a valid positive integer, or 0 to disable: abc')
++
++        cli.do_timeout('-1')
++        mock_error.assert_called_with('The timeout must be greater than or equal to 1, use 0 to disable')
++
++        cli.do_timeout('4')
++        self.assertIn('4', mock_error.call_args[0][0])
++
++        cli.do_timeout('7201')
++        self.assertIn('7201', mock_error.call_args[0][0])
++
++        cli.do_timeout('59')
++        self.assertIn('59', mock_error.call_args[0][0])
++
++        cli.do_timeout('0')
++        self.assertEqual(cli.task_timeout, 0)
++
++        cli.do_timeout('60')
++        self.assertEqual(cli.task_timeout, 60)
++
++        cli.do_timeout('120')
++        self.assertEqual(cli.task_timeout, 120)
++

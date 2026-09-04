@@ -1,0 +1,74 @@
+{
+  "blockers": [
+    {
+      "description": "The term \"regional threshold\" in the question can be interpreted in multiple valid ways. It is unclear whether the threshold refers to a fixed value per region, the average transaction amount per region, the median, a percentile, or some other metric.",
+      "example_questions": [
+        "What defines the \"regional threshold\"? Is it the average, median, or a fixed value per region?",
+        "Which column represents the region for calculating the threshold?",
+        "Should the threshold be calculated per region or as an overall average across all transactions?",
+        "Is there a table or external source that provides predefined regional threshold values?",
+        "What time period should be used to calculate the regional threshold?"
+      ],
+      "id": "regional_threshold",
+      "resolution": "The regional threshold refers to the average amount of credit card transactions (operation = 'VYBER KARTOU') in the year 1998 across all regions. Use the overall average, not per-region thresholds.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The question requires converting transaction amounts to EUR \"at the current exchange rate.\" This is real-time information that changes constantly, does not exist in the database, and cannot be derived from any stored values. The USD/EUR exchange rate must be obtained from an external source at the time of query execution.",
+      "example_questions": [
+        "What is the current USD to EUR exchange rate to use for conversion?",
+        "Should I use a specific date's exchange rate or today's live rate?",
+        "Is there a preferred source for the exchange rate (e.g., ECB, Federal Reserve)?",
+        "Should the conversion apply to both the transaction amounts and the threshold for comparison?",
+        "Can I assume a fixed exchange rate, or must it be fetched in real-time?"
+      ],
+      "id": "current_eur_exchange_rate",
+      "resolution": "Use the current USD to EUR exchange rate of 0.8614 (1 USD = 0.8614 EUR), obtained from Wise.com on January 15, 2026.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The business information states that \"economically distressed districts have performance indicators reflecting challenging market conditions.\" This definition is confusing because it does not specify which column(s) to use, what numeric threshold defines \"distressed\" or what comparison method to apply. Terms like \"performance indicators\" and \"challenging market conditions\" are vague and do not map to actionable SQL criteria.",
+      "example_questions": [
+        "Which column in the district table represents the metric for \"economically distressed\"?",
+        "What numeric threshold or cutoff defines a district as \"distressed\"?",
+        "Should distress be determined relative to other districts (e.g., bottom quartile) or using an absolute value?",
+        "Does \"distressed\" refer to unemployment, crime rates, salary levels, or a combination?",
+        "Should I compare districts within their region (A3) or across all districts?"
+      ],
+      "id": "economically_distressed",
+      "resolution": "Economically distressed districts are those with an unemployment rate greater than 5%. ",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question references \"account holders with active loyalty status\" but no definition exists in the business information. There is no explanation of what \"loyalty status\" means, how it is determined, which table or column stores this information, or what criteria qualify an account holder as having \"active\" status.",
+      "example_questions": [
+        "What does \"active loyalty status\" mean and how is it determined?",
+        "Which table and column store the loyalty status information?",
+        "What values indicate an \"active\" loyalty status versus inactive?",
+        "Is loyalty status based on account ownership type (OWNER/DISPONENT) or a separate attribute?",
+        "Are there specific criteria like account age or transaction history that define loyalty status?"
+      ],
+      "id": "active_loyalty_status",
+      "resolution": "\"Active loyalty status\" refers to account holders who are registered as OWNER in the disposition table (disp.type = 'OWNER'). Filter using disp.type = 'OWNER'.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The columns A12 and A13 in the district table are described as \"District composite score (assessment)\" without specifying what metric they represent. A composite score could be any combination of factors (economic health, crime index, development score, unemployment, etc.). Without knowing what these columns measure, it is impossible to use them correctly for filtering \"economically distressed\" districts.",
+      "example_questions": [
+        "What does the \"District composite score\" in columns A12 and A13 represent?",
+        "Are A12 and A13 related to unemployment, crime, salary, or another economic indicator?",
+        "What is the difference between A12 and A13 - do they represent different years or different metrics?",
+        "Which column should be used to determine economic distress?",
+        "What are the units or scale of the values in A12 and A13?"
+      ],
+      "id": "district_composite_score",
+      "resolution": "Column A12 represents the unemployment rate in 1995, and column A13 represents the unemployment rate in 1996. Use A13 (the more recent data) to identify economically distressed districts.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

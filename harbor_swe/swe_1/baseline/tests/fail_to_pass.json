@@ -1,0 +1,6 @@
+[
+  "applications/drive/src/app/store/_photos/usePhotosRecovery.test.ts | usePhotosRecovery should load children with showAll flag to include trashed items",
+  "applications/drive/src/app/store/_photos/usePhotosRecovery.test.ts | usePhotosRecovery should pass all state if files need to be recovered",
+  "applications/drive/src/app/store/_photos/usePhotosRecovery.test.ts | usePhotosRecovery should only include trashed items that are photo entries in the recovery set",
+  "applications/drive/src/app/store/_photos/usePhotosRecovery.test.ts | usePhotosRecovery should not delete share when regular items are empty but trashed photo items remain"
+]

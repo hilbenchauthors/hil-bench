@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for British Grand Prix races in \"the early 2010s\" but does not specify how many years constitute \"early.\" It is unclear whether this means 2010-2012, 2010-2013, 2010-2014, or another range within the decade.",
+      "example_questions": [
+        "What does \"the early 2010s\" mean? Should I filter for 2010-2012, 2010-2013, 2010-2014, or another range within the decade?",
+        "How many years should be included when filtering for \"the early 2010s\"? Does this mean the first 2 years, first 3 years, first 5 years, or another timeframe?",
+        "The question references \"the early 2010s\" without specifying the exact year range. Should I include just 2010-2012, or extend through 2013 or 2014?"
+      ],
+      "id": "early_timeframe_unclear",
+      "resolution": "\"Early 2010s\" means between January 1, 2010 and June 30, 2012. Filter for races where date BETWEEN '2010-01-01' AND '2012-06-30'.",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for constructors with \"the most European-sounding names\" but does not specify which exact constructor name values in the database should be matched as European-sounding. It is unclear whether constructor names like \"Ferrari\" (Italian-origin word), \"Mercedes\" (German-origin word), \"Williams\" (British surname), \"Red Bull\" (English phrase for Austrian company), \"McLaren\" (Scottish-origin surname), or other variations qualify, and what specific text patterns or name values count as European-sounding when filtering the constructors.name column.",
+      "example_questions": [
+        "Which constructor names qualify as \"the most European-sounding\"? Should this include Italian names like Ferrari, German names like Mercedes, British-based teams with English names like McLaren and Williams, Austrian companies with English names like Red Bull, or only names with distinctly European linguistic characteristics?",
+        "What specific naming patterns or characteristics define \"the most European-sounding names\" for Formula 1 constructors? Does this refer to names in Romance languages like Ferrari and Renault, Germanic names like Mercedes, constructors headquartered in Europe regardless of name origin, or names that phonetically sound European based on spelling and pronunciation?",
+        "How should I identify which constructor names are \"the most European-sounding\"? Should I match constructors with Italian-origin names like Ferrari, French names like Renault, German names like Mercedes, British names like McLaren and Williams, or use another criterion to determine European-sounding naming patterns?"
+      ],
+      "id": "representative_constructors_unclear",
+      "resolution": "Filter for constructors where name IN ('Ferrari', 'Toro Rosso', 'Minardi', 'Forti', 'Dallara', 'Andrea Moda', 'Lambo', 'Coloni', 'Osella', 'Alfa Romeo', 'Merzario', 'Maserati', 'Milano').",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for drivers who finished in \"the most important places from a team points point of view\" but the business information does not define what constitutes the most important places for team points. It is unclear how many top positions should be considered.",
+      "example_questions": [
+        "The question references \"the most important places from a team points point of view\" but this is not defined in the business information. How many top finishing positions should be considered?",
+        "What constitutes \"the most important places from a team points point of view\"? Should I filter for the top 5, top 8, top 10, or another number of finishing positions?",
+        "How many finishing positions are considered \"the most important\" for team points? Is this the top 5 positions, top 10, or another threshold?"
+      ],
+      "id": "most_important_places_team_points_undefined",
+      "resolution": "The most important places for team points are the top 7 finishing positions, as these award substantial points compared to the lower scores for positions 8-10. Therefore, filter for results where position <= 7.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The drivers table contains a fiscal_residence column with numeric coded values (546, 789, 625, 142, 576, 702, 706, 537) but the column description does not explain which country or tax jurisdiction each code represents. It is unclear which code corresponds to Monaco when filtering for drivers with fiscal residence in Monaco.\n",
+      "example_questions": [
+        "The fiscal_residence column in the drivers table contains numeric codes but their meanings are not defined. Which code represents Monaco as the driver's fiscal residence jurisdiction - is it 546, 789, 775, 625, 142, 576, 702, 706, or 537?",
+        "What do the fiscal_residence codes mean in the drivers table? Specifically, which numeric code corresponds to Monaco as the driver's tax residence country?",
+        "The drivers table has a fiscal_residence column with values without explanation of which tax jurisdictions these represent. To filter for drivers with Monaco fiscal residence, which code should I use?"
+      ],
+      "id": "fiscal_residence",
+      "resolution": "The fiscal_residence column uses numeric codes where each code represents a different tax jurisdiction. Drivers with fiscal residence in Monaco are identified by the code 775. Filter for drivers where fiscal_residence = 775 to identify drivers with Monaco fiscal residence.\n",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

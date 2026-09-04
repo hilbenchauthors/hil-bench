@@ -1,0 +1,8 @@
+[
+  "test/units/module_utils/common/test_sys_info.py::test_get_distribution_not_linux[Darwin-Darwin]",
+  "test/units/module_utils/common/test_sys_info.py::test_get_distribution_not_linux[FreeBSD-Freebsd]",
+  "test/units/module_utils/common/test_sys_info.py::test_get_distribution_not_linux[SunOS-Solaris]",
+  "test/units/module_utils/common/test_sys_info.py::test_get_distribution_version_not_linux[Darwin-19.6.0]",
+  "test/units/module_utils/common/test_sys_info.py::test_get_distribution_version_not_linux[FreeBSD-12.1]",
+  "test/units/module_utils/common/test_sys_info.py::test_get_distribution_version_not_linux[SunOS-11.4]"
+]

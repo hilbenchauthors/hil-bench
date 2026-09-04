@@ -9,17 +9,67 @@ SQL database tools MCP server:
 
 import os
 import sqlite3
+import subprocess
+import sys
 from pathlib import Path
 
 import pandas as pd
-from fastmcp import FastMCP
-
-mcp = FastMCP("sql-tools")
 
 DATA_DIR = Path(os.environ.get("DATA_DIR", "/data"))
 DATABASE_PATH = DATA_DIR / "database.sqlite"
 DESCRIPTIONS_DIR = DATA_DIR / "database_description"
 SUBMISSION_FILE = Path(os.environ.get("SUBMISSION_FILE", "/harbor_shared/submitted_query.sql"))
+DEFAULT_SQL_QUERY_TIMEOUT_SECONDS = 1200.0
+QUERY_WORKER_ARG = "--execute-query-worker"
+
+
+def _query_timeout_seconds() -> float:
+    raw = os.environ.get("SQL_QUERY_TIMEOUT_SECONDS", str(DEFAULT_SQL_QUERY_TIMEOUT_SECONDS))
+    try:
+        timeout = float(raw)
+    except ValueError:
+        return DEFAULT_SQL_QUERY_TIMEOUT_SECONDS
+    return timeout if timeout > 0 else DEFAULT_SQL_QUERY_TIMEOUT_SECONDS
+
+
+def _execute_sql_direct(database_path: Path, query: str, max_rows: int = 200) -> str:
+    try:
+        with sqlite3.connect(f"file:{database_path}?mode=ro", uri=True) as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute(query)
+                if cursor.description is not None:
+                    columns = [description[0] for description in cursor.description]
+                    data = cursor.fetchall()
+                    df = pd.DataFrame(data, columns=columns)
+                    if df.empty:
+                        return "Query executed successfully. No results returned."
+                    if len(df) > max_rows:
+                        df = df.head(max_rows)
+                        return (
+                            f"Query executed successfully. Result truncated to the first {max_rows} rows:\n"
+                            f"{df.to_csv(index=False)}"
+                        )
+                    return f"Query executed successfully:\n{df.to_csv(index=False)}"
+                return "Error: non-SELECT query"
+            except sqlite3.OperationalError as e:
+                if "attempt to write a readonly database" in str(e).lower():
+                    return "Error: non-SELECT query"
+                return f"Error: {e}"
+            except Exception as e:
+                return f"Error: {e}"
+    except Exception as e:
+        return f"Error executing query: {e}"
+
+
+if __name__ == "__main__" and len(sys.argv) == 3 and sys.argv[1] == QUERY_WORKER_ARG:
+    print(_execute_sql_direct(Path(sys.argv[2]), sys.stdin.read()), end="")
+    raise SystemExit(0)
+
+
+from fastmcp import FastMCP
+
+mcp = FastMCP("sql-tools")
 
 
 @mcp.tool()
@@ -92,38 +142,28 @@ def get_column_info(database_name: str, table_name: str, column_name: str) -> di
 @mcp.tool()
 def execute_sql(query: str) -> str:
     """Executes a SQL query against the database and returns the result if query execution is successful, else returns the execution error string. If the result is too large, only the first 200 rows are returned."""
-    max_rows = 200
     if not DATABASE_PATH.exists():
         return f"Error: database file not found at {DATABASE_PATH}"
 
+    timeout = _query_timeout_seconds()
     try:
-        with sqlite3.connect(f"file:{DATABASE_PATH}?mode=ro", uri=True) as conn:
-            cursor = conn.cursor()
-            try:
-                cursor.execute(query)
-                if cursor.description is not None:
-                    columns = [description[0] for description in cursor.description]
-                    data = cursor.fetchall()
-                    df = pd.DataFrame(data, columns=columns)
-                    if df.empty:
-                        return "Query executed successfully. No results returned."
-                    if len(df) > max_rows:
-                        df = df.head(max_rows)
-                        return (
-                            f"Query executed successfully. Result truncated to the first {max_rows} rows:\n"
-                            f"{df.to_csv(index=False)}"
-                        )
-                    return f"Query executed successfully:\n{df.to_csv(index=False)}"
-                conn.commit()
-                return f"Query executed successfully. {cursor.rowcount} rows affected."
-            except Exception as e:
-                return f"Error: {e}"
-    except sqlite3.OperationalError as e:
-        if "attempt to write a readonly database" in str(e).lower():
-            return "Error: non-SELECT query"
-        return f"Error: {e}"
+        completed = subprocess.run(
+            [sys.executable, str(Path(__file__).resolve()), QUERY_WORKER_ARG, str(DATABASE_PATH)],
+            input=query,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return f"Error: query timed out after {timeout:g} seconds"
     except Exception as e:
-        return f"Error executing query: {e}"
+        return f"Error launching query worker: {e}"
+
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or f"worker exited with status {completed.returncode}"
+        return f"Error executing query: {detail}"
+    return completed.stdout
 
 
 @mcp.tool()

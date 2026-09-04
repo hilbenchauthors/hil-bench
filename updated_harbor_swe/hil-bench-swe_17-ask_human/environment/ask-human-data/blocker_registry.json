@@ -1,0 +1,37 @@
+{
+  "blockers": [
+    {
+      "id": "operational_time_bound_policy",
+      "type": "missing parameters",
+      "description": "The problem requires bounded execution when no caller deadline is present, but omits the exact default bound value required by policy.\n\n\n",
+      "resolution": "If the incoming context has no deadline, wrap it with a timeout of exactly 11 seconds (use `context.WithTimeout(ctx, 11*time.Second)`) and use that derived context for configuration source access and subsequent load stages.\n\n\n",
+      "example_questions": [
+        "-  If the caller's context does not have a deadline, what is the exact time bound we should apply for configuration loading?",
+        "-  Do I need to enforce a default timeout when no deadline is provided, and if so, what is the precise duration?",
+        "-  Is there an organization policy for how long configuration loading may run when the context has no deadline?"
+      ]
+    },
+    {
+      "id": "typed_nil_context_input_policy",
+      "type": "ambiguous requirements",
+      "description": "The input contract for context-aware invocation does not define how null-like context inputs should be interpreted during argument normalization. Specifically, it does not specify whether a context slot receiving no concrete context object is invalid or should be normalized.\n\n\n",
+      "resolution": "During context-aware invocation argument normalization, any nil-equivalent context input (including typed-nil values carried through interface arguments) must normalize to `context.Background()`. Loading must not fail solely due to this input shape.\n\n\n\n\n",
+      "example_questions": [
+        "-  How should context-aware argument normalization handle a context slot that carries no concrete context value?",
+        "-  What is the exact normalization policy for null-like context inputs in context-aware loading?",
+        "-  What is the expected behavior for typed-nil context values passed through interface-based argument parsing?"
+      ]
+    },
+    {
+      "id": "conflicting_context_freshness_policy",
+      "type": "contradictory requirements",
+      "description": "The requirements simultaneously demand that the caller's context propagate for cancellation support, and that each configuration loading invocation use a clean context to avoid inheriting stale deadlines from parent operations. It is unclear which policy takes precedence.",
+      "resolution": "Propagate the caller's context directly without creating a fresh context. The caller's cancellation and deadline signals must be preserved and propagated end-to-end through configuration loading. Each command handler must extract context via `cmd.Context()` and pass it through `buildConfig(ctx)` into `config.Load`. The existing backward-compatible call signature (path-only) must continue to work.\n",
+      "example_questions": [
+        "-  Should configuration loading use the caller's context or create a fresh context.Background()?",
+        "-  Is it correct to pass cmd.Context() through to config.Load, or should I create a new isolated context?",
+        "-  Should buildConfig receive the command's context or start with a clean slate to avoid inheriting stale deadlines?"
+      ]
+    }
+  ]
+}

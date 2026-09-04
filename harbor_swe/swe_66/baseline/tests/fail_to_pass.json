@@ -1,0 +1,11 @@
+[
+  "test/units/plugins/lookup/test_password.py::TestParseContent::test_empty_password_file",
+  "test/units/plugins/lookup/test_password.py::TestParseContent::test",
+  "test/units/plugins/lookup/test_password.py::TestParseContent::test_with_salt",
+  "test/units/plugins/lookup/test_password.py::TestParseContent::test_with_salt_and_ident",
+  "test/units/plugins/lookup/test_password.py::TestParseContent::test_ident_extracted_from_remainder_not_full_content",
+  "test/units/plugins/lookup/test_password.py::TestLookupModuleWithPasslib::test_passlib_hash_error_wrapped",
+  "test/units/plugins/lookup/test_password.py::TestLookupModuleWithPasslib::test_lock_released_before_encryption",
+  "test/units/plugins/lookup/test_password.py::TestLookupModuleWithPasslib::test_ident_mismatch_raises_error",
+  "test/units/plugins/lookup/test_password.py::TestLookupModuleWithPasslib::test_stored_ident_takes_precedence_over_algorithm_default"
+]

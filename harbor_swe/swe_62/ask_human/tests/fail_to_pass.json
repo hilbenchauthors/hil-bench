@@ -1,0 +1,7 @@
+[
+  "test/units/module_utils/facts/hardware/linux/test_get_sysinfo_facts.py::test_get_sysinfo_facts",
+  "test/units/module_utils/facts/hardware/linux/test_get_sysinfo_facts.py::test_get_sysinfo_facts_serial_strips_leading_zeros",
+  "test/units/module_utils/facts/hardware/linux/test_get_sysinfo_facts.py::test_get_sysinfo_facts_type_maps_to_product_name",
+  "test/units/module_utils/facts/hardware/linux/test_get_sysinfo_facts.py::test_get_sysinfo_facts_na_defaults_for_missing_keys",
+  "test/units/module_utils/facts/hardware/linux/test_get_sysinfo_facts.py::test_get_sysinfo_facts_absent"
+]

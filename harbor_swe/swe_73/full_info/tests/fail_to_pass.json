@@ -1,0 +1,5 @@
+[
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_blocker_missing_validation_types",
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_blocker_ambiguous_state_assignment",
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_blocker_contradictory_method_naming_pattern"
+]

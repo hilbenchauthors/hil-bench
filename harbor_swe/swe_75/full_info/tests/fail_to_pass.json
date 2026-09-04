@@ -1,0 +1,10 @@
+[
+  "src/app/metrics/mailMetricsHelper.test.ts | mailMetricsHelper returns the shared custom metrics token for non-system labels",
+  "src/app/metrics/mailMetricsHelper.test.ts | mailMetricsHelper returns the blank mailbox metrics token for empty identifiers",
+  "src/app/metrics/mailMetricsHelper.test.ts | mailMetricsHelper returns the blank mailbox metrics token for whitespace-only identifiers",
+  "src/app/metrics/mailMetricsHelper.test.ts | mailMetricsHelper returns the prefixed metrics label for supported page size 50",
+  "src/app/metrics/mailMetricsHelper.test.ts | mailMetricsHelper returns the prefixed metrics label for supported page size 100",
+  "src/app/metrics/mailMetricsHelper.test.ts | mailMetricsHelper returns the prefixed metrics label for supported page size 200",
+  "src/app/metrics/mailMetricsHelper.test.ts | mailMetricsHelper returns the fallback metrics label when the page size setting is missing",
+  "src/app/metrics/mailMetricsHelper.test.ts | mailMetricsHelper returns the fallback metrics label for unsupported page sizes"
+]

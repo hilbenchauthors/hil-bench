@@ -1,0 +1,42 @@
+{
+  "blockers": [
+    {
+      "description": "The question request the number of active magnet schools as of today but there's no recent information included in the dataset.",
+      "example_questions": [
+        "Which year should be used when searching for active schools?",
+        "Should the analysis use the most recent academic year available in the dataset?",
+        "If there are multiple academic years in the database, should only the latest one be considered?"
+      ],
+      "id": "currently_active",
+      "resolution": "Count schools with schools.magnet = 1 and schools.StatusType = Active with frpm.Academic Year in the year 2016.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The question refers to a \"grant-eligible schools\", but does not define what qualifies as \"grant-eligible\".",
+      "example_questions": [
+        "What metric should I use to consider a school \"grant-eligible\"?",
+        "What makes a school classify as grant-eligible?",
+        "Are the \"grant-eligible\" schools identified using a specific column or metric?",
+        "How should I identify \"grant-eligible\" schools?"
+      ],
+      "id": "grant_eligible_schools",
+      "resolution": "Consider schools \"grant-eligible\" when frpm.Percent (%) Eligible FRPM (K-12) is equal or higher than 0.5 and frpm.Percent (%) Eligible FRPM (Ages 5-17) is equal or higher than 0.5.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The column GSserved represents the enrollment but the values in the column are unclear.",
+      "example_questions": [
+        "Which values in the schools.GSserved column represent the Kindergarten through 8th grade span?",
+        "Which value from the schools.GSserved column should I use to identify middle school enrollment?",
+        "What do the values in schools.GSserved represent?",
+        "How should I identify Kindergarten through 8th grade span enrollment?"
+      ],
+      "id": "middle_school_enrollment",
+      "resolution": "Filter for schools.GSserved values equal to 'P'",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

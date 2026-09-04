@@ -1,0 +1,148 @@
+diff --git a/utils/cache/simple_cache_narrow_test.go b/utils/cache/simple_cache_narrow_test.go
+new file mode 100644
+index 00000000..6acdac5d
+--- /dev/null
++++ b/utils/cache/simple_cache_narrow_test.go
+@@ -0,0 +1,142 @@
++package cache
++
++import (
++	"fmt"
++	"testing"
++	"time"
++)
++
++func TestEvictionInterval(t *testing.T) {
++	if evictionTimeout != 1*time.Hour {
++		t.Errorf("expected eviction timeout of 1h, got %v", evictionTimeout)
++	}
++}
++
++func TestEvictionTriggerScope(t *testing.T) {
++	t.Run("read operations do not trigger eviction", func(t *testing.T) {
++		c := NewSimpleCache[string, string]()
++		sc := c.(*simpleCache[string, string])
++
++		if sc.evictionDeadline.Load() != nil {
++			t.Fatal("expected nil deadline initially")
++		}
++
++		_, _ = c.Get("nonexistent")
++		if sc.evictionDeadline.Load() != nil {
++			t.Fatal("Get should not trigger eviction")
++		}
++
++		_ = c.Keys()
++		if sc.evictionDeadline.Load() != nil {
++			t.Fatal("Keys should not trigger eviction")
++		}
++
++		_ = c.Values()
++		if sc.evictionDeadline.Load() != nil {
++			t.Fatal("Values should not trigger eviction")
++		}
++	})
++
++	t.Run("Add triggers eviction", func(t *testing.T) {
++		c := NewSimpleCache[string, string]()
++		sc := c.(*simpleCache[string, string])
++
++		if err := c.Add("key", "value"); err != nil {
++			t.Fatalf("Add failed: %v", err)
++		}
++		if sc.evictionDeadline.Load() == nil {
++			t.Fatal("Add should trigger eviction and set deadline")
++		}
++	})
++
++	t.Run("AddWithTTL triggers eviction", func(t *testing.T) {
++		c := NewSimpleCache[string, string]()
++		sc := c.(*simpleCache[string, string])
++
++		if err := c.AddWithTTL("key", "value", 1*time.Minute); err != nil {
++			t.Fatalf("AddWithTTL failed: %v", err)
++		}
++		if sc.evictionDeadline.Load() == nil {
++			t.Fatal("AddWithTTL should trigger eviction and set deadline")
++		}
++	})
++
++	t.Run("GetWithLoader triggers eviction on cache miss", func(t *testing.T) {
++		c := NewSimpleCache[string, string]()
++		sc := c.(*simpleCache[string, string])
++
++		loader := func(key string) (string, time.Duration, error) {
++			return "loaded", 1 * time.Minute, nil
++		}
++
++		_, err := c.GetWithLoader("newkey", loader)
++		if err != nil {
++			t.Fatalf("GetWithLoader failed: %v", err)
++		}
++		if sc.evictionDeadline.Load() == nil {
++			t.Fatal("GetWithLoader on cache miss should trigger eviction via loader callback")
++		}
++	})
++
++	t.Run("GetWithLoader does not trigger eviction on cache hit", func(t *testing.T) {
++		c := NewSimpleCache[string, string]()
++		sc := c.(*simpleCache[string, string])
++
++		// Pre-populate cache via loader (triggers eviction, sets deadline)
++		loader := func(key string) (string, time.Duration, error) {
++			return "loaded", 1 * time.Minute, nil
++		}
++		_, _ = c.GetWithLoader("key", loader)
++
++		// Reset deadline to nil to test cache hit behavior
++		sc.evictionDeadline.Store(nil)
++
++		// GetWithLoader for existing key (cache hit) should NOT trigger eviction
++		_, err := c.GetWithLoader("key", loader)
++		if err != nil {
++			t.Fatalf("GetWithLoader failed: %v", err)
++		}
++		if sc.evictionDeadline.Load() != nil {
++			t.Fatal("GetWithLoader on cache hit should not trigger eviction")
++		}
++	})
++}
++
++func TestValuesFilteringApproach(t *testing.T) {
++	c := NewSimpleCache[string, string]()
++	sc := c.(*simpleCache[string, string])
++
++	if err := c.Add("permanent", "pval"); err != nil {
++		t.Fatalf("Add failed: %v", err)
++	}
++	if err := c.AddWithTTL("temporary", "tval", 10*time.Millisecond); err != nil {
++		t.Fatalf("AddWithTTL failed: %v", err)
++	}
++
++	time.Sleep(50 * time.Millisecond)
++
++	values := c.Values()
++	if len(values) != 1 || values[0] != "pval" {
++		t.Fatalf("expected Values to return [pval], got %v", values)
++	}
++
++	// Verify expired items are still in internal storage (not deleted by Values)
++	internalLen := sc.data.Len()
++	if internalLen != 2 {
++		t.Fatalf("expected internal cache len 2 (expired item still stored), got %d", internalLen)
++	}
++
++	// Also verify Keys has the same filtering behavior
++	keys := c.Keys()
++	if len(keys) != 1 || keys[0] != "permanent" {
++		t.Fatalf("expected Keys to return [permanent], got %v", keys)
++	}
++
++	// Internal len should still be 2 after Keys call too
++	if sc.data.Len() != 2 {
++		t.Fatalf("expected internal cache len still 2 after Keys, got %d", sc.data.Len())
++	}
++}
++
++// Prevent unused import error
++var _ = fmt.Sprintf

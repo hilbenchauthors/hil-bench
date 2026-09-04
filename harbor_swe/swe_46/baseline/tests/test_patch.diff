@@ -1,0 +1,260 @@
+diff --git a/applications/mail/src/app/helpers/message/messageSignature.referral.test.ts b/applications/mail/src/app/helpers/message/messageSignature.referral.test.ts
+new file mode 100644
+index 0000000000..856c19a140
+--- /dev/null
++++ b/applications/mail/src/app/helpers/message/messageSignature.referral.test.ts
+@@ -0,0 +1,254 @@
++import { Address, MailSettings, UserSettings } from '@proton/shared/lib/interfaces';
++import { eoDefaultUserSettings } from '@proton/shared/lib/mail/eo/constants';
++import { parseInDiv } from '../dom';
++import { createNewDraft } from './messageDraft';
++import { MESSAGE_ACTIONS } from '../../constants';
++import * as messageSignatureHelpers from './messageSignature';
++import {
++    changeSignature,
++    CLASSNAME_SIGNATURE_USER,
++    templateBuilder,
++} from './messageSignature';
++
++const mailSettings = {
++    PMSignature: 0,
++    PMSignatureReferralLink: 1,
++    DraftMIMEType: 'text/html',
++} as MailSettings;
++
++const referralUserSettings = {
++    Referral: {
++        Link: 'https://proton.me/ref/join?ref=abc&utm_source=campaign#fragment',
++        Eligible: true,
++    },
++} as Partial<UserSettings>;
++
++const plainSignature = 'Best,\nAlice';
++const htmlSignature = '<strong>Best,</strong><br>Alice';
++const primaryAddress = {
++    ID: 'primary-address-id',
++    Email: 'primary@example.com',
++    DisplayName: 'Primary',
++    Signature: plainSignature,
++    Status: 1,
++    Receive: 1,
++    Send: 1,
++    Order: 1,
++} as Address;
++const aliasAddress = {
++    ID: 'alias-address-id',
++    Email: 'alias@example.com',
++    DisplayName: 'Alias',
++    Signature: 'Alias,\nSender',
++    Status: 1,
++    Receive: 1,
++    Send: 1,
++    Order: 0,
++} as Address;
++
++describe('referral signature helpers', () => {
++    it('collapses consecutive line breaks in templateBuilder output to a single br', () => {
++        const result = templateBuilder('<strong>Best,</strong>\n\n\nAlice', mailSettings, undefined, false, true);
++
++        expect(result).toContain('<strong>Best,</strong><br>Alice');
++        expect(result).not.toContain('<strong>Best,</strong><br><br>Alice');
++        expect(result).not.toContain('<strong>Best,</strong><br /><br />Alice');
++    });
++
++    it('renders exactly one sanitized referral anchor without extra attributes for html signatures', () => {
++        const html = templateBuilder(htmlSignature, mailSettings, undefined, false, true, referralUserSettings);
++        const anchorTags = html.match(/<a [^>]+>/g) || [];
++
++        expect(html).toContain('<a href="https://proton.me/ref/join?ref=abc">https://proton.me/ref/join?ref=abc</a>');
++        expect(anchorTags).toHaveLength(1);
++        expect(anchorTags[0]).not.toContain('target=');
++        expect(anchorTags[0]).not.toContain('class=');
++        expect(html).not.toContain('utm_source=');
++        expect(html).not.toContain('#fragment');
++    });
++
++    it('renders plain-text signature format referral content as a raw sanitized url line', () => {
++        const html = templateBuilder(
++            plainSignature,
++            { ...mailSettings, DraftMIMEType: 'text/plain' } as MailSettings,
++            undefined,
++            false,
++            true,
++            referralUserSettings
++        );
++
++        expect(html).toContain('Best,<br>Alice<br>https://proton.me/ref/join?ref=abc');
++        expect(html).not.toContain('<a href="https://proton.me/ref/join?ref=abc">');
++        expect(html).not.toContain('utm_source=');
++        expect(html).not.toContain('#fragment');
++    });
++
++    it('renders html signature format referral content as an anchor even when the signature body has no html tags', () => {
++        const html = templateBuilder(plainSignature, mailSettings, undefined, false, true, referralUserSettings);
++        const anchorTags = html.match(/<a [^>]+>/g) || [];
++
++        expect(html).toContain('Best,<br>Alice<br><a href="https://proton.me/ref/join?ref=abc">https://proton.me/ref/join?ref=abc</a>');
++        expect(anchorTags).toHaveLength(1);
++        expect(html).not.toContain('Best,<br>Alice<br>https://proton.me/ref/join?ref=abc</div>');
++    });
++
++    it('preserves user-authored referral content while replacing only the trailing pipeline fragment', () => {
++        const signature = ['Team', 'https://proton.me/ref/join?ref=abc', 'Alice'].join('\n');
++
++        const html = templateBuilder(signature, mailSettings, undefined, false, true, referralUserSettings);
++        const anchorTags = html.match(/<a [^>]+>/g) || [];
++
++        expect(html).toContain(
++            'Team<br>https://proton.me/ref/join?ref=abc<br>Alice<br><a href="https://proton.me/ref/join?ref=abc">https://proton.me/ref/join?ref=abc</a>'
++        );
++        expect(html).toContain('Team<br>https://proton.me/ref/join?ref=abc<br>Alice<br>');
++        expect(anchorTags).toHaveLength(1);
++    });
++
++    it('removes only the trailing referral fragment from the current html signature when sender referral support turns off', () => {
++        const signatureTemplate = templateBuilder(htmlSignature, mailSettings, undefined, false, true, referralUserSettings);
++        const document = parseInDiv(`${signatureTemplate}<p>Hello</p>`);
++        const userSignature = document.querySelector(`.${CLASSNAME_SIGNATURE_USER}`) as HTMLElement;
++
++        userSignature.innerHTML = [
++            '<strong>Best,</strong>',
++            '<br>Alice',
++            '<br><em>Edited note</em>',
++            '<br><a href="https://proton.me/ref/join?ref=abc">https://proton.me/ref/join?ref=abc</a>',
++        ].join('');
++
++        const result = changeSignature(
++            {
++                data: { MIMEType: 'text/html' },
++                messageDocument: { document },
++            } as any,
++            mailSettings,
++            undefined,
++            htmlSignature,
++            'Regards,\nBob',
++            referralUserSettings,
++            {}
++        );
++
++        expect(result).toContain('<strong>Best,</strong><br>Alice<br><em>Edited note</em>');
++        expect(result).not.toContain('Regards');
++        expect(result).not.toContain('<a href="https://proton.me/ref/join?ref=abc">');
++    });
++
++    it('removes only the trailing referral fragment from the current plain-text signature when sender referral support turns off', () => {
++        const result = changeSignature(
++            {
++                data: { MIMEType: 'text/plain' },
++                messageDocument: {
++                    plainText: 'Hello\n\nBest,\nAlice\nEdited note\nhttps://proton.me/ref/join?ref=abc',
++                },
++            } as any,
++            mailSettings,
++            undefined,
++            plainSignature,
++            'Regards,\nBob',
++            referralUserSettings,
++            {}
++        );
++
++        expect(result).toContain('Hello\n\nBest,\nAlice\nEdited note');
++        expect(result).not.toContain('Regards');
++        expect(result).not.toContain('https://proton.me/ref/join?ref=abc');
++    });
++
++    it('uses sender-specific referral gating in build paths so only the primary sender gets referral output', () => {
++        const primaryBuildAddresses = [
++            { ...primaryAddress, Order: 0 },
++            { ...aliasAddress, Order: 1 },
++        ];
++        const aliasBuildAddresses = [
++            { ...aliasAddress, Order: 0 },
++            { ...primaryAddress, Order: 1 },
++        ];
++        const primaryDraft = createNewDraft(
++            MESSAGE_ACTIONS.NEW,
++            undefined,
++            mailSettings,
++            primaryBuildAddresses,
++            jest.fn(),
++            false,
++            referralUserSettings,
++            primaryAddress.Email
++        );
++        const aliasDraft = createNewDraft(
++            MESSAGE_ACTIONS.NEW,
++            undefined,
++            mailSettings,
++            aliasBuildAddresses,
++            jest.fn(),
++            false,
++            referralUserSettings,
++            primaryAddress.Email
++        );
++        expect(primaryDraft.messageDocument?.document?.innerHTML).toContain('https://proton.me/ref/join?ref=abc');
++        expect(aliasDraft.messageDocument?.document?.innerHTML).toContain('Alias,<br>Sender');
++        expect(aliasDraft.messageDocument?.document?.innerHTML).not.toContain('https://proton.me/ref/join?ref=abc');
++    });
++
++    it('passes the exact safe empty fallback shape into shared signature helpers for intentionally disabled non-primary sender paths', () => {
++        const insertSignatureSpy = jest.spyOn(messageSignatureHelpers, 'insertSignature');
++        const userSettingsWithExtraData = {
++            ...referralUserSettings,
++            Sentinal: 'should-not-survive-disabled-path',
++        } as Partial<UserSettings>;
++
++        createNewDraft(
++            MESSAGE_ACTIONS.NEW,
++            undefined,
++            mailSettings,
++            [aliasAddress, primaryAddress],
++            jest.fn(),
++            false,
++            userSettingsWithExtraData,
++            primaryAddress.Email
++        );
++
++        expect(insertSignatureSpy).toHaveBeenLastCalledWith(
++            expect.any(String),
++            aliasAddress.Signature,
++            MESSAGE_ACTIONS.NEW,
++            mailSettings,
++            expect.anything(),
++            false,
++            { Referral: undefined }
++        );
++
++        insertSignatureSpy.mockRestore();
++    });
++
++    it('passes the exact safe empty fallback shape into shared signature helpers when primary sender referral settings are unavailable', () => {
++        const insertSignatureSpy = jest.spyOn(messageSignatureHelpers, 'insertSignature');
++        const unavailablePrimaryUserSettings = {
++            Sentinal: 'should-not-survive-unavailable-primary-path',
++        } as Partial<UserSettings>;
++
++        createNewDraft(
++            MESSAGE_ACTIONS.NEW,
++            undefined,
++            { ...mailSettings, PMSignatureReferralLink: 1 },
++            [primaryAddress],
++            jest.fn(),
++            false,
++            unavailablePrimaryUserSettings,
++            primaryAddress.Email
++        );
++
++        expect(insertSignatureSpy).toHaveBeenCalled();
++        expect(insertSignatureSpy).toHaveBeenLastCalledWith(
++            expect.any(String),
++            primaryAddress.Signature,
++            MESSAGE_ACTIONS.NEW,
++            { ...mailSettings, PMSignatureReferralLink: 1 },
++            expect.anything(),
++            false,
++            { Referral: undefined }
++        );
++
++        insertSignatureSpy.mockRestore();
++    });
++});

@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "id": "missing_inline_diagnostic_payload_byte_cap",
+      "type": "missing parameters",
+      "description": "Structured error output must carry diagnostics, but what exact maximum inline diagnostic payload size should stdout and job JSON records enforce so oversized records are prevented while parser-safe output is preserved?",
+      "resolution": "Cap each inline diagnostic field at no more than 15360 escaped bytes. Measure a field by serializing its text value with json.dumps(value) using default settings (ensure_ascii=True), stripping the surrounding double-quote characters, encoding the remaining interior substring to UTF-8, and counting those bytes. A field whose measured size is at or below 15360 bytes is emitted unchanged; a field above the limit is truncated so the measured emitted value remains at or below 15360 bytes. Apply this independently to each diagnostic field (stderr, exception, msg, outdata, data, stdout, traceback). Counter-example invalid: measuring raw character count, measuring with ensure_ascii=False, measuring the full serialized string including quotes, allowing an oversized diagnostic field to exceed the limit, or applying one shared budget across multiple diagnostic fields.",
+      "example_questions": [
+        "-  What is the exact maximum inline diagnostic payload size allowed in emitted JSON records?",
+        "-  How large can a single diagnostic field be before truncation is required?",
+        "-  Should the payload limit be measured in bytes or some other unit for inline diagnostics?",
+        "-  Which hard limit should be applied to prevent oversized stdout/job JSON diagnostics?",
+        "-  Is there a fixed cap for embedded diagnostic data in structured async responses?"
+      ]
+    },
+    {
+      "id": "ambiguous_diagnostic_overflow_truncation_strategy",
+      "type": "ambiguous requirements",
+      "description": "Diagnostic payload capping is required, but when content exceeds the limit should truncation preserve the beginning, preserve the end, or use some other deterministic strategy, and how must truncation metadata be represented?",
+      "resolution": "Use tail-preserving truncation: drop content from the beginning of the original text value, prefix exactly one marker [truncated_head_bytes=<N>] (note the trailing space after the closing bracket), and keep the remaining tail. <N> is the number of UTF-8 bytes dropped from the original text. The marker counts toward the same inline diagnostic byte budget enforced for capped diagnostic fields, and truncation must operate on original text character boundaries rather than slicing an escaped representation. Counter-example invalid: keeping the beginning, using a middle ellipsis, omitting the marker, excluding the marker from the limit, or cutting the escaped form directly instead of dropping original leading content.",
+      "example_questions": [
+        "-  How should over-limit diagnostic fields be truncated when payload capping is applied?",
+        "-  What deterministic truncation policy is required for oversized diagnostic content?",
+        "-  Should truncation preserve earlier content, later content, or use another strategy?",
+        "-  How must truncation metadata be represented so consumers can detect data loss consistently?",
+        "-  Is there a required truncation format for capped diagnostic fields?"
+      ]
+    },
+    {
+      "id": "conflicting_single_record_compatibility_vs_immutable_audit_history",
+      "type": "contradictory requirements",
+      "description": "The requirements simultaneously demand strict legacy compatibility for a single JSON result record and immutable lifecycle history retention for audit, so what exact persistence contract should be used when putting both into one artifact would break existing parsers?",
+      "resolution": "Keep results_file as one JSON object containing only the latest known job state (overwritten on each update via atomic tmp+rename). Persist immutable lifecycle history in a separate sidecar file at <results_file>.history using NDJSON format (one JSON object per line). Each history line is a canonical lifecycle event, not a copy of the full job payload. Each event object must contain at minimum: 'event' (string, one of 'started', 'finished', 'failed', or 'timeout') and 'ansible_job_id' (string, always the canonical execution ID from the module-global job_id, regardless of what the incoming payload carries). Derive the event name from the payload: 'started' when started==1 and finished==0; when finished==1, use 'timeout' if timed_out is truthy, 'failed' if failed is truthy, otherwise 'finished'. The primary results_file must never contain an 'events' key. Example valid: /path/jid.history contains {\\\"event\\\":\\\"started\\\",\\\"ansible_job_id\\\":\\\"42.123\\\"} on line 1 and {\\\"event\\\":\\\"failed\\\",\\\"ansible_job_id\\\":\\\"42.123\\\"} on line 2. Counter-example invalid: writing full payload copies to the history file, embedding an events array into results_file, or using per-write ansible_job_id values instead of the canonical one.",
+      "example_questions": [
+        "-  How should immutable lifecycle retention be implemented while preserving strict backward-compatibility constraints?",
+        "-  What exact persistence contract is required when compatibility and audit guarantees conflict?",
+        "-  Which storage and write model is mandated for transition history under the existing parser contract?",
+        "-  How must lifecycle transitions be recorded so consumers keep current parsing behavior and audits remain complete?",
+        "-  What canonical retention pattern should be used for state-transition history in this compatibility-sensitive flow?"
+      ]
+    }
+  ]
+}

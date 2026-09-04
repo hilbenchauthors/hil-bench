@@ -173,6 +173,8 @@ services:
     volumes:
       - ${CONTEXT_DIR:-.}/../../shared/data:/data:ro
       - harbor-shared:/harbor_shared
+    environment:
+      - EXECUTE_SQL_CLIENT_TIMEOUT_SECONDS=1230
 
   sql-tools:
     image: hil-bench-harbor/sql-tools:latest
@@ -183,6 +185,7 @@ services:
     environment:
       - DATA_DIR=/data
       - SUBMISSION_FILE=/harbor_shared/submitted_query.sql
+      - SQL_QUERY_TIMEOUT_SECONDS=1200
     expose:
       - "8000"
     healthcheck:
@@ -225,6 +228,8 @@ services:
     volumes:
       - ${CONTEXT_DIR:-.}/../../shared/data:/data:ro
       - harbor-shared:/harbor_shared
+    environment:
+      - EXECUTE_SQL_CLIENT_TIMEOUT_SECONDS=1230
 
   sql-tools:
     image: hil-bench-harbor/sql-tools:latest
@@ -235,6 +240,7 @@ services:
     environment:
       - DATA_DIR=/data
       - SUBMISSION_FILE=/harbor_shared/submitted_query.sql
+      - SQL_QUERY_TIMEOUT_SECONDS=1200
     expose:
       - "8000"
     healthcheck:
@@ -273,6 +279,7 @@ services:
       - ASK_HUMAN_MODEL=${ASK_HUMAN_MODEL:-openai/gpt-4o}
       - LITELLM_API_KEY=${LITELLM_API_KEY:-}
       - LITELLM_BASE_URL=${LITELLM_BASE_URL:-}
+      - LITELLM_USER=${LITELLM_USER:?LITELLM_USER is required}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}

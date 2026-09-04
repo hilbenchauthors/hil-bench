@@ -1,0 +1,7 @@
+[
+  "applications/drive/src/app/store/links/useLinksListing.test.tsx | fetches children all pages with the same sorting",
+  "applications/drive/src/app/store/links/useLinksListing.test.tsx | fetches from the beginning when sorting changes",
+  "applications/drive/src/app/store/links/useLinksListing.test.tsx | skips fetch if all was fetched",
+  "applications/drive/src/app/store/links/useLinksListing.test.tsx | returns entity copies not sharing store references",
+  "applications/drive/src/app/store/links/useLinksListing.test.tsx | returns a frozen immutable result object"
+]

@@ -1,0 +1,231 @@
+diff --git a/applications/mail/src/app/helpers/moveToFolder.test.ts b/applications/mail/src/app/helpers/moveToFolder.test.ts
+new file mode 100644
+index 0000000000..3ad8903904
+--- /dev/null
++++ b/applications/mail/src/app/helpers/moveToFolder.test.ts
+@@ -0,0 +1,225 @@
++import { MAILBOX_LABEL_IDS } from '@proton/shared/lib/constants';
++import { SpamAction } from '@proton/shared/lib/interfaces';
++
++import {
++    askToUnsubscribe,
++    getNotificationTextMoved,
++    getNotificationTextUnauthorized,
++    searchForScheduled,
++} from './moveToFolder';
++
++jest.mock('@proton/shared/lib/mail/messages', () => ({
++    isUnsubscribable: jest.fn(),
++}));
++
++jest.mock('@proton/shared/lib/api/mailSettings', () => ({
++    updateSpamAction: jest.fn((spamAction) => ({ spamAction })),
++}));
++
++const { SPAM, TRASH, ARCHIVE, INBOX, SENT, DRAFTS, SCHEDULED } = MAILBOX_LABEL_IDS;
++
++const { isUnsubscribable } = jest.requireMock('@proton/shared/lib/mail/messages');
++const { updateSpamAction } = jest.requireMock('@proton/shared/lib/api/mailSettings');
++
++describe('moveToFolder helpers', () => {
++    beforeEach(() => {
++        jest.clearAllMocks();
++    });
++
++    describe('getNotificationTextMoved', () => {
++        it('returns spam move text and appends not-authorized text when needed', () => {
++            expect(getNotificationTextMoved(true, 2, 1, 'Spam', SPAM, INBOX)).toBe(
++                '2 messages moved to spam and senders added to your spam list. 1 message could not be moved.'
++            );
++        });
++
++        it('returns spam to non-trash text and appends not-authorized text when needed', () => {
++            expect(getNotificationTextMoved(true, 2, 1, 'Archive', ARCHIVE, SPAM)).toBe(
++                '2 messages moved to Archive and senders added to your not spam list. 1 message could not be moved.'
++            );
++        });
++
++        it('returns default folder move text and appends not-authorized text when needed', () => {
++            expect(getNotificationTextMoved(true, 2, 1, 'Archive', ARCHIVE, INBOX)).toBe(
++                '2 messages moved to Archive. 1 message could not be moved.'
++            );
++        });
++
++        it('returns conversation spam move text', () => {
++            expect(getNotificationTextMoved(false, 1, 0, 'Spam', SPAM, INBOX)).toBe(
++                'Conversation moved to spam and sender added to your spam list.'
++            );
++        });
++
++        it('returns default move text when moving from spam to trash without not-spam language', () => {
++            expect(getNotificationTextMoved(true, 1, 0, 'Trash', TRASH, SPAM)).toBe(
++                'Message moved to Trash.'
++            );
++        });
++    });
++
++    describe('getNotificationTextUnauthorized', () => {
++        it('returns blocked text for sent to inbox', () => {
++            expect(getNotificationTextUnauthorized(INBOX, SENT)).toBe('Sent messages cannot be moved to Inbox');
++        });
++
++        it('returns blocked text for sent to spam', () => {
++            expect(getNotificationTextUnauthorized(SPAM, SENT)).toBe('Sent messages cannot be moved to Spam');
++        });
++
++        it('returns blocked text for drafts to inbox', () => {
++            expect(getNotificationTextUnauthorized(INBOX, DRAFTS)).toBe('Drafts cannot be moved to Inbox');
++        });
++
++        it('returns blocked text for drafts to spam', () => {
++            expect(getNotificationTextUnauthorized(SPAM, DRAFTS)).toBe('Drafts cannot be moved to Spam');
++        });
++
++        it('returns default text for unsupported blocked move', () => {
++            expect(getNotificationTextUnauthorized(TRASH, SENT)).toBe('This action cannot be performed');
++        });
++    });
++
++    describe('searchForScheduled', () => {
++        it('disables undo and handles focus lifecycle when only scheduled messages are moved to trash', async () => {
++            const setCanUndo = jest.fn();
++            const setContainFocus = jest.fn();
++            const handleShowModal = jest.fn(async (ownProps: unknown) => {
++                (ownProps as { onCloseCustomAction?: () => void }).onCloseCustomAction?.();
++            });
++
++            await searchForScheduled(
++                TRASH,
++                true,
++                [{ ID: 'm1', LabelIDs: [SCHEDULED] } as any, { ID: 'm2', LabelIDs: [SCHEDULED] } as any],
++                setCanUndo,
++                handleShowModal,
++                setContainFocus
++            );
++
++            expect(setCanUndo).toHaveBeenCalledWith(false);
++            expect(setContainFocus).toHaveBeenNthCalledWith(1, false);
++            expect(handleShowModal).toHaveBeenCalledWith(
++                expect.objectContaining({
++                    isMessage: true,
++                    onCloseCustomAction: expect.any(Function),
++                })
++            );
++            expect(setContainFocus).toHaveBeenNthCalledWith(2, true);
++        });
++
++        it('enables undo and skips modal when scheduled selection still permits undo', async () => {
++            const setCanUndo = jest.fn();
++            const setContainFocus = jest.fn();
++            const handleShowModal = jest.fn();
++
++            await searchForScheduled(
++                TRASH,
++                true,
++                [{ ID: 'm1', LabelIDs: [SCHEDULED] } as any, { ID: 'm2', LabelIDs: [] } as any],
++                setCanUndo,
++                handleShowModal,
++                setContainFocus
++            );
++
++            expect(setCanUndo).toHaveBeenCalledWith(true);
++            expect(handleShowModal).not.toHaveBeenCalled();
++            expect(setContainFocus).not.toHaveBeenCalled();
++        });
++
++        it('does not modify undo state when moving scheduled messages to non-trash destinations', async () => {
++            const setCanUndo = jest.fn();
++            const setContainFocus = jest.fn();
++            const handleShowModal = jest.fn();
++
++            await searchForScheduled(
++                INBOX,
++                true,
++                [{ ID: 'm1', LabelIDs: [SCHEDULED] } as any, { ID: 'm2', LabelIDs: [SCHEDULED] } as any],
++                setCanUndo,
++                handleShowModal,
++                setContainFocus
++            );
++
++            expect(setCanUndo).not.toHaveBeenCalled();
++            expect(handleShowModal).not.toHaveBeenCalled();
++            expect(setContainFocus).not.toHaveBeenCalled();
++        });
++    });
++
++    describe('askToUnsubscribe', () => {
++        it('returns saved spam action when mail settings already define it', async () => {
++            const api = jest.fn();
++            const handleShowSpamModal = jest.fn();
++
++            const result = await askToUnsubscribe(
++                SPAM,
++                true,
++                [{ ID: 'm1' } as any],
++                api as any,
++                handleShowSpamModal,
++                { SpamAction: SpamAction.JustSpam } as any
++            );
++
++            expect(result).toBe(SpamAction.JustSpam);
++            expect(handleShowSpamModal).not.toHaveBeenCalled();
++        });
++
++        it('prompts when spam action is unset and persists remembered choice asynchronously', async () => {
++            isUnsubscribable.mockReturnValue(true);
++            const api = jest.fn();
++            const handleShowSpamModal = jest.fn().mockResolvedValue({ unsubscribe: true, remember: true });
++
++            const result = await askToUnsubscribe(
++                SPAM,
++                true,
++                [{ ID: 'm1' } as any],
++                api as any,
++                handleShowSpamModal,
++                { SpamAction: null } as any
++            );
++
++            expect(result).toBe(SpamAction.SpamAndUnsub);
++            expect(updateSpamAction).toHaveBeenCalledWith(SpamAction.SpamAndUnsub);
++            expect(api).toHaveBeenCalledWith({ spamAction: SpamAction.SpamAndUnsub });
++        });
++
++        it('returns undefined without prompting when no element can be unsubscribed', async () => {
++            isUnsubscribable.mockReturnValue(false);
++            const api = jest.fn();
++            const handleShowSpamModal = jest.fn();
++
++            const result = await askToUnsubscribe(
++                SPAM,
++                true,
++                [{ ID: 'm1' } as any],
++                api as any,
++                handleShowSpamModal,
++                { SpamAction: null } as any
++            );
++
++            expect(result).toBeUndefined();
++            expect(handleShowSpamModal).not.toHaveBeenCalled();
++            expect(api).not.toHaveBeenCalled();
++        });
++
++        it('returns undefined without prompting for non-spam destinations', async () => {
++            isUnsubscribable.mockReturnValue(true);
++            const api = jest.fn();
++            const handleShowSpamModal = jest.fn();
++
++            const result = await askToUnsubscribe(
++                INBOX,
++                true,
++                [{ ID: 'm1' } as any],
++                api as any,
++                handleShowSpamModal,
++                { SpamAction: null } as any
++            );
++
++            expect(result).toBeUndefined();
++            expect(handleShowSpamModal).not.toHaveBeenCalled();
++            expect(api).not.toHaveBeenCalled();
++        });
++    });
++});

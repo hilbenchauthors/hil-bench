@@ -1,0 +1,150 @@
+diff --git a/applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts b/applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts
+new file mode 100644
+index 0000000000..07c2d111eb
+--- /dev/null
++++ b/applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts
+@@ -0,0 +1,144 @@
++import { SharedURLFlags } from '@proton/shared/lib/interfaces/drive/sharing';
++
++import { hasCustomPassword, hasGeneratedPasswordIncluded, splitGeneratedAndCustomPassword } from '../shareUrl';
++
++describe('Password flags checks', () => {
++    describe('hasCustomPassword', () => {
++        it('accepts legacy Flags representation when canonical flags is missing', () => {
++            expect(hasCustomPassword({ Flags: 0 | SharedURLFlags.CustomPassword } as any)).toEqual(true);
++            expect(hasCustomPassword({ Flags: 0 } as any)).toEqual(false);
++        });
++
++        it('normalizes non-integer flags values before bit checks', () => {
++            expect(hasCustomPassword({ flags: String(SharedURLFlags.CustomPassword) } as any)).toEqual(true);
++            expect(hasCustomPassword({ flags: SharedURLFlags.CustomPassword + 0.9 } as any)).toEqual(true);
++            expect(hasCustomPassword({ flags: -1 } as any)).toEqual(true);
++            expect(hasCustomPassword({ flags: NaN } as any)).toEqual(false);
++        });
++
++        it('treats null/undefined as missing value', () => {
++            expect(hasCustomPassword({ flags: null, Flags: SharedURLFlags.CustomPassword } as any)).toEqual(true);
++            expect(hasCustomPassword({ flags: undefined, Flags: SharedURLFlags.CustomPassword } as any)).toEqual(true);
++        });
++
++        it('treats conflicting flags representations as no flags', () => {
++            expect(hasCustomPassword({ flags: SharedURLFlags.CustomPassword, Flags: 0 } as any)).toEqual(false);
++            expect(hasCustomPassword({ flags: '1', Flags: 0 } as any)).toEqual(false);
++            expect(hasCustomPassword({ flags: 0, Flags: SharedURLFlags.CustomPassword } as any)).toEqual(false);
++        });
++
++        it('treats conflicts after normalization as no flags', () => {
++            expect(hasCustomPassword({ flags: SharedURLFlags.CustomPassword + 0.9, Flags: 0 } as any)).toEqual(false);
++        });
++
++        it('accepts equal representations after normalization', () => {
++            expect(
++                hasCustomPassword({
++                    flags: String(SharedURLFlags.CustomPassword),
++                    Flags: SharedURLFlags.CustomPassword,
++                } as any)
++            ).toEqual(true);
++            expect(
++                hasCustomPassword({
++                    flags: SharedURLFlags.CustomPassword + 0.9,
++                    Flags: SharedURLFlags.CustomPassword,
++                } as any)
++            ).toEqual(true);
++        });
++    });
++
++    describe('hasGeneratedPasswordIncluded', () => {
++        it('accepts legacy Flags representation when canonical flags is missing', () => {
++            expect(hasGeneratedPasswordIncluded({ Flags: 0 | SharedURLFlags.GeneratedPasswordIncluded } as any)).toEqual(true);
++            expect(hasGeneratedPasswordIncluded({ Flags: 0 } as any)).toEqual(false);
++        });
++
++        it('normalizes non-integer flags values before bit checks', () => {
++            expect(hasGeneratedPasswordIncluded({ flags: String(SharedURLFlags.GeneratedPasswordIncluded) } as any)).toEqual(true);
++            expect(hasGeneratedPasswordIncluded({ flags: SharedURLFlags.GeneratedPasswordIncluded + 0.9 } as any)).toEqual(true);
++            expect(hasGeneratedPasswordIncluded({ flags: -1 } as any)).toEqual(true);
++            expect(hasGeneratedPasswordIncluded({ flags: NaN } as any)).toEqual(false);
++        });
++
++        it('treats null/undefined as missing value', () => {
++            expect(
++                hasGeneratedPasswordIncluded({ flags: null, Flags: SharedURLFlags.GeneratedPasswordIncluded } as any)
++            ).toEqual(true);
++            expect(
++                hasGeneratedPasswordIncluded({ flags: undefined, Flags: SharedURLFlags.GeneratedPasswordIncluded } as any)
++            ).toEqual(true);
++        });
++
++        it('treats conflicting flags representations as no flags', () => {
++            expect(hasGeneratedPasswordIncluded({ flags: SharedURLFlags.GeneratedPasswordIncluded, Flags: 0 } as any)).toEqual(
++                false
++            );
++            expect(hasGeneratedPasswordIncluded({ flags: '2', Flags: 0 } as any)).toEqual(false);
++            expect(hasGeneratedPasswordIncluded({ flags: 0, Flags: SharedURLFlags.GeneratedPasswordIncluded } as any)).toEqual(
++                false
++            );
++        });
++
++        it('treats conflicts after normalization as no flags', () => {
++            expect(
++                hasGeneratedPasswordIncluded({ flags: SharedURLFlags.GeneratedPasswordIncluded + 0.9, Flags: 0 } as any)
++            ).toEqual(false);
++        });
++
++        it('accepts equal representations after normalization', () => {
++            expect(
++                hasGeneratedPasswordIncluded({
++                    flags: String(SharedURLFlags.GeneratedPasswordIncluded),
++                    Flags: SharedURLFlags.GeneratedPasswordIncluded,
++                } as any)
++            ).toEqual(true);
++            expect(
++                hasGeneratedPasswordIncluded({
++                    flags: SharedURLFlags.GeneratedPasswordIncluded + 0.9,
++                    Flags: SharedURLFlags.GeneratedPasswordIncluded,
++                } as any)
++            ).toEqual(true);
++        });
++    });
++});
++describe('splitGeneratedAndCustomPassword', () => {
++    it('new custom password returns both generated and custom password', () => {
++        expect(
++            splitGeneratedAndCustomPassword('1234567890abcdefghXYZ', {
++                flags: SharedURLFlags.CustomPassword | SharedURLFlags.GeneratedPasswordIncluded,
++            } as any)
++        ).toEqual(['1234567890abcdefgh', 'XYZ']);
++    });
++
++    it('accepts legacy Flags representation for splitting', () => {
++        expect(
++            splitGeneratedAndCustomPassword('1234567890abcdefghXYZ', {
++                Flags: SharedURLFlags.CustomPassword | SharedURLFlags.GeneratedPasswordIncluded,
++            } as any)
++        ).toEqual(['1234567890abcdefgh', 'XYZ']);
++    });
++
++    it('conflicting flags representations disable password splitting', () => {
++        expect(
++            splitGeneratedAndCustomPassword('1234567890abcdefghXYZ', {
++                flags: SharedURLFlags.CustomPassword | SharedURLFlags.GeneratedPasswordIncluded,
++                Flags: 0,
++            } as any)
++        ).toEqual(['1234567890abcdefghXYZ', '']);
++        expect(
++            splitGeneratedAndCustomPassword('1234567890abcdefghXYZ', {
++                flags: 0,
++                Flags: SharedURLFlags.CustomPassword | SharedURLFlags.GeneratedPasswordIncluded,
++            } as any)
++        ).toEqual(['1234567890abcdefghXYZ', '']);
++    });
++
++    it('conflicting representations disable password splitting after normalization', () => {
++        expect(
++            splitGeneratedAndCustomPassword('1234567890abcdefghXYZ', {
++                flags: SharedURLFlags.CustomPassword + 0.9,
++                Flags: 0,
++            } as any)
++        ).toEqual(['1234567890abcdefghXYZ', '']);
++    });
++});

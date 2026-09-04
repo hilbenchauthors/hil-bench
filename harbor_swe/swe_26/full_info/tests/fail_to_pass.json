@@ -1,0 +1,7 @@
+[
+  "packages/components/containers/notifications/manager.test.tsx | should deduplicate react elements using the provided key",
+  "packages/components/containers/notifications/manager.test.tsx | should allow to create notifications with raw html text and deduplicate it",
+  "packages/components/containers/notifications/manager.test.tsx | notification sanitizer only permits safe inline tags",
+  "packages/components/containers/notifications/manager.test.tsx | rendered html notifications must not contain executable or event-handler markup",
+  "packages/components/containers/notifications/manager.test.tsx | html content notifications have a minimum display threshold"
+]

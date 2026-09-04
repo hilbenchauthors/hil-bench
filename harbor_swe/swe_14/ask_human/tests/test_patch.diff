@@ -1,0 +1,152 @@
+diff --git a/config/config_test.go b/config/config_test.go
+index 51ca97d9..494bdea8 100644
+--- a/config/config_test.go
++++ b/config/config_test.go
+@@ -4,6 +4,7 @@ import (
+ 	"io/ioutil"
+ 	"net/http"
+ 	"net/http/httptest"
++	"os"
+ 	"testing"
+ 	"time"
+ 
+@@ -93,6 +94,11 @@ func TestLoad(t *testing.T) {
+ 					MigrationsPath: "./config/migrations",
+ 					URL:            "postgres://postgres@localhost:5432/flipt?sslmode=disable",
+ 				},
++				Meta: metaConfig{
++					CheckForUpdates:     false,
++					DataPath:            "/tmp/flipt/data",
++					UpdateCheckInterval: 30 * time.Minute,
++				},
+ 			},
+ 		},
+ 	}
+@@ -240,3 +246,127 @@ func TestServeHTTP(t *testing.T) {
+ 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+ 	assert.NotEmpty(t, body)
+ }
++
++func TestDefaultMetaConfig(t *testing.T) {
++	cfg := Default()
++	assert.True(t, cfg.Meta.CheckForUpdates)
++	assert.Equal(t, "/var/opt/flipt/meta", cfg.Meta.DataPath)
++	assert.Equal(t, 6*time.Hour, cfg.Meta.UpdateCheckInterval)
++}
++
++func TestLoadMetaFallback(t *testing.T) {
++	dir := t.TempDir()
++	path := dir + "/config.yml"
++	content := `meta:
++  check_for_updates: true
++  data_path: ""
++  update_check_interval: 0s
++`
++	err := os.WriteFile(path, []byte(content), 0644)
++	require.NoError(t, err)
++
++	cfg, err := Load(path)
++	require.NoError(t, err)
++
++	assert.Equal(t, "/var/opt/flipt/meta", cfg.Meta.DataPath)
++	assert.Equal(t, 6*time.Hour, cfg.Meta.UpdateCheckInterval)
++	assert.True(t, cfg.Meta.CheckForUpdates)
++}
++
++func TestValidateMeta(t *testing.T) {
++	tests := []struct {
++		name    string
++		cfg     *Config
++		wantErr bool
++	}{
++		{
++			name: "relative data path rejected",
++			cfg: &Config{
++				Meta: metaConfig{
++					DataPath: "relative/path",
++				},
++			},
++			wantErr: true,
++		},
++		{
++			name: "absolute data path accepted",
++			cfg: &Config{
++				Meta: metaConfig{
++					DataPath: "/var/data/flipt",
++				},
++			},
++			wantErr: false,
++		},
++		{
++			name: "non-existent absolute path accepted",
++			cfg: &Config{
++				Meta: metaConfig{
++					DataPath: "/nonexistent/flipt/data/path",
++				},
++			},
++			wantErr: false,
++		},
++		{
++			name: "negative interval with updates enabled",
++			cfg: &Config{
++				Meta: metaConfig{
++					CheckForUpdates:     true,
++					DataPath:            "/var/opt/flipt/meta",
++					UpdateCheckInterval: -1 * time.Hour,
++				},
++			},
++			wantErr: true,
++		},
++		{
++			name: "positive interval with updates enabled",
++			cfg: &Config{
++				Meta: metaConfig{
++					CheckForUpdates:     true,
++					DataPath:            "/var/opt/flipt/meta",
++					UpdateCheckInterval: 6 * time.Hour,
++				},
++			},
++			wantErr: false,
++		},
++		{
++			name: "zero interval with updates disabled",
++			cfg: &Config{
++				Meta: metaConfig{
++					CheckForUpdates:     false,
++					DataPath:            "/var/opt/flipt/meta",
++					UpdateCheckInterval: 0,
++				},
++			},
++			wantErr: false,
++		},
++		{
++			name: "negative interval with updates disabled",
++			cfg: &Config{
++				Meta: metaConfig{
++					CheckForUpdates:     false,
++					DataPath:            "/var/opt/flipt/meta",
++					UpdateCheckInterval: -5 * time.Second,
++				},
++			},
++			wantErr: false,
++		},
++	}
++
++	for _, tt := range tests {
++		var (
++			cfg     = tt.cfg
++			wantErr = tt.wantErr
++		)
++
++		t.Run(tt.name, func(t *testing.T) {
++			err := cfg.validate()
++
++			if wantErr {
++				require.Error(t, err)
++				return
++			}
++
++			require.NoError(t, err)
++		})
++	}
++}

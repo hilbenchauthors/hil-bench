@@ -1,0 +1,168 @@
+diff --git a/applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts b/applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts
+index 4eaf26e69c..89d9d18bf6 100644
+--- a/applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts
++++ b/applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts
+@@ -62,8 +62,10 @@ describe('getLastPersistedLocalID', () => {
+         jest.clearAllMocks();
+     });
+ 
++    afterEach(() => jest.restoreAllMocks());
++
+-    test('returns 0 when localStorage is empty', () => {
+-        expect(getLastPersistedLocalID()).toBe(0);
++    test('returns null when localStorage is empty', () => {
++        expect(getLastPersistedLocalID()).toBe(null);
+     });
+ 
+     test('returns the correct ID for a single item', () => {
+@@ -86,12 +88,148 @@ describe('getLastPersistedLocalID', () => {
+ 
+     test('handles non-numeric IDs correctly', () => {
+         localStorage.setItem(`${STORAGE_PREFIX}abc`, JSON.stringify({ persistedAt: Date.now() }));
+-        expect(getLastPersistedLocalID()).toBe(0);
++        expect(getLastPersistedLocalID()).toBe(null);
++    });
++
++    test('rejects partially numeric suffixes like 123abc', () => {
++        localStorage.setItem(`${STORAGE_PREFIX}123abc`, JSON.stringify({ persistedAt: Date.now() }));
++        expect(getLastPersistedLocalID()).toBe(null);
++    });
++
++    test('returns null when only keys with invalid suffixes exist', () => {
++        localStorage.setItem(`${STORAGE_PREFIX}abc`, JSON.stringify({ persistedAt: Date.now() }));
++        localStorage.setItem(`${STORAGE_PREFIX}xyz`, JSON.stringify({ persistedAt: Date.now() }));
++        expect(getLastPersistedLocalID()).toBe(null);
++    });
++
++    test('skips entries with unparseable JSON values', () => {
++        localStorage.setItem(`${STORAGE_PREFIX}123`, 'not-valid-json');
++        localStorage.setItem(`${STORAGE_PREFIX}456`, JSON.stringify({ persistedAt: Date.now() }));
++        expect(getLastPersistedLocalID()).toBe(456);
++    });
++
++    test('returns null when all entries have unparseable values', () => {
++        localStorage.setItem(`${STORAGE_PREFIX}123`, 'invalid');
++        localStorage.setItem(`${STORAGE_PREFIX}456`, '{broken json');
++        expect(getLastPersistedLocalID()).toBe(null);
++    });
++
++    test('uses ID as tiebreaker when timestamps are equal', () => {
++        const now = Date.now();
++        const timestamp = now - (10 * 24 * 60 * 60 * 1000);
++        localStorage.setItem(`${STORAGE_PREFIX}100`, JSON.stringify({ persistedAt: timestamp }));
++        localStorage.setItem(`${STORAGE_PREFIX}300`, JSON.stringify({ persistedAt: timestamp }));
++        localStorage.setItem(`${STORAGE_PREFIX}200`, JSON.stringify({ persistedAt: timestamp }));
++        expect(getLastPersistedLocalID()).toBe(300);
++    });
++
++    test('returns highest ID when all timestamps are equal', () => {
++        const now = Date.now();
++        const timestamp = now - (10 * 24 * 60 * 60 * 1000);
++        localStorage.setItem(`${STORAGE_PREFIX}100`, JSON.stringify({ persistedAt: timestamp }));
++        localStorage.setItem(`${STORAGE_PREFIX}300`, JSON.stringify({ persistedAt: timestamp }));
++        localStorage.setItem(`${STORAGE_PREFIX}200`, JSON.stringify({ persistedAt: timestamp }));
++        expect(getLastPersistedLocalID()).toBe(300);
++    });
++
++    test('correctly handles mixed scenarios with invalid and valid entries', () => {
++        const now = Date.now();
++        const older = now - (50 * 24 * 60 * 60 * 1000);
++        const newer = now - (30 * 24 * 60 * 60 * 1000);
++
++        localStorage.setItem(`${STORAGE_PREFIX}abc`, JSON.stringify({ persistedAt: 9999 }));
++        localStorage.setItem(`${STORAGE_PREFIX}100`, 'not-json');
++        localStorage.setItem(`${STORAGE_PREFIX}200`, JSON.stringify({ persistedAt: "string" }));
++        localStorage.setItem(`${STORAGE_PREFIX}300`, JSON.stringify({ other: older }));
++        localStorage.setItem(`${STORAGE_PREFIX}400`, JSON.stringify({ persistedAt: older }));
++        localStorage.setItem(`${STORAGE_PREFIX}999`, JSON.stringify({ persistedAt: older }));
++        localStorage.setItem(`${STORAGE_PREFIX}500`, JSON.stringify({ persistedAt: newer }));
++        expect(getLastPersistedLocalID()).toBe(500);
++    });
++
++    test('returns null when all sessions are expired', () => {
++        const now = Date.now();
++        const old1 = now - (150 * 24 * 60 * 60 * 1000);
++        const old2 = now - (200 * 24 * 60 * 60 * 1000);
++
++        localStorage.setItem(`${STORAGE_PREFIX}100`, JSON.stringify({ persistedAt: old1 }));
++        localStorage.setItem(`${STORAGE_PREFIX}200`, JSON.stringify({ persistedAt: old2 }));
++        expect(getLastPersistedLocalID()).toBe(null);
++    });
++
++    test('returns session at exactly 127 days old (boundary)', () => {
++        const now = Date.now();
++        jest.spyOn(Date, 'now').mockReturnValue(now);
++        const exactly127Days = now - 10972800000;
++        localStorage.setItem(`${STORAGE_PREFIX}100`, JSON.stringify({ persistedAt: exactly127Days }));
++        expect(getLastPersistedLocalID()).toBe(100);
++    });
++
++    test('returns null for session just over 127 days old (boundary + 1ms)', () => {
++        const now = Date.now();
++        const justOver127Days = now - 10972800001;
++        localStorage.setItem(`${STORAGE_PREFIX}100`, JSON.stringify({ persistedAt: justOver127Days }));
++        expect(getLastPersistedLocalID()).toBe(null);
++    });
++
++    test('returns session just under 127 days old (boundary - 1ms)', () => {
++        const now = Date.now();
++        jest.spyOn(Date, 'now').mockReturnValue(now);
++        const justUnder127Days = now - 10972799999;
++        localStorage.setItem(`${STORAGE_PREFIX}100`, JSON.stringify({ persistedAt: justUnder127Days }));
++        expect(getLastPersistedLocalID()).toBe(100);
++    });
++
++    test('selects valid session when one is at 127-day boundary and another is expired', () => {
++        const now = Date.now();
++        jest.spyOn(Date, 'now').mockReturnValue(now);
++        const atBoundary = now - 10972800000;
++        const overBoundary = now - (150 * 24 * 60 * 60 * 1000);
++        localStorage.setItem(`${STORAGE_PREFIX}100`, JSON.stringify({ persistedAt: overBoundary }));
++        localStorage.setItem(`${STORAGE_PREFIX}200`, JSON.stringify({ persistedAt: atBoundary }));
++        expect(getLastPersistedLocalID()).toBe(200);
++    });
++
++    test('returns null when session is exactly 1ms over 127 days among multiple expired', () => {
++        const now = Date.now();
++        const justOver = now - 10972800001;
++        const wayOver = now - (200 * 24 * 60 * 60 * 1000);
++        localStorage.setItem(`${STORAGE_PREFIX}100`, JSON.stringify({ persistedAt: justOver }));
++        localStorage.setItem(`${STORAGE_PREFIX}200`, JSON.stringify({ persistedAt: wayOver }));
++        expect(getLastPersistedLocalID()).toBe(null);
++    });
++
++    test('prefers newer session over one at 127-day boundary', () => {
++        const now = Date.now();
++        const atBoundary = now - 10972800000;
++        const recent = now - (10 * 24 * 60 * 60 * 1000);
++        localStorage.setItem(`${STORAGE_PREFIX}100`, JSON.stringify({ persistedAt: atBoundary }));
++        localStorage.setItem(`${STORAGE_PREFIX}200`, JSON.stringify({ persistedAt: recent }));
++        expect(getLastPersistedLocalID()).toBe(200);
++    });
++
++    test('does not modify or delete localStorage', () => {
++        localStorage.setItem(`${STORAGE_PREFIX}42`, JSON.stringify({ persistedAt: Date.now() }));
++        const snapshot: Record<string, string> = {};
++        for (let i = 0; i < localStorage.length; i++) {
++            const key = localStorage.key(i);
++            if (key) snapshot[key] = localStorage.getItem(key) ?? '';
++        }
++
++        getLastPersistedLocalID();
++
++        expect(localStorage.length).toBe(Object.keys(snapshot).length);
++        for (const [key, value] of Object.entries(snapshot)) {
++            expect(localStorage.getItem(key)).toBe(value);
++        }
+     });
+ 
+     it('returns correct ID if valid session data exists from last ping', () => {
+         localStorage.setItem(`${LAST_ACTIVE_PING}-1234`, JSON.stringify({ value: Date.now() }));
+-        localStorage.setItem(`${STORAGE_PREFIX}4`, JSON.stringify({ UserID: '1234', UID: 'abcd-1234' }));
++        localStorage.setItem(
++            `${STORAGE_PREFIX}4`,
++            JSON.stringify({ UserID: '1234', UID: 'abcd-1234', persistedAt: Date.now() })
++        );
+         expect(getLastPersistedLocalID()).toBe(4);
+     });
+ });

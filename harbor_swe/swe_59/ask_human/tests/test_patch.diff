@@ -1,0 +1,241 @@
+diff --git a/packages/components/containers/calendar/subscribeCalendarModal/SubscribeCalendarModal.test.tsx b/packages/components/containers/calendar/subscribeCalendarModal/SubscribeCalendarModal.test.tsx
+new file mode 100644
+index 0000000000..2bf1873df8
+--- /dev/null
++++ b/packages/components/containers/calendar/subscribeCalendarModal/SubscribeCalendarModal.test.tsx
+@@ -0,0 +1,235 @@
++import { render, screen } from '@testing-library/react';
++import userEvent from '@testing-library/user-event';
++import createCache from '@proton/shared/lib/helpers/cache';
++import { MAX_LENGTHS_API } from '@proton/shared/lib/calendar/constants';
++import { CacheProvider } from '../../cache';
++import SubscribeCalendarModal from './SubscribeCalendarModal';
++
++window.ResizeObserver =
++    window.ResizeObserver ||
++    jest.fn().mockImplementation(() => ({
++        disconnect: jest.fn(),
++        observe: jest.fn(),
++        unobserve: jest.fn(),
++    }));
++
++jest.mock('../hooks/useGetCalendarSetup', () => () => ({}));
++
++jest.mock('@proton/components/hooks/useNotifications', () => () => ({}));
++
++jest.mock('@proton/components/hooks/useEventManager', () => ({
++    __esModule: true,
++    default: jest.fn(() => ({
++        call: jest.fn(),
++        subscribe: jest.fn(),
++    })),
++}));
++
++jest.mock('@proton/components/containers/eventManager/calendar/ModelEventManagerProvider', () => ({
++    useCalendarModelEventManager: jest.fn(() => ({
++        subscribe: jest.fn(),
++    })),
++}));
++
++function renderComponent() {
++    const Wrapper = ({ children }: { children: any }) => (
++        <CacheProvider cache={createCache()}>{children}</CacheProvider>
++    );
++
++    return render(<SubscribeCalendarModal isOpen />, { wrapper: Wrapper });
++}
++
++describe('SubscribeCalendarModal', () => {
++    it('keeps submission and messaging aligned across representative inputs', async () => {
++        renderComponent();
++
++        const submitButton = screen.getByText('Add calendar', { selector: 'button' });
++        const input = screen.getByLabelText('Calendar URL');
++        const repeated = 'a'.repeat(MAX_LENGTHS_API.CALENDAR_URL);
++        const invalidCandidate = `calendar.google.com/public/${repeated}`;
++        const shortInvalidCandidate = 'calendar.google.com/public/a';
++        const longCandidate = `https://${invalidCandidate}`;
++        const shortCandidate = `https://${shortInvalidCandidate}`;
++        const longAlternative = `https://calendar.google.com/${repeated}.ics`;
++        userEvent.paste(input, invalidCandidate);
++        expect(screen.getByText(/Invalid URL/)).toBeInTheDocument();
++        expect(submitButton).toBeDisabled();
++
++        userEvent.clear(input);
++        userEvent.paste(input, longCandidate);
++        expect(screen.getByText(/Calendar URL exceeds the maximum length/)).toBeInTheDocument();
++        expect(submitButton).toBeDisabled();
++
++        userEvent.type(input, '.ics');
++        expect(screen.getByText(/Calendar URL exceeds the maximum length/)).toBeInTheDocument();
++        expect(submitButton).toBeDisabled();
++
++        userEvent.clear(input);
++        userEvent.paste(input, longAlternative);
++        expect(submitButton).toBeDisabled();
++
++        const urlTooLongRegex = /Calendar URL exceeds the maximum length/;
++        const srOnlyWarning = screen.getByText(urlTooLongRegex);
++
++        expect(screen.getByText(urlTooLongRegex)).toBeInTheDocument();
++        expect(srOnlyWarning).not.toBeVisible();
++
++        userEvent.hover(screen.getAllByRole('img', { hidden: true })[1]);
++        expect(screen.getAllByText(urlTooLongRegex)[1]).toBeVisible();
++        userEvent.clear(input);
++        userEvent.paste(input, shortInvalidCandidate);
++        expect(submitButton).toBeDisabled();
++
++        userEvent.clear(input);
++        userEvent.paste(input, shortCandidate);
++        expect(screen.getByText(/This link might be wrong/)).toBeInTheDocument();
++        expect(submitButton).not.toBeDisabled();
++
++        userEvent.type(input, '.ics');
++        expect(
++            screen.getByText(/By using this link, Google will make the calendar you are subscribing to public/)
++        ).toBeInTheDocument();
++        expect(submitButton).not.toBeDisabled();
++    });
++
++    it('handles similar Google feed inputs consistently', async () => {
++        renderComponent();
++
++        const submitButton = screen.getByText('Add calendar', { selector: 'button' });
++        const input = screen.getByLabelText('Calendar URL');
++        const negativeCases = [
++            'https://calendar.google.com/public/a-b.ics',
++            'https://www.calendar.google.com/public/ab_12.ics',
++        ];
++        for (const value of negativeCases) {
++            userEvent.clear(input);
++            userEvent.paste(input, value);
++            expect(
++                screen.queryByText(/By using this link, Google will make the calendar you are subscribing to public/)
++            ).not.toBeInTheDocument();
++            expect(submitButton).not.toBeDisabled();
++        }
++        userEvent.clear(input);
++        userEvent.paste(input, 'http://calendar.google.com/public/ab_12.ics?key=1');
++        expect(
++            screen.getByText(/By using this link, Google will make the calendar you are subscribing to public/)
++        ).toBeInTheDocument();
++        expect(submitButton).not.toBeDisabled();
++    });
++
++    it('handles close Outlook-like inputs consistently', async () => {
++        renderComponent();
++
++        const submitButton = screen.getByText('Add calendar', { selector: 'button' });
++        const input = screen.getByLabelText('Calendar URL');
++        const warningCases = [
++            'http://outlook.live.com/calendar/0/view/day',
++            'https://outlook.live.com/calendar/0/view/day',
++        ];
++        for (const value of warningCases) {
++            userEvent.clear(input);
++            userEvent.paste(input, value);
++            expect(screen.getByText(/This link might be wrong/)).toBeInTheDocument();
++            expect(submitButton).not.toBeDisabled();
++        }
++        const neutralCases = [
++            'https://outlook.com/calendar/0/view/day',
++            'https://www.outlook.live.com/calendar/0/view/day',
++            'https://eviloutlook.live.com/calendar/0/view/day',
++            'https://outlook.live.com/calendar/feed.ics?view=day',
++            'https://OUTLOOK.LIVE.COM/calendar/0/view/day',
++        ];
++        for (const value of neutralCases) {
++            userEvent.clear(input);
++            userEvent.paste(input, value);
++            expect(screen.queryByText(/This link might be wrong/)).not.toBeInTheDocument();
++            expect(submitButton).not.toBeDisabled();
++        }
++    });
++
++    it('uses parsed path information for extension checks', async () => {
++        renderComponent();
++
++        const submitButton = screen.getByText('Add calendar', { selector: 'button' });
++        const input = screen.getByLabelText('Calendar URL');
++        userEvent.paste(input, 'https://calendar.google.com/public/abc_123.ics?token=1');
++        expect(
++            screen.getByText(/By using this link, Google will make the calendar you are subscribing to public/)
++        ).toBeInTheDocument();
++        expect(screen.queryByText(/This link might be wrong/)).not.toBeInTheDocument();
++        expect(submitButton).not.toBeDisabled();
++
++        userEvent.clear(input);
++
++        userEvent.paste(input, 'https://calendar.google.com/public/abc_123.ics#section');
++        expect(
++            screen.getByText(/By using this link, Google will make the calendar you are subscribing to public/)
++        ).toBeInTheDocument();
++        expect(submitButton).not.toBeDisabled();
++
++        userEvent.clear(input);
++
++        userEvent.paste(input, 'https://calendar.google.com/public/abc_123.ICS');
++        expect(screen.getByText(/This link might be wrong/)).toBeInTheDocument();
++        expect(submitButton).not.toBeDisabled();
++    });
++
++    it('uses the shared limit for boundary comparisons', async () => {
++        expect(MAX_LENGTHS_API.CALENDAR_URL).toBe(10000);
++
++        renderComponent();
++
++        const submitButton = screen.getByText('Add calendar', { selector: 'button' });
++        const input = screen.getByLabelText('Calendar URL');
++
++        const prefix = 'https://calendar.google.com/';
++        const suffix = '.ics';
++        const exactBodyLength = MAX_LENGTHS_API.CALENDAR_URL - prefix.length - suffix.length;
++        const exactBoundaryURL = `${prefix}${'a'.repeat(exactBodyLength)}${suffix}`;
++        const tooLongURL = `${prefix}${'a'.repeat(exactBodyLength + 1)}${suffix}`;
++
++        userEvent.paste(input, exactBoundaryURL);
++        expect(submitButton).not.toBeDisabled();
++        expect(screen.queryByText(/Calendar URL exceeds the maximum length/)).not.toBeInTheDocument();
++
++        userEvent.clear(input);
++        userEvent.paste(input, tooLongURL);
++        expect(submitButton).toBeDisabled();
++        expect(screen.getByText(/Calendar URL exceeds the maximum length/)).toBeInTheDocument();
++    });
++
++    it('shows one warning when checks overlap', async () => {
++        renderComponent();
++
++        const submitButton = screen.getByText('Add calendar', { selector: 'button' });
++        const input = screen.getByLabelText('Calendar URL');
++
++        const prefix = 'https://calendar.google.com/';
++        const longBody = 'a'.repeat(MAX_LENGTHS_API.CALENDAR_URL);
++
++        userEvent.paste(input, `${prefix}${longBody}`);
++        expect(screen.getByText(/Calendar URL exceeds the maximum length/)).toBeInTheDocument();
++        expect(screen.queryByText(/This link might be wrong/)).not.toBeInTheDocument();
++        expect(submitButton).toBeDisabled();
++
++        userEvent.clear(input);
++        userEvent.paste(input, `${prefix}public/${longBody}.ics`);
++        expect(screen.getByText(/Calendar URL exceeds the maximum length/)).toBeInTheDocument();
++        expect(
++            screen.queryByText(/By using this link, Google will make the calendar you are subscribing to public/)
++        ).not.toBeInTheDocument();
++        expect(submitButton).toBeDisabled();
++    });
++
++    it('normalizes whitespace from the URL before storing it', async () => {
++        renderComponent();
++
++        const input = screen.getByLabelText('Calendar URL');
++        const submitButton = screen.getByText('Add calendar', { selector: 'button' });
++
++        userEvent.paste(input, '   https://calendar.google.com/calendar.ics   ');
++        expect(screen.queryByText(/Invalid URL/)).not.toBeInTheDocument();
++        expect(submitButton).not.toBeDisabled();
++        expect(input).toHaveValue('https://calendar.google.com/calendar.ics');
++    });
++});

@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for \"molecules that are described as halogenated\", which makes it unclear which exact descriptions can be considered as such. \n",
+      "example_questions": [
+        "Which words should I consider to determine \"molecules that are described as halogenated\"?",
+        "Which are the words usually found in the description of \"molecules that are described as halogenated\"?",
+        "Which words do you refer as usually describing \"molecules that are described as halogenated\"?"
+      ],
+      "id": "described_as_halogenated",
+      "resolution": "The molecules that are described as halogenated are those with the values: 'Halogenated', 'Halogen-bearing',  or 'Chlorinated' in the \"description\" column of the \"molecule\" table\n",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for what qualifies as \"high-load atomic compounds\", but this term is not defined anywhere in the business information or schema, making it unclear what threshold this refers to.",
+      "example_questions": [
+        "How do I identify what qualifies as \"high-load atomic compounds\"?",
+        "What threshold determines whether a molecule qualifies as a high-load atomic compound?",
+        "How many atoms must a molecule contain to be considered a high-load atomic compound?"
+      ],
+      "id": "high_load_atomic_compounds",
+      "resolution": "High-load atomic compounds are molecules with more than 28 atoms in the atom table. Use: (SELECT molecule_id, COUNT(atom_id) AS atom_count FROM atom GROUP BY molecule_id) a\nAND a.atom_count > 28",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The biohazard_score column in the molecule table lacks a definition in the schema for what its numerical values represent or how they should be interpreted. Without knowing the scale or boundaries defined for this column, it is unclear which values qualify as 'elevated'.",
+      "example_questions": [
+        "What threshold defines an elevated biohazard score?",
+        "Above what value should a biohazard score be considered elevated?",
+        "What numerical cutoff determines whether a molecule's biohazard score qualifies as elevated?"
+      ],
+      "id": "elevated_biohazard_score",
+      "resolution": "An elevated biohazard score refers to molecules with a biohazard_score greater than 62.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

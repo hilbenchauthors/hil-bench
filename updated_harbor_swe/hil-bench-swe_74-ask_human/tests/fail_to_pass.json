@@ -1,0 +1,10 @@
+[
+  "test/units/plugins/filter/test_mathstuff.py::TestMin::test_min",
+  "test/units/plugins/filter/test_mathstuff.py::TestMin::test_min_empty",
+  "test/units/plugins/filter/test_mathstuff.py::TestMin::test_min_scalar_input",
+  "test/units/plugins/filter/test_mathstuff.py::TestMin::test_min_none_filtering",
+  "test/units/plugins/filter/test_mathstuff.py::TestMax::test_max",
+  "test/units/plugins/filter/test_mathstuff.py::TestMax::test_max_empty",
+  "test/units/plugins/filter/test_mathstuff.py::TestMax::test_max_scalar_input",
+  "test/units/plugins/filter/test_mathstuff.py::TestMax::test_max_none_filtering"
+]

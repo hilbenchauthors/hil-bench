@@ -1,0 +1,10 @@
+[
+  "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_missing_delegated_target",
+  "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_missing_delegated_target_empty_metadata",
+  "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_prefers_canonical_delegated_identity",
+  "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_prefers_ansible_hostname_over_other_hints",
+  "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_falls_back_to_ansible_delegated_host",
+  "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_truncates_each_side",
+  "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_quotes_collision_cases",
+  "test/units/plugins/callback/test_callback.py::TestCallback::test_host_label_quotes_backslash_only"
+]

@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt first asks for teams who won exactly 10 matches, but then requests that they won exactly 12 matches, which is contradictory.\n",
+      "example_questions": [
+        "You ask for teams who won exactly 10 matches, but then request that they won exactly 12 matches, what should I do?",
+        "You ask for teams who won exactly 10 matches, but then request that they have won exactly 12 matches, do you still want me to look for both options?",
+        "Should I look for teams who won exactly 10 matches, or for those who won exactly 12 matches?"
+      ],
+      "id": "win_exactly",
+      "resolution": "Consider teams that won between 10 and 12 matches in the season (inclusive).\n",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The prompt asks for the \"best\" teams, which can be interpreted either by final position, highest number of goals done, lowest number of goals received, etc.\n",
+      "example_questions": [
+        "What would you mean by\u00a0 \"best\" teams, should I consider their final position, goals done, or goals received?",
+        "When filtering for\u00a0 \"best\" teams, should I use their final position, goals done, or goals received?",
+        "What should I use to filter by\u00a0 \"best\" teams?"
+      ],
+      "id": "best_teams",
+      "resolution": "When looking for the \"best\" teams, use the lowest number of goals received in a season.\n",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The prompt asks for \"west European leagues\", which makes it unclear which countries to include\n",
+      "example_questions": [
+        "Which countries should I consider for west european leagues?",
+        "Which countries do refer to for west european leagues?",
+        "Which countries are part of west european leagues?"
+      ],
+      "id": "west_european",
+      "resolution": "Consider the countries Poland, Scotland, Switzerland, Netherlands, and Germany for west european leagues. Considering any other teams would result in an incorrect answer.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The \"average effective goals\" is used in the prompt and is mentioned in the business information as a weighted average between the home and away goals, but the weights are not specified.\n",
+      "example_questions": [
+        "What is the exact formula to calculate the effective goals?",
+        "Which formula should I use to calculate the effective goals?",
+        "What are the weights I should use to calculate the effective goals?"
+      ],
+      "id": "effective_goals",
+      "resolution": "The average effective goals from a season can be calculated as (home_goals_in_the_season*0.3 + away_goals_in_the_season*0.7)/number_of_matches_in_the_season\n",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The Team table has 4 columns with similar names, which makes it impossible to know which one refers to the inscription date.\n",
+      "example_questions": [
+        "Which column should I use to find the inscription date?",
+        "I see many date columns, which one should I use to find the inscription date?",
+        "From the date columns, which one should I use to find the inscription date?"
+      ],
+      "id": "foundation_date",
+      "resolution": "The team's inscription date is given by the \"important_date\" column of the Team table.\n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

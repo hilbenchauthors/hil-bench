@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for the shortest average pit stop duration per race, but it is unclear how to handle multiple pit stops for the same driver within the same race when computing a driver-level average. Different within-race aggregation rules produce different results.",
+      "example_questions": [
+        "If a driver has multiple pit stops in one race, how should those be summarized into a single value for the average pit stop duration?",
+        "Should the calculation of a driver's average pit stop duration use one pit stop per race or all of their pit stops?",
+        "If only one pit stop per race is used, what determines which pit stop is chosen?"
+      ],
+      "id": "within_race_aggregation_rule",
+      "resolution": "For each driver and race, exactly one pit stop row is selected: the pit stop whose duration value is closest to the average pit stop duration of that race across all drivers (using the same duration definition as applied to pit stop rows). If multiple pit stops are equally close, select the one with the smallest stop number; if still tied, select the one with the smallest row identifier. The driver\u2019s average equals the arithmetic mean of the selected per-race pit stop durations across all included races. Only drivers with at least one selected per-race pit stop duration are eligible for the top 3 ranking. If multiple eligible drivers have the same average duration, rank them by driverId ascending.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The question says to consider only pit stops that are representative of typical performance, but the dataset does not specify which pit stops qualify as representative versus atypical.",
+      "example_questions": [
+        "What criteria determines whether a pit stop is representative?",
+        "Are pit stops from races with incomplete outcome records included or excluded?",
+        "Is there a data-completeness requirement for the race result to consider its pit stops?"
+      ],
+      "id": "representative_pit_stop_filter",
+      "resolution": "A pit stop is representative only if it occurs in a race where the driver\u2019s race result has a recorded final position (results.position is not NULL) and a recorded finishing time in milliseconds (results.milliseconds is not NULL). Pit stop rows from races where either value is NULL are excluded.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The question refers to \"races meeting minimum field requirements\" but does not define what constitutes minimum field requirements for race eligibility. The business information provides no guidance on what threshold or criteria must be met for a race to qualify.",
+      "example_questions": [
+        "What qualifies a race as \u201crelevant\u201d for the analysis?",
+        "Should relevance depend on data completeness/coverage of pit stop records?",
+        "Is there a minimum participation threshold for a race to be included?"
+      ],
+      "id": "relevant_race_definition",
+      "resolution": "A race meets minimum field requirements only if the pitStops table contains pit-stop records for at least 10 distinct drivers in that race. Only those races are included in the analysis, regardless of season or year.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The schema has multiple duration-like fields and unclear definitions, so it is ambiguous how to interpret \u201cpit stop duration\u201d as a single comparable numeric value.",
+      "example_questions": [
+        "How should pit stop duration be interpreted into a single numeric value when multiple duration fields exist?",
+        "If the duration field appears in different formats, how should each format be converted into seconds?",
+        "What happens to pit stop rows where duration cannot be interpreted numerically?"
+      ],
+      "id": "pit_stop_duration_interpretation",
+      "resolution": "The numeric pit stop duration value in seconds is derived from pitStops.duration. If duration contains :, interpret it as minutes:seconds and compute seconds as 60*minutes + seconds using the substring before and after :. Otherwise, interpret duration directly as seconds using a numeric cast. Rows where duration is NULL or cannot be cast to a number are excluded.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

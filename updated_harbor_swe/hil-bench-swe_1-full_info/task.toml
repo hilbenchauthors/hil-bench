@@ -1,0 +1,34 @@
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-swe_1-full_info"
+description = ""
+authors = []
+keywords = []
+[metadata]
+task_id = "full_info"
+task_type = "swe"
+mode = "full_info"
+repo_name = "protonmail/webclients"
+task_attempt_id = "6978fa4d0df9703f1e96f3ea__69a9e77602049c14d2793bb5"
+image_name = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:66a9039fb4cc8087df1c9a9c0d45e5647e2c390f967b685105ef1b395998b89e"
+tags = [ "swe", "full_info", "hil-bench",]
+[verifier]
+timeout_sec = 1800.0
+
+[verifier.env]
+[agent]
+timeout_sec = 7200.0
+[environment]
+build_timeout_sec = 1200.0
+docker_image = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:66a9039fb4cc8087df1c9a9c0d45e5647e2c390f967b685105ef1b395998b89e"
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true
+mcp_servers = []
+
+[environment.env]
+[solution.env]

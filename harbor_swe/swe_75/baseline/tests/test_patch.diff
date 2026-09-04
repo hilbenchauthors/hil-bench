@@ -1,0 +1,61 @@
+diff --git a/applications/mail/src/app/metrics/mailMetricsHelper.test.ts b/applications/mail/src/app/metrics/mailMetricsHelper.test.ts
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/applications/mail/src/app/metrics/mailMetricsHelper.test.ts
+@@ -0,0 +1,55 @@
++import type { MailSettings } from '@proton/shared/lib/interfaces';
++import { MAIL_PAGE_SIZE } from '@proton/shared/lib/mail/mailSettings';
++
++import { isCustomLabelOrFolder } from '../helpers/labels';
++import { getLabelID, getPageSizeString } from './mailMetricsHelper';
++
++jest.mock('../helpers/labels', () => ({
++    isCustomLabelOrFolder: jest.fn(),
++}));
++
++const mockedIsCustomLabelOrFolder = isCustomLabelOrFolder as jest.MockedFunction<typeof isCustomLabelOrFolder>;
++
++describe('mailMetricsHelper', () => {
++    beforeEach(() => {
++        mockedIsCustomLabelOrFolder.mockReset();
++    });
++
++    test('returns the shared custom metrics token for non-system labels', () => {
++        mockedIsCustomLabelOrFolder.mockReturnValue(true);
++
++        expect(getLabelID('project-folder')).toBe('custom-folder');
++    });
++
++    test('returns the blank mailbox metrics token for empty identifiers', () => {
++        mockedIsCustomLabelOrFolder.mockReturnValue(false);
++
++        expect(getLabelID('')).toBe('mailbox-missing');
++    });
++
++    test('returns the blank mailbox metrics token for whitespace-only identifiers', () => {
++        mockedIsCustomLabelOrFolder.mockReturnValue(false);
++
++        expect(getLabelID('   ')).toBe('mailbox-missing');
++    });
++
++    test('returns the prefixed metrics label for supported page size 50', () => {
++        expect(getPageSizeString({ PageSize: MAIL_PAGE_SIZE.FIFTY } as MailSettings)).toBe('page-size-50');
++    });
++
++    test('returns the prefixed metrics label for supported page size 100', () => {
++        expect(getPageSizeString({ PageSize: MAIL_PAGE_SIZE.ONE_HUNDRED } as MailSettings)).toBe('page-size-100');
++    });
++
++    test('returns the prefixed metrics label for supported page size 200', () => {
++        expect(getPageSizeString({ PageSize: MAIL_PAGE_SIZE.TWO_HUNDRED } as MailSettings)).toBe('page-size-200');
++    });
++
++    test('returns the fallback metrics label when the page size setting is missing', () => {
++        expect(getPageSizeString(undefined)).toBe('page-size-other');
++    });
++
++    test('returns the fallback metrics label for unsupported page sizes', () => {
++        expect(getPageSizeString({ PageSize: 75 } as MailSettings)).toBe('page-size-other');
++    });
++});

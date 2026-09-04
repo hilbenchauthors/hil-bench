@@ -1,0 +1,229 @@
+diff --git a/test/internal/config/load_context_obstructed_test.go b/test/internal/config/load_context_obstructed_test.go
+new file mode 100644
+index 00000000..c8c98406
+--- /dev/null
++++ b/test/internal/config/load_context_obstructed_test.go
+@@ -0,0 +1,223 @@
++package config_test
++
++import (
++	"context"
++	"fmt"
++	"net/url"
++	"reflect"
++	"testing"
++	"time"
++
++	config "go.flipt.io/flipt/internal/config"
++	"gocloud.dev/blob"
++	"gocloud.dev/blob/memblob"
++
++	"github.com/stretchr/testify/require"
++)
++
++type typedNilContext struct{}
++
++func (*typedNilContext) Deadline() (time.Time, bool) {
++	panic("typed-nil context must be normalized before use")
++}
++func (*typedNilContext) Done() <-chan struct{} {
++	panic("typed-nil context must be normalized before use")
++}
++func (*typedNilContext) Err() error {
++	panic("typed-nil context must be normalized before use")
++}
++func (*typedNilContext) Value(any) any {
++	panic("typed-nil context must be normalized before use")
++}
++
++type mockURLOpener struct {
++	bucket *blob.Bucket
++	onOpen func(context.Context)
++}
++
++func (c *mockURLOpener) OpenBucketURL(ctx context.Context, u *url.URL) (*blob.Bucket, error) {
++	if c.onOpen != nil {
++		c.onOpen(ctx)
++	}
++
++	for param := range u.Query() {
++		return nil, fmt.Errorf("open bucket %v: invalid query parameter %q", u, param)
++	}
++
++	return c.bucket, nil
++}
++
++func isNilLikeContext(ctx context.Context) bool {
++	if ctx == nil {
++		return true
++	}
++	v := reflect.ValueOf(ctx)
++	switch v.Kind() {
++	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
++		return v.IsNil()
++	default:
++		return false
++	}
++}
++
++func TestLoadMaintainsBackwardCompatibleEntryPoint(t *testing.T) {
++	res, err := config.Load("")
++	require.NoError(t, err)
++	require.NotNil(t, res)
++}
++
++func TestLoadWithContextNilContextUsesDefaultPolicy(t *testing.T) {
++	const (
++		scheme     = "mockloadnilcontextobstructed"
++		configData = "version: \"1.0\"\n"
++	)
++
++	blob.DefaultURLMux().RegisterBucket(scheme, &mockURLOpener{bucket: memblob.OpenBucket(nil)})
++
++	b, err := blob.OpenBucket(context.Background(), scheme+"://mybucket")
++	require.NoError(t, err)
++	t.Cleanup(func() { _ = b.Close() })
++
++	w, err := b.NewWriter(context.Background(), "config/local.yml", nil)
++	require.NoError(t, err)
++	_, err = w.Write([]byte(configData))
++	require.NoError(t, err)
++	require.NoError(t, w.Close())
++
++	res, err := config.Load(nil, scheme+"://mybucket/config/local.yml")
++	require.NoError(t, err)
++	require.NotNil(t, res)
++}
++
++func TestLoadWithContextTypedNilContextUsesDefaultPolicy(t *testing.T) {
++	const (
++		scheme     = "mockloadtypednilcontextobstructed"
++		configData = "version: \"1.0\"\n"
++	)
++
++	var openerReceivedNilLikeContext bool
++
++	blob.DefaultURLMux().RegisterBucket(scheme, &mockURLOpener{
++		bucket: memblob.OpenBucket(nil),
++		onOpen: func(ctx context.Context) {
++			openerReceivedNilLikeContext = isNilLikeContext(ctx)
++		},
++	})
++
++	b, err := blob.OpenBucket(context.Background(), scheme+"://mybucket")
++	require.NoError(t, err)
++	t.Cleanup(func() { _ = b.Close() })
++
++	w, err := b.NewWriter(context.Background(), "config/local.yml", nil)
++	require.NoError(t, err)
++	_, err = w.Write([]byte(configData))
++	require.NoError(t, err)
++	require.NoError(t, w.Close())
++
++	var typedNil context.Context = (*typedNilContext)(nil)
++	res, err := config.Load(typedNil, scheme+"://mybucket/config/local.yml")
++	require.NoError(t, err)
++	require.NotNil(t, res)
++	require.False(t, openerReceivedNilLikeContext, "expected typed-nil context to be normalized before source access")
++}
++
++func TestLoadAppliesDefaultTimeoutWhenContextHasNoDeadline(t *testing.T) {
++	const (
++		scheme     = "mockloadtimeoutobstructed"
++		configData = "version: \"1.0\"\n"
++	)
++
++	var (
++		openCtxDeadline time.Time
++		openCtxHasDL    bool
++	)
++
++	blob.DefaultURLMux().RegisterBucket(scheme, &mockURLOpener{
++		bucket: memblob.OpenBucket(nil),
++		onOpen: func(ctx context.Context) {
++			openCtxDeadline, openCtxHasDL = ctx.Deadline()
++		},
++	})
++
++	b, err := blob.OpenBucket(context.Background(), scheme+"://mybucket")
++	require.NoError(t, err)
++	t.Cleanup(func() { _ = b.Close() })
++
++	w, err := b.NewWriter(context.Background(), "config/local.yml", nil)
++	require.NoError(t, err)
++	_, err = w.Write([]byte(configData))
++	require.NoError(t, err)
++	require.NoError(t, w.Close())
++
++	start := time.Now()
++	res, err := config.Load(context.Background(), scheme+"://mybucket/config/local.yml")
++	require.NoError(t, err)
++	require.NotNil(t, res)
++	require.True(t, openCtxHasDL, "expected derived load context to have deadline")
++
++	remaining := time.Until(openCtxDeadline)
++	require.LessOrEqual(t, remaining, 11*time.Second)
++	require.Greater(t, remaining, 9*time.Second)
++	require.WithinDuration(t, start.Add(11*time.Second), openCtxDeadline, 2*time.Second)
++}
++
++func TestLoadReturnsContextErrorWhenDeadlineExceeded(t *testing.T) {
++	const (
++		scheme     = "mockloaddeadlineobstructed"
++		configData = "version: \"1.0\"\n"
++	)
++
++	blob.DefaultURLMux().RegisterBucket(scheme, &mockURLOpener{
++		bucket: memblob.OpenBucket(nil),
++		onOpen: func(ctx context.Context) {
++			time.Sleep(20 * time.Millisecond)
++		},
++	})
++
++	b, err := blob.OpenBucket(context.Background(), scheme+"://mybucket")
++	require.NoError(t, err)
++	t.Cleanup(func() { _ = b.Close() })
++
++	w, err := b.NewWriter(context.Background(), "config/local.yml", nil)
++	require.NoError(t, err)
++	_, err = w.Write([]byte(configData))
++	require.NoError(t, err)
++	require.NoError(t, w.Close())
++
++	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Millisecond)
++	defer cancel()
++
++	res, err := config.Load(ctx, scheme+"://mybucket/config/local.yml")
++	require.Nil(t, res)
++	require.ErrorIs(t, err, context.DeadlineExceeded)
++}
++
++func TestLoadReturnsContextErrorWhenCanceled(t *testing.T) {
++	const (
++		scheme     = "mockloadcanceledobstructed"
++		configData = "version: \"1.0\"\n"
++	)
++
++	ctx, cancel := context.WithCancel(context.Background())
++
++	blob.DefaultURLMux().RegisterBucket(scheme, &mockURLOpener{
++		bucket: memblob.OpenBucket(nil),
++		onOpen: func(_ context.Context) {
++			cancel()
++		},
++	})
++
++	b, err := blob.OpenBucket(context.Background(), scheme+"://mybucket")
++	require.NoError(t, err)
++	t.Cleanup(func() { _ = b.Close() })
++
++	w, err := b.NewWriter(context.Background(), "config/local.yml", nil)
++	require.NoError(t, err)
++	_, err = w.Write([]byte(configData))
++	require.NoError(t, err)
++	require.NoError(t, w.Close())
++
++	res, err := config.Load(ctx, scheme+"://mybucket/config/local.yml")
++	require.Nil(t, res)
++	require.ErrorIs(t, err, context.Canceled)
++}

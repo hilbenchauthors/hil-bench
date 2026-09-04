@@ -1,0 +1,54 @@
+diff --git a/packages/components/containers/offers/operations/summer2023/eligibility.ts b/packages/components/containers/offers/operations/summer2023/eligibility.ts
+index a1afbec232..0f81ce82d2 100644
+--- a/packages/components/containers/offers/operations/summer2023/eligibility.ts
++++ b/packages/components/containers/offers/operations/summer2023/eligibility.ts
+@@ -9,9 +9,24 @@ interface Props {
+     lastSubscriptionEnd?: number;
+ }
+ 
+-const isEligible = ({ user, subscription, protonConfig, lastSubscriptionEnd = 0 }: Props) => {
+-    const isValidApp = protonConfig?.APP_NAME === APPS.PROTONMAIL || protonConfig?.APP_NAME === APPS.PROTONCALENDAR;
+-    const isFreeSinceAtLeastOneMonth = user.isFree && lastSubscriptionEnd > 0;
++const COOLDOWN_DAYS = 90;
++
++const isKnownTimestamp = (ts?: number): boolean =>
++    typeof ts === 'number' && Number.isFinite(ts) && ts > 0;
++
++const hasVerifiedCooldown = (lastSubscriptionEnd?: number): boolean => {
++    if (!isKnownTimestamp(lastSubscriptionEnd)) {
++        return true;
++    }
++
++    const nowSeconds = Math.floor(Date.now() / 1000);
++    const cutoff = nowSeconds - COOLDOWN_DAYS * 86400;
++
++    return (lastSubscriptionEnd as number) < cutoff;
++};
++
++const isEligible = ({ user, subscription, protonConfig, lastSubscriptionEnd }: Props) => {
++    const isValidApp = protonConfig?.APP_NAME === APPS.PROTONCALENDAR;
+ 
+     if (!isValidApp) {
+         return false;
+@@ -25,15 +40,19 @@ const isEligible = ({ user, subscription, protonConfig, lastSubscriptionEnd = 0
+         return false;
+     }
+ 
++    if (isManagedExternally(subscription)) {
++        return false;
++    }
++
+     if (isTrial(subscription)) {
+         return true;
+     }
+ 
+-    if (isManagedExternally(subscription)) {
++    if (!user.isFree) {
+         return false;
+     }
+ 
+-    return isFreeSinceAtLeastOneMonth;
++    return hasVerifiedCooldown(lastSubscriptionEnd);
+ };
+ 
+ export default isEligible;

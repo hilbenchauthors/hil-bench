@@ -1,0 +1,14 @@
+[
+  "test/units/utils/test_unsafe_proxy.py::test_wrap_var_bytearray",
+  "test/units/utils/test_unsafe_proxy.py::test_wrap_var_unsafe_duck_type",
+  "test/units/utils/test_unsafe_proxy.py::test_wrap_var_tuple",
+  "test/units/utils/test_unsafe_proxy.py::test_wrap_var_list_new_object",
+  "test/units/utils/test_unsafe_proxy.py::test_wrap_var_dict_new_object",
+  "test/units/utils/test_unsafe_proxy.py::test_UnsafeProxy_backward_compat",
+  "test/units/utils/test_unsafe_proxy.py::test_wrap_var_text",
+  "test/units/utils/test_unsafe_proxy.py::test_wrap_var_bytes",
+  "test/units/utils/test_unsafe_proxy.py::test_wrap_var_unsafe_text",
+  "test/units/utils/test_unsafe_proxy.py::test_wrap_var_unsafe_bytes",
+  "test/units/utils/test_unsafe_proxy.py::test_AnsibleUnsafeBytes",
+  "test/units/utils/test_unsafe_proxy.py::test_wrap_var_unsafe_mapping_priority"
+]

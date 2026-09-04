@@ -1,0 +1,7 @@
+[
+  "packages/components/containers/calendar/settings/CalendarMemberRow.test.tsx | enforces restricted permission guards before mutation callbacks",
+  "packages/components/containers/calendar/settings/CalendarMemberAndInvitationList.test.tsx | keeps delete action available while all permission controls stay blocked in restricted mode",
+  "packages/components/containers/calendar/settings/CalendarMemberAndInvitationList.test.tsx | applies invitation deletion matrix in restricted mode by invitation status",
+  "packages/components/containers/calendar/settings/CalendarSubpage.test.tsx | applies restricted access policy matrix for canEdit and canShare",
+  "packages/components/containers/calendar/shareURL/CalendarShareUrlSection.test.tsx | applies share-link creation policy matrix"
+]

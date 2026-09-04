@@ -1,0 +1,6 @@
+[
+  "TestCollectChunksUsesIteratorFirstSignature",
+  "TestCollectChunksUsesFallbackTwoForNonPositiveN",
+  "TestCollectChunksYieldsDefensiveTightChunks",
+  "TestDeprecatedSliceChunkingAPIsWereRemoved"
+]

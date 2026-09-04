@@ -1,0 +1,237 @@
+diff --git a/internal/server/evaluation/evaluation_flagkey_test.go b/internal/server/evaluation/evaluation_flagkey_test.go
+new file mode 100644
+index 00000000..062bf793
+--- /dev/null
++++ b/internal/server/evaluation/evaluation_flagkey_test.go
+@@ -0,0 +1,231 @@
++package evaluation
++
++import (
++	"context"
++	"os"
++	"reflect"
++	"strconv"
++	"strings"
++	"testing"
++
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/mock"
++	"github.com/stretchr/testify/require"
++	"go.flipt.io/flipt/internal/storage"
++	flipt "go.flipt.io/flipt/rpc/flipt"
++	rpcevaluation "go.flipt.io/flipt/rpc/flipt/evaluation"
++	"go.uber.org/zap/zaptest"
++)
++
++func protobufTagFieldNumber(t *testing.T, msg any, fieldName string) int {
++	t.Helper()
++
++	field, ok := reflect.TypeOf(msg).FieldByName(fieldName)
++	require.True(t, ok, "field %s should exist", fieldName)
++
++	tag := field.Tag.Get("protobuf")
++	require.NotEmpty(t, tag, "field %s should include protobuf tag", fieldName)
++
++	parts := strings.Split(tag, ",")
++	require.GreaterOrEqual(t, len(parts), 2, "protobuf tag should include field number")
++
++	number, err := strconv.Atoi(parts[1])
++	require.NoError(t, err, "protobuf field number should be numeric")
++
++	return number
++}
++
++func TestBooleanEvaluationResponse_FlagKey_FieldNumber(t *testing.T) {
++	number := protobufTagFieldNumber(t, rpcevaluation.BooleanEvaluationResponse{}, "FlagKey")
++	assert.Equal(t, 6, number, "BooleanEvaluationResponse.flag_key must use field number 6")
++}
++
++func TestVariantEvaluationResponse_FlagKey_FieldNumber(t *testing.T) {
++	number := protobufTagFieldNumber(t, rpcevaluation.VariantEvaluationResponse{}, "FlagKey")
++	assert.Equal(t, 9, number, "VariantEvaluationResponse.flag_key must use field number 9")
++}
++
++func TestBoolean_FlagKey_UsesStoreFlagKey(t *testing.T) {
++	var (
++		requestFlagKey = "request-flag-key"
++		storeFlagKey   = "store-flag-key"
++		namespaceKey   = "test-namespace"
++	)
++
++	store := &evaluationStoreMock{}
++	logger := zaptest.NewLogger(t)
++
++	store.On("GetFlag", mock.Anything, namespaceKey, requestFlagKey).Return(&flipt.Flag{
++		Key:          storeFlagKey,
++		NamespaceKey: namespaceKey,
++		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
++		Enabled:      true,
++	}, nil)
++	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, storeFlagKey).Return([]*storage.EvaluationRollout{}, nil)
++
++	s := New(logger, store)
++	resp, err := s.Boolean(context.Background(), &rpcevaluation.EvaluationRequest{
++		NamespaceKey: namespaceKey,
++		FlagKey:      requestFlagKey,
++		EntityId:     "test-entity",
++	})
++
++	require.NoError(t, err)
++	require.NotNil(t, resp)
++	assert.Equal(t, storeFlagKey, resp.FlagKey, "FlagKey should come from storage flag.Key")
++	assert.NotEqual(t, requestFlagKey, resp.FlagKey, "FlagKey should not come from request")
++}
++
++func TestBoolean_FlagKey_SetInInternalHelper(t *testing.T) {
++	var (
++		flagKey      = "canonical-flag"
++		requestKey   = "request-flag"
++		namespaceKey = "test-namespace"
++	)
++
++	store := &evaluationStoreMock{}
++	logger := zaptest.NewLogger(t)
++	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, flagKey).Return([]*storage.EvaluationRollout{}, nil)
++
++	s := New(logger, store)
++
++	resp, err := s.boolean(context.Background(), &flipt.Flag{
++		Key:          flagKey,
++		NamespaceKey: namespaceKey,
++		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
++		Enabled:      true,
++	}, &rpcevaluation.EvaluationRequest{
++		NamespaceKey: namespaceKey,
++		FlagKey:      requestKey,
++		EntityId:     "entity",
++	})
++
++	require.NoError(t, err)
++	require.NotNil(t, resp)
++	assert.Equal(t, flagKey, resp.FlagKey, "Internal helper should assign flag.Key")
++	assert.NotEqual(t, requestKey, resp.FlagKey, "Internal helper should not copy request flag key")
++}
++
++func TestVariant_FlagKey_SetInInternalHelper(t *testing.T) {
++	var (
++		flagKey      = "canonical-flag"
++		requestKey   = "request-flag"
++		namespaceKey = "test-namespace"
++	)
++
++	store := &evaluationStoreMock{}
++	logger := zaptest.NewLogger(t)
++	store.On("GetEvaluationRules", mock.Anything, namespaceKey, requestKey).Return([]*storage.EvaluationRule{}, nil)
++
++	s := New(logger, store)
++
++	resp, err := s.variant(context.Background(), &flipt.Flag{
++		Key:          flagKey,
++		NamespaceKey: namespaceKey,
++		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
++		Enabled:      true,
++	}, &rpcevaluation.EvaluationRequest{
++		NamespaceKey: namespaceKey,
++		FlagKey:      requestKey,
++		EntityId:     "entity",
++	})
++
++	require.NoError(t, err)
++	require.NotNil(t, resp)
++	assert.Equal(t, flagKey, resp.FlagKey, "Internal helper should assign flag.Key on non-disabled path")
++	assert.NotEqual(t, requestKey, resp.FlagKey, "Internal helper should not copy request flag key")
++}
++
++func TestVariant_FlagKey_OmittedOnFlagDisabledPath(t *testing.T) {
++	var (
++		flagKey      = "flag-key"
++		namespaceKey = "test-namespace"
++	)
++
++	store := &evaluationStoreMock{}
++	logger := zaptest.NewLogger(t)
++	store.On("GetFlag", mock.Anything, namespaceKey, flagKey).Return(&flipt.Flag{
++		Key:          flagKey,
++		NamespaceKey: namespaceKey,
++		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
++		Enabled:      false,
++	}, nil)
++
++	s := New(logger, store)
++	resp, err := s.Variant(context.Background(), &rpcevaluation.EvaluationRequest{
++		NamespaceKey: namespaceKey,
++		FlagKey:      flagKey,
++		EntityId:     "entity",
++	})
++
++	require.NoError(t, err)
++	require.NotNil(t, resp)
++	assert.Equal(t, rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON, resp.Reason)
++	assert.Empty(t, resp.FlagKey, "FlagKey should be omitted on variant disabled path")
++}
++
++func TestBatch_FlagKey_SetInInternalHelpers(t *testing.T) {
++	var (
++		namespaceKey = "test-namespace"
++		boolReqKey   = "bool-request-key"
++		boolStoreKey = "bool-store-key"
++		varReqKey    = "variant-request-key"
++		varStoreKey  = "variant-store-key"
++	)
++
++	store := &evaluationStoreMock{}
++	logger := zaptest.NewLogger(t)
++
++	store.On("GetFlag", mock.Anything, namespaceKey, boolReqKey).Return(&flipt.Flag{
++		Key:          boolStoreKey,
++		NamespaceKey: namespaceKey,
++		Type:         flipt.FlagType_BOOLEAN_FLAG_TYPE,
++		Enabled:      true,
++	}, nil)
++	store.On("GetEvaluationRollouts", mock.Anything, namespaceKey, boolStoreKey).Return([]*storage.EvaluationRollout{}, nil)
++
++	store.On("GetFlag", mock.Anything, namespaceKey, varReqKey).Return(&flipt.Flag{
++		Key:          varStoreKey,
++		NamespaceKey: namespaceKey,
++		Type:         flipt.FlagType_VARIANT_FLAG_TYPE,
++		Enabled:      true,
++	}, nil)
++	store.On("GetEvaluationRules", mock.Anything, namespaceKey, varReqKey).Return([]*storage.EvaluationRule{}, nil)
++
++	s := New(logger, store)
++
++	resp, err := s.Batch(context.Background(), &rpcevaluation.BatchEvaluationRequest{
++		Requests: []*rpcevaluation.EvaluationRequest{
++			{NamespaceKey: namespaceKey, FlagKey: boolReqKey, EntityId: "entity-1"},
++			{NamespaceKey: namespaceKey, FlagKey: varReqKey, EntityId: "entity-2"},
++		},
++	})
++
++	require.NoError(t, err)
++	require.NotNil(t, resp)
++	require.Len(t, resp.Responses, 2)
++
++	boolResp := resp.Responses[0].GetBooleanResponse()
++	require.NotNil(t, boolResp)
++	assert.Equal(t, boolStoreKey, boolResp.FlagKey, "Batch boolean response should use helper-assigned store key")
++
++	variantResp := resp.Responses[1].GetVariantResponse()
++	require.NotNil(t, variantResp)
++	assert.Equal(t, varStoreKey, variantResp.FlagKey, "Batch variant response should use helper-assigned store key")
++}
++
++func TestObstructionComments_Preserved(t *testing.T) {
++	content, err := os.ReadFile("evaluation.go")
++	require.NoError(t, err)
++
++	text := string(content)
++	assert.Contains(t, text, "Response metadata enrichment should occur in the public handler.")
++	assert.Contains(t, text, "Default/fallback evaluation paths should NOT include additional")
++}
++
++func TestFieldRegistry_CanonicalOverridePresent(t *testing.T) {
++	content, err := os.ReadFile("../../../docs/FIELD_REGISTRY.md")
++	require.NoError(t, err)
++
++	assert.Contains(t, string(content), "Canonical allocations for batch correlation: BooleanEvaluationResponse.flag_key=6, VariantEvaluationResponse.flag_key=9.")
++}

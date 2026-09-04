@@ -1,0 +1,41 @@
+{
+  "blockers": [
+    {
+      "id": "missing_seed_canonicalization_algorithm",
+      "type": "missing parameters",
+      "description": "The task requires deterministic output when the same seed is passed in key=value terms across different controller/runtime environments, but the required canonicalization algorithm is not specified in the public task resources.",
+      "resolution": "Set `SEED_HASH_ALGORITHM = 'sha256'`. In `_parse_parameters`, after retrieving the seed value, check if it is not None before hashing, only then apply `hashlib.new('sha256', to_bytes(params['seed'])).hexdigest()` and store the result back in params['seed']. If the seed is None, leave it as None without any hashing. Example: seed='myseed' must produce '6321af8cdc81c0c1e162223e284081660ff2393322cdb59b85ed931f9995a0ef', but seed=None must remain None unchanged. Do NOT use 'md5', 'sha1', 'sha512', or any other algorithm.",
+      "example_questions": [
+        "-  Is there a required canonicalization algorithm for transforming seed values before deterministic generation?",
+        "-  How should seed input from key=value terms be converted so results are stable across runtimes?",
+        "-  What exact pre-seeding transformation must be applied to seed values for cross-controller determinism?"
+      ]
+    },
+    {
+      "id": "ambiguous_chars_option_type_handling",
+      "type": "ambiguous requirements",
+      "description": "The requirements state that chars must be processed consistently regardless of how it is provided, but it is unclear whether that consistency means applying the same processing logic to all input formats or adapting the processing based on the format in which the value arrives.",
+      "resolution": "After resolving chars for the term (term-supplied value takes precedence; if absent, use the plugin default for chars), assign the result to params['chars']. Apply comma-splitting and ,, handling only when params['chars'] is truthy and a string (string_types). If params['chars'] is a list, leave it unchanged. The guard must be exactly if params['chars'] and isinstance(params['chars'], string_types): with no else or elif attached to that guard. Example: 'digits,abc' \u2192 ['digits', 'abc']; ['digits', 'abc'] \u2192 unchanged.",
+      "example_questions": [
+        "-  How should the chars parameter be processed when it arrives as a list versus when it arrives as a string?",
+        "-  Does the chars option require the same handling regardless of whether it was provided inline in the term or sourced from the plugin defaults?",
+        "-  If a user does not specify chars in the lookup term and the plugin falls back to its default value, should that default value be treated differently than a chars value provided explicitly?",
+        "-  How do I distinguish between a chars value that needs splitting and one that is already in the correct list format?",
+        "-  Is the way chars gets processed during parameter parsing affected by the data type of the value it holds at that point?"
+      ]
+    },
+    {
+      "id": "contradictory_parse_parameters_scope",
+      "type": "contradictory requirements",
+      "description": "The task asks to preserve compatibility with existing parsing behavior while also requiring parsing defaults to be sourced through `self.get_option(...)` after `run()` initializes plugin options. This creates a real architectural conflict between keeping module-level calling patterns and moving parsing into instance-context execution.",
+      "resolution": "Implement `_parse_parameters` as instance logic in `LookupModule` and invoke it from `run()` after `self.set_options(...)`. Module-level _parse_parameters must be removed.",
+      "example_questions": [
+        "-  Is the global _parse_parameters() function expected to remain part of the module after the refactoring is complete?",
+        "-  Should the _parse_parameters function remain available at module level or should it only exist as a method inside the LookupModule class?",
+        "-  If existing code depends on calling _parse_parameters() directly as a module-level function, how should that be handled when the requirements also ask for it to be part of the class?",
+        "-  If existing callers depend on _parse_parameters() being available at module level, how should the function be structured inside the plugin?",
+        "-  After the password lookup plugin is refactored, where should the _parse_parameters logic ultimately live?"
+      ]
+    }
+  ]
+}

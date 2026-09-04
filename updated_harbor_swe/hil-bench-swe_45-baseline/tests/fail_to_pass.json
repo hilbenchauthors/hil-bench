@@ -1,0 +1,10 @@
+[
+  "TestToAlbumArtist_GenresSortedDescendingAndDedupedByID",
+  "TestToAlbumArtist_MbzDominantIDTieBreaks",
+  "TestToAlbumArtist_MbzCandidatePool",
+  "TestRefresherUsesFixedChunkSize73",
+  "TestRefresherFlushMapAppliesChunkingToRefreshCallback",
+  "TestRefresherFlushRoutesArtistUpdatesToRefreshArtists",
+  "TestRefresherRefreshArtistsUsesModelToAlbumArtistAndNoLegacyRefresh",
+  "TestRefresherRefreshArtistsUsesGroupAndPut"
+]

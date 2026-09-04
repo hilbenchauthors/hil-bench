@@ -1,0 +1,6 @@
+[
+  "TestAnalyticsStorageConfigString",
+  "TestTelemetryAnalyticsDisabledEmitsNull",
+  "TestTelemetryAnalyticsEnabledIncludesStorage",
+  "TestTelemetryUUIDRotatesFromPersistedState"
+]

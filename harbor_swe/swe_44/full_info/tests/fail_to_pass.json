@@ -1,0 +1,19 @@
+[
+  "test/units/plugins/lookup/test_env_migration.py::TestMissingDeprecationCallParameters::test_py3compat_environ_calls_display_deprecated",
+  "test/units/plugins/lookup/test_env_migration.py::TestMissingDeprecationCallParameters::test_py3compat_deprecation_version_is_2_20",
+  "test/units/plugins/lookup/test_env_migration.py::TestMissingDeprecationCallParameters::test_py3compat_deprecation_message_includes_caller_filename",
+  "test/units/plugins/lookup/test_env_migration.py::TestMissingDeprecationCallParameters::test_py3compat_deprecation_message_includes_caller_lineno",
+  "test/units/plugins/lookup/test_env_migration.py::TestMissingDeprecationCallParameters::test_py3compat_deprecation_message_format",
+  "test/units/plugins/lookup/test_env_migration.py::TestAmbiguousMigrationScope::test_env_lookup_migrated_off_py3compat",
+  "test/units/plugins/lookup/test_env_migration.py::TestAmbiguousMigrationScope::test_manager_migrated_off_py3compat",
+  "test/units/plugins/lookup/test_env_migration.py::TestAmbiguousMigrationScope::test_manager_uses_os_environ_in_loop_entries",
+  "test/units/plugins/lookup/test_env_migration.py::TestAmbiguousMigrationScope::test_migration_scope_excludes_junit",
+  "test/units/plugins/lookup/test_env_migration.py::TestEnvLookupMigration::test_env_lookup_source_no_py3compat_import",
+  "test/units/plugins/lookup/test_env_migration.py::TestEnvLookupMigration::test_env_lookup_source_uses_os_environ_get",
+  "test/units/plugins/lookup/test_env_migration.py::TestEnvironReturnValue::test_py3compat_environ_returns_dict",
+  "test/units/plugins/lookup/test_env_migration.py::TestEnvironReturnValue::test_py3compat_environ_no_duplicate_values",
+  "test/units/plugins/lookup/test_env_migration.py::TestEnvironReturnValue::test_py3compat_environ_uses_os_environ_and_avoids_duplicate_values",
+  "test/units/plugins/lookup/test_env_migration.py::TestDisplayLazyAndTryExceptImplementation::test_display_none_initialized_as_module_level_sentinel",
+  "test/units/plugins/lookup/test_env_migration.py::TestDisplayLazyAndTryExceptImplementation::test_lazy_display_uses_global_display_if_none_pattern",
+  "test/units/plugins/lookup/test_env_migration.py::TestDisplayLazyAndTryExceptImplementation::test_display_init_and_deprecated_in_single_try_except"
+]

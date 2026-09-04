@@ -1,0 +1,70 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for \"western districts\", which makes it unclear what to look for since there are districts with \"West\" in the name and also a \"Longitude\" column.\n",
+      "example_questions": [
+        "What conditions should I look for \"western districts\"?",
+        "Which are the \"western districts\"?",
+        "Which values should I use to look for \"western districts\"?"
+      ],
+      "id": "western_districts",
+      "resolution": "The western districts are those with a longitude of over 13.88.\n\n",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The phrase \"recent period\" does not specify a clear date range or reference point, making it unclear which loans should be included in the query.",
+      "example_questions": [
+        "What date range does \"recent period\" refer to?",
+        "Which years are considered the recent period for loan issuance?",
+        "What is the start date for the recent period?",
+        "How far back should I look when filtering for loans issued in the recent period?",
+        "Does recent period mean 1997-1998, the last 12 months, or a specific timeframe?"
+      ],
+      "id": "recent_period",
+      "resolution": "The recent period refers to loans issued from February 10, 1997, onwards.",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The term \"problematic repayment indicators\" does not specify which loan status codes (A, B, C, or D) should be considered problematic, as multiple statuses could reasonably fit this description.",
+      "example_questions": [
+        "Which loan status codes are considered problematic repayment indicators?",
+        "Does problematic include only failed loans or also active loans with potential risk?",
+        "Should I filter for status B and D only, or does status C also count as problematic?",
+        "What specific status values represent problematic repayment indicators?",
+        "Is a running contract that is currently OK (status C) considered problematic, or only B and D?"
+      ],
+      "id": "problematic_repayment_indicators",
+      "resolution": "Problematic repayment indicators include status codes B (contract finished, loan not paid), C (running contract, OK so far), and D (running contract, client in debt).",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The term \"loan-eligible accounts\" refers to a bank-specific policy that determines which disposition types can apply for loans, but this eligibility rule is not defined in the business information.",
+      "example_questions": [
+        "Which disposition types are considered loan-eligible?",
+        "What determines if an account is loan-eligible?",
+        "Can only OWNER accounts apply for loans, or are DISPONENT accounts also eligible?",
+        "What is the bank's policy for loan eligibility by disposition type?",
+        "How do I identify loan-eligible accounts based on the disposition type?"
+      ],
+      "id": "loan_eligible_accounts",
+      "resolution": "Loan-eligible accounts are those where the disposition type is 'OWNER'.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks to filter districts where the unemployment rate exceeds 4%, but the unemployment column contains letters, making it unclear how to use it.",
+      "example_questions": [
+        "How should I interpret the values from the \"A13\" column in the \"district\" table?",
+        "What do the values from the \"A13\" column in the \"district\" table mean?",
+        "How do I interpret the values from the \"A13\" column in the \"district\" table?"
+      ],
+      "id": "unemployment_rate_column",
+      "resolution": "The districts where unemployment exceeds 4% are those in which column A13 in the district table has values \"A\", \"F\", \"J\", or \"Q\".",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

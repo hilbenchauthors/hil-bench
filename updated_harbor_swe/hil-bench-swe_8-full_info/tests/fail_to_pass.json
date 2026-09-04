@@ -1,0 +1,6 @@
+[
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_play_iterator",
+  "test/units/playbook/role/test_role.py::TestRole::test_blocker_missing_when_attribute_value_role_complete_sentinel",
+  "test/units/playbook/role/test_role.py::TestRole::test_blocker_ambiguous_block_context_initialization_role_complete_sentinel",
+  "test/units/playbook/role/test_role.py::TestRole::test_blocker_contradictory_role_reference_assignment_role_complete_sentinel"
+]

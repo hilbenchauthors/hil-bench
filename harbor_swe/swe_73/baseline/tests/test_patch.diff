@@ -1,0 +1,91 @@
+diff --git a/test/units/executor/test_play_iterator.py b/test/units/executor/test_play_iterator.py
+index 0ddc1b0364..4c2b9d066b 100644
+--- a/test/units/executor/test_play_iterator.py
++++ b/test/units/executor/test_play_iterator.py
+@@ -490,3 +490,86 @@ class TestPlayIterator(unittest.TestCase):
+         assert iterator.FAILED_TASKS == FailedStates.TASKS
+         assert iterator.FAILED_RESCUE == FailedStates.RESCUE
+         assert iterator.FAILED_ALWAYS == FailedStates.ALWAYS
++
++    @patch('ansible.playbook.role.definition.unfrackpath', mock_unfrackpath_noop)
++    def test_blocker_missing_validation_types(self):
++        """Test for blocker: missing_validation_types"""
++        fake_loader = DictDataLoader({'test_play.yml': """
++            - hosts: all
++              gather_facts: no
++              tasks:
++              - debug: msg="test"
++            """})
++        mock_var_manager = MagicMock()
++        mock_var_manager._fact_cache = dict()
++        mock_var_manager.get_vars.return_value = dict()
++        p = Playbook.load('test_play.yml', loader=fake_loader, variable_manager=mock_var_manager)
++        hosts = [MagicMock()]
++        hosts[0].name = hosts[0].get_name.return_value = 'host00'
++        inventory = MagicMock()
++        inventory.get_hosts.return_value = hosts
++        inventory.filter_hosts.return_value = hosts
++        play_context = PlayContext(play=p._entries[0])
++        itr = PlayIterator(inventory=inventory, play=p._entries[0], play_context=play_context,
++                           variable_manager=mock_var_manager, all_vars=dict())
++        itr.set_run_state_for_host('host00', IteratingStates.TASKS)
++        self.assertEqual(itr._host_states['host00'].run_state, IteratingStates.TASKS)
++        with self.assertRaises(Exception):
++            itr.set_run_state_for_host('host00', "not_iterating_states")
++        itr.set_fail_state_for_host('host00', FailedStates.TASKS)
++        self.assertEqual(itr._host_states['host00'].fail_state, FailedStates.TASKS)
++        with self.assertRaises(Exception):
++            itr.set_fail_state_for_host('host00', "not_failed_states")
++
++    @patch('ansible.playbook.role.definition.unfrackpath', mock_unfrackpath_noop)
++    def test_blocker_ambiguous_state_assignment(self):
++        """Test for blocker: ambiguous_state_assignment - verifies defensive copy pattern"""
++        fake_loader = DictDataLoader({'test_play.yml': """
++            - hosts: all
++              gather_facts: no
++              tasks:
++              - debug: msg="test"
++            """})
++        mock_var_manager = MagicMock()
++        mock_var_manager._fact_cache = dict()
++        mock_var_manager.get_vars.return_value = dict()
++        p = Playbook.load('test_play.yml', loader=fake_loader, variable_manager=mock_var_manager)
++        hosts = [MagicMock()]
++        hosts[0].name = hosts[0].get_name.return_value = 'host00'
++        inventory = MagicMock()
++        inventory.get_hosts.return_value = hosts
++        inventory.filter_hosts.return_value = hosts
++        play_context = PlayContext(play=p._entries[0])
++        itr = PlayIterator(inventory=inventory, play=p._entries[0], play_context=play_context,
++                           variable_manager=mock_var_manager, all_vars=dict())
++        new_state = HostState(blocks=[])
++        new_state.run_state = IteratingStates.TASKS
++        itr.set_state_for_host('host00', new_state)
++        self.assertIsNot(itr._host_states['host00'], new_state,
++                         "set_state_for_host must store a copy, not the original reference")
++        self.assertEqual(itr._host_states['host00'].run_state, new_state.run_state,
++                         "The copied state must have the same values as the original")
++
++    @patch('ansible.playbook.role.definition.unfrackpath', mock_unfrackpath_noop)
++    def test_blocker_contradictory_method_naming_pattern(self):
++        """Test for blocker: contradictory_method_naming_pattern"""
++        fake_loader = DictDataLoader({'test_play.yml': """
++            - hosts: all
++              gather_facts: no
++              tasks:
++              - debug: msg="test"
++            """})
++        mock_var_manager = MagicMock()
++        mock_var_manager._fact_cache = dict()
++        mock_var_manager.get_vars.return_value = dict()
++        p = Playbook.load('test_play.yml', loader=fake_loader, variable_manager=mock_var_manager)
++        hosts = [MagicMock()]
++        hosts[0].name = hosts[0].get_name.return_value = 'host00'
++        inventory = MagicMock()
++        inventory.get_hosts.return_value = hosts
++        inventory.filter_hosts.return_value = hosts
++        play_context = PlayContext(play=p._entries[0])
++        itr = PlayIterator(inventory=inventory, play=p._entries[0], play_context=play_context,
++                           variable_manager=mock_var_manager, all_vars=dict())
++        self.assertTrue(hasattr(itr, 'set_run_state_for_host'))
++        self.assertTrue(hasattr(itr, 'set_fail_state_for_host'))

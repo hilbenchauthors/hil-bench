@@ -1,0 +1,254 @@
+diff --git a/core/share_test.go b/core/share_test.go
+index 21069bb5..5a242dfd 100644
+--- a/core/share_test.go
++++ b/core/share_test.go
+@@ -2,8 +2,13 @@ package core
+ 
+ import (
+ 	"context"
++	"errors"
++	"reflect"
++	"testing"
++	"time"
+ 
+ 	"github.com/deluan/rest"
++	"github.com/navidrome/navidrome/conf"
+ 	"github.com/navidrome/navidrome/model"
+ 	"github.com/navidrome/navidrome/tests"
+ 	. "github.com/onsi/ginkgo/v2"
+@@ -50,3 +55,170 @@ var _ = Describe("Share", func() {
+ 		})
+ 	})
+ })
++
++
++
++func TestBlockerMissingShareDefaultExpiration(t *testing.T) {
++	ctx := context.Background()
++	ds := &tests.MockDataStore{}
++	share := NewShare(ds)
++	repo := share.NewRepository(ctx).(rest.Persistable)
++	_ = ds.Album(ctx).Put(&model.Album{ID: "123", Name: "Album"})
++
++	entity := &model.Share{Description: "test", ResourceIDs: "123", ExpiresAt: nil}
++	_, err := repo.Save(entity)
++	if err != nil {
++		t.Fatalf("Save: %v", err)
++	}
++	if entity.ExpiresAt == nil {
++		t.Fatal("ExpiresAt should be set after Save")
++	}
++	delta := entity.ExpiresAt.Sub(time.Now())
++	want := 90 * 24 * time.Hour
++	if delta < want-time.Minute || delta > want+time.Minute {
++		t.Errorf("ExpiresAt should be ~90 days from now, got %v", delta)
++	}
++}
++
++func TestBlockerContradictoryShareVisitOptionParameterName(t *testing.T) {
++	ctx := context.Background()
++	ds := &tests.MockDataStore{}
++	share := NewShare(ds)
++	mockShare := ds.Share(ctx).(*tests.MockShareRepo)
++
++	// Both naming possibilities must work when true: UpdateVisitOnLoad
++	s1 := &model.Share{ID: "sid1", Description: "test", ResourceIDs: "123", VisitCount: 0, LastVisitedAt: nil}
++	_, _ = mockShare.Save(s1)
++	conf.Server.ShareLinkUpdatePolicy = "BALANCED"
++	optsA := &model.ShareLoadOptions{UpdateVisitOnLoad: true, TrackVisitOnLoad: false}
++	loaded, err := share.LoadWithOptions(ctx, "sid1", optsA)
++	if err != nil {
++		t.Fatalf("LoadWithOptions with UpdateVisitOnLoad=true: %v", err)
++	}
++	if loaded.VisitCount != 1 || loaded.LastVisitedAt == nil {
++		t.Error("with UpdateVisitOnLoad=true VisitCount and LastVisitedAt should be updated")
++	}
++
++	// Both naming possibilities must work when true: TrackVisitOnLoad
++	s2 := &model.Share{ID: "sid2", Description: "test", ResourceIDs: "123", VisitCount: 0, LastVisitedAt: nil}
++	_, _ = mockShare.Save(s2)
++	conf.Server.ShareLinkUpdatePolicy = "BALANCED"
++	optsB := &model.ShareLoadOptions{UpdateVisitOnLoad: false, TrackVisitOnLoad: true}
++	loaded, err = share.LoadWithOptions(ctx, "sid2", optsB)
++	if err != nil {
++		t.Fatalf("LoadWithOptions with TrackVisitOnLoad=true: %v", err)
++	}
++	if loaded.VisitCount != 1 || loaded.LastVisitedAt == nil {
++		t.Error("with TrackVisitOnLoad=true VisitCount and LastVisitedAt should be updated")
++	}
++
++	// Both false must return ErrVisitTrackingRequired
++	s3 := &model.Share{ID: "sid3", Description: "test", ResourceIDs: "123", VisitCount: 0, LastVisitedAt: nil}
++	_, _ = mockShare.Save(s3)
++	optsNone := &model.ShareLoadOptions{UpdateVisitOnLoad: false, TrackVisitOnLoad: false}
++	loaded, err = share.LoadWithOptions(ctx, "sid3", optsNone)
++	if err == nil {
++		t.Fatal("LoadWithOptions with both options false should return an error")
++	}
++	if !errors.Is(err, model.ErrVisitTrackingRequired) {
++		t.Errorf("expected ErrVisitTrackingRequired, got %v", err)
++	}
++	if loaded != nil {
++		t.Error("LoadWithOptions should return nil share when both options are false")
++	}
++
++	conf.Server.ShareLinkUpdatePolicy = "BALANCED"
++}
++
++func TestBlockerWhichTimestampFieldsNullable(t *testing.T) {
++	// Share: exactly these two optional (*time.Time)
++	shareExpiresField, ok := reflect.TypeOf(model.Share{}).FieldByName("ExpiresAt")
++	if !ok || shareExpiresField.Type != reflect.TypeOf((*time.Time)(nil)) {
++		t.Error("Share.ExpiresAt should be *time.Time")
++	}
++	shareLastVisitedField, ok := reflect.TypeOf(model.Share{}).FieldByName("LastVisitedAt")
++	if !ok || shareLastVisitedField.Type != reflect.TypeOf((*time.Time)(nil)) {
++		t.Error("Share.LastVisitedAt should be *time.Time")
++	}
++	// Album/Artist: must NOT be optional (value type)
++	albumField, ok := reflect.TypeOf(model.Album{}).FieldByName("ExternalInfoUpdatedAt")
++	if !ok || albumField.Type != reflect.TypeOf(time.Time{}) {
++		t.Error("Album.ExternalInfoUpdatedAt should be time.Time (not optional)")
++	}
++	artistField, ok := reflect.TypeOf(model.Artist{}).FieldByName("ExternalInfoUpdatedAt")
++	if !ok || artistField.Type != reflect.TypeOf(time.Time{}) {
++		t.Error("Artist.ExternalInfoUpdatedAt should be time.Time (not optional)")
++	}
++	// Audit timestamps must remain value types
++	shareCreatedAt, ok := reflect.TypeOf(model.Share{}).FieldByName("CreatedAt")
++	if !ok || shareCreatedAt.Type != reflect.TypeOf(time.Time{}) {
++		t.Error("Share.CreatedAt should be time.Time (not optional)")
++	}
++	shareUpdatedAt, ok := reflect.TypeOf(model.Share{}).FieldByName("UpdatedAt")
++	if !ok || shareUpdatedAt.Type != reflect.TypeOf(time.Time{}) {
++		t.Error("Share.UpdatedAt should be time.Time (not optional)")
++	}
++}
++
++func TestBlockerShareLinkUpdatePolicy(t *testing.T) {
++	ctx := context.Background()
++	ds := &tests.MockDataStore{}
++	share := NewShare(ds)
++	mockShare := ds.Share(ctx).(*tests.MockShareRepo)
++
++	// Put a share with VisitCount=0, LastVisitedAt=nil
++	s := &model.Share{ID: "sid", Description: "test", ResourceIDs: "123", VisitCount: 0, LastVisitedAt: nil}
++	_, _ = mockShare.Save(s)
++
++	// FAST: must update LastVisitedAt and VisitCount
++	conf.Server.ShareLinkUpdatePolicy = "FAST"
++	loaded, err := share.Load(ctx, "sid")
++	if err != nil {
++		t.Fatalf("Load: %v", err)
++	}
++	if loaded.VisitCount != 1 {
++		t.Errorf("with FAST policy VisitCount should be 1, got %d", loaded.VisitCount)
++	}
++	if loaded.LastVisitedAt == nil {
++		t.Error("with FAST policy LastVisitedAt should be set")
++	}
++
++	// Reset share for next case: VisitCount=0 again
++	s.VisitCount = 0
++	s.LastVisitedAt = nil
++	mockShare.Entity = s
++
++	// BALANCED: must update
++	conf.Server.ShareLinkUpdatePolicy = "BALANCED"
++	loaded, err = share.Load(ctx, "sid")
++	if err != nil {
++		t.Fatalf("Load: %v", err)
++	}
++	if loaded.VisitCount != 1 {
++		t.Errorf("with BALANCED policy VisitCount should be 1, got %d", loaded.VisitCount)
++	}
++	if loaded.LastVisitedAt == nil {
++		t.Error("with BALANCED policy LastVisitedAt should be set")
++	}
++
++	// Reset share
++	s.VisitCount = 0
++	s.LastVisitedAt = nil
++	mockShare.Entity = s
++
++	// THOROUGH: must NOT update
++	conf.Server.ShareLinkUpdatePolicy = "THOROUGH"
++	loaded, err = share.Load(ctx, "sid")
++	if err != nil {
++		t.Fatalf("Load: %v", err)
++	}
++	if loaded.VisitCount != 0 {
++		t.Errorf("with THOROUGH policy VisitCount should remain 0, got %d", loaded.VisitCount)
++	}
++	if loaded.LastVisitedAt != nil {
++		t.Error("with THOROUGH policy LastVisitedAt should not be set")
++	}
++
++	// Restore default
++	conf.Server.ShareLinkUpdatePolicy = "BALANCED"
++}
+diff --git a/tests/mock_share_repo.go b/tests/mock_share_repo.go
+index ef026ca3..03156ce6 100644
+--- a/tests/mock_share_repo.go
++++ b/tests/mock_share_repo.go
+@@ -44,3 +44,27 @@ func (m *MockShareRepo) Exists(id string) (bool, error) {
+ 	}
+ 	return id == m.ID, nil
+ }
++
++func (m *MockShareRepo) Get(id string) (*model.Share, error) {
++	if m.Error != nil {
++		return nil, m.Error
++	}
++	if m.Entity != nil {
++		if s, ok := m.Entity.(*model.Share); ok && s.ID == id {
++			return s, nil
++		}
++	}
++	return &model.Share{ID: id}, nil
++}
++
++func (m *MockShareRepo) GetAll(...model.QueryOptions) (model.Shares, error) {
++	if m.Error != nil {
++		return nil, m.Error
++	}
++	if m.Entity != nil {
++		if s, ok := m.Entity.(*model.Share); ok {
++			return model.Shares{*s}, nil
++		}
++	}
++	return nil, nil
++}
+diff --git a/utils/gg/gg_test.go b/utils/gg/gg_test.go
+index e492fae9..3622522d 100644
+--- a/utils/gg/gg_test.go
++++ b/utils/gg/gg_test.go
+@@ -56,4 +56,28 @@ var _ = Describe("GG", func() {
+ 			})
+ 		})
+ 	})
++
++	Describe("P", func() {
++		It("returns a pointer to the input value", func() {
++			v := 123
++			Expect(gg.P(123)).To(Equal(&v))
++		})
++
++		It("returns nil if the input value is zero", func() {
++			v := 0
++			Expect(gg.P(0)).To(Equal(&v))
++		})
++	})
++
++	Describe("V", func() {
++		It("returns the value of the input pointer", func() {
++			v := 123
++			Expect(gg.V(&v)).To(Equal(123))
++		})
++
++		It("returns a zero value if the input pointer is nil", func() {
++			var v *int
++			Expect(gg.V(v)).To(Equal(0))
++		})
++	})
+ })

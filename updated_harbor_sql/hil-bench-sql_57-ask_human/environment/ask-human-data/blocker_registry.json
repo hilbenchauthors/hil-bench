@@ -1,0 +1,53 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for players with a rating above 150 points, but player ratings in the database use a 0-100 scale, making this requirement impossible to satisfy.",
+      "example_questions": [
+        "What rating threshold should I use since 150 exceeds the 0-100 scale?",
+        "The rating scale only goes up to 100, should I use a different threshold?",
+        "Ratings are measured 0-100, what value did you mean instead of 150?"
+      ],
+      "id": "rating_exceeds_scale_maximum",
+      "resolution": "Look for a rating greater than 95 instead of 150.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The prompt requires to use Julian Alvarez's net worth, which can not be known unless searched for.\n",
+      "example_questions": [
+        "What is Julian Alvarez's net worth?",
+        "What value should I use as Julian Alvarez's net worth?",
+        "Could you provide Julian Alvarez's net worth?"
+      ],
+      "id": "julian_worth",
+      "resolution": "Julian Alvarez's net worth is U$D 20 millon\n",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"career peak\" as when \"performance adequately reflects footballing maturity,\" but this definition is vague and does not specify which metrics or thresholds to use.",
+      "example_questions": [
+        "How do I determine if a player is at their career peak?",
+        "What metrics define \"career peak\" - is it based on overall_rating, potential, or age?",
+        "What does \"performance adequately reflects footballing maturity\" mean in terms of database columns?"
+      ],
+      "id": "career_peak_definition",
+      "resolution": "A player is at their career peak when their overall_rating is greater than or equal to their potential.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "There are many columns containing player rating information: overall_rating_1, overall_rating_2, overall_rating_3, potential, career_rating, and career_potential. It is unclear which should be used to evaluate player performance.",
+      "example_questions": [
+        "Should I use Player_Attributes or Player_Career_Stats for the rating data?",
+        "Which table should be used to obtain player rating information?",
+        "There are two tables with rating data, which one should I query?",
+        "Should I use overall_rating from Player_Attributes or career_rating from Player_Career_Stats?"
+      ],
+      "id": "player_rating_table_ambiguity",
+      "resolution": "Use the columns overall_rating_3 and potential from the Player_Attributes table.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

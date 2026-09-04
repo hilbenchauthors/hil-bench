@@ -1,0 +1,5 @@
+[
+  "test/units/utils/collection_loader/test_collection_loader.py::test_path_hook_find_module_filefinder_special_case",
+  "test/units/utils/collection_loader/test_collection_loader.py::test_path_hook_find_module_non_filefinder_uses_tuple_path",
+  "test/units/utils/collection_loader/test_collection_loader.py::test_path_hook_find_spec_non_collection_raises_attributeerror"
+]

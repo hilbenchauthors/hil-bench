@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for western counties, but Alpine and Amador are eastern counties.",
+      "example_questions": [
+        "Alpine and Amador are Eastern counties, should I still look for them?",
+        "Should I look for western counties? Alpine and Amador are eastern counties.",
+        "Alpine and Amador are eastern counties, should I look for them nevertheless?"
+      ],
+      "id": "county_geography_error",
+      "resolution": "Comparing western counties is the purpose of the prompt. Only look for the San Diego and Santa Barbara counties.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question asks about schools in administrated in an elementary school district but this is not clear what this means and should be defined in the business info.",
+      "example_questions": [
+        "The question mentions schools administrated in an elementary school district, but how am I supposed to query for that?",
+        "How should I identify schools that are administrated in an elementary school districts?",
+        "What criteria should I use to filter for schools administrated in an elementary school district? Is there a specific column or value combination that represents this characteristic?"
+      ],
+      "id": "elementary_school_district",
+      "resolution": "Schools administrated in an elementary school district have DOC = '52'. It should not use DOCType = 'Elementary School District'",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The InstructionType column in the schools table contains coded values (T, U, W, X, Y) without explanations of what each code represents. It is unclear which value or values correspond to schools that do not offer virtual classes.",
+      "example_questions": [
+        "The InstructionType column has values T, U, W, X, and Y, but their meanings are not defined. Which of these values represents schools that do not offer virtual classes?",
+        "What do the InstructionType column codes mean? Specifically, which value (T, U, W, X, or Y) indicates a school without a virtual class?",
+        "The schools table has an InstructionType column with coded values T, U, W, X, Y. To identify schools without virtual classes, which code should I filter for?"
+      ],
+      "id": "instruction_type_codes_undefined",
+      "resolution": "In the InstructionType column of the table schools, the code 'T' represents schools that do not offer virtual classes. The column name is exactly \"InstructionType\".",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

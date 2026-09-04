@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The term \"youngest users (in terms of when they joined)\" is an underspecified concept because it lacks a clear definition of how long ago they should have joined.",
+      "example_questions": [
+        "Should \"youngest users\" be calculated relative to the current system date or a fixed historical year?",
+        "Does the \"youngest users\" status expire if a user has been active for more than a specific number of months?",
+        "Are we defining \"youngest users\" based on the account creation date or the date of their first activity?"
+      ],
+      "id": "underspecified_youngest_user",
+      "resolution": "Explicitly define \"youngest users (in terms of when they joined)\" as accounts created between January 1, 2014, and December 31, 2014, inclusive.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The Community Engagement SOP guidelines required to classify a post as \"ignored\" are not provided. Without these guidelines, this status cannot be labeled precisely.",
+      "example_questions": [
+        "How can the \"ignored\" status can be labeled?",
+        "What is the procedure implemented by the SOP guidelines to determine the \"ignored\" status?",
+        "Is there a specific time thresgold or type of interation required before a post is no longer considered ignored?"
+      ],
+      "id": "missing_sop_engagement_guidelines",
+      "resolution": "The Community Engagement SOP uses the 72-hour rule, where any post without a formal answer within 72 hours of its creation date is categorized as \"Ignored\".",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The \"s_status\" column from the users table contains categorical values (S_1 through S_4), but the schema does not define which category maps to \"lowest contributors\".",
+      "example_questions": [
+        "Which specific category label represents the group with the lowest level of contribution?",
+        "Is there a defined mapping or legend that explains the contribution tier for each S_status label?",
+        "How should be distinguish between \"lowest\" and \"highest\" contributors based on the \"S_status\" column?"
+      ],
+      "id": "ambiguous_s_status",
+      "resolution": "The \"lowest contributors\" are those labeled as \"S_3\" in the \"s_status\" column from the users table.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt requires to use the average price of a 2-bedroom house in Brasilia, Brazil, which can not be known unless searched for\n",
+      "example_questions": [
+        "What is the average price of a 2-bedroom house in Brasilia, Brazil in USD?",
+        "What value should I use as the average price of a 2-bedroom house in Brasilia, Brazil in USD?",
+        "Could you provide the average price of a 2-bedroom house in Brasilia, Brazil in USD?"
+      ],
+      "id": "house_price_brazil",
+      "resolution": "The average price of a 2-bedroom house in Brasilia, Brazil is 70000 USD\n",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The prompt asks for accounts created after 2028, but this is impossible since that year is in the future\n",
+      "example_questions": [
+        "I can not look for accounts created after 2028 since that year is in the future, should I use 1998 as the year?",
+        "I can not look for accounts created after 2028 since that year is in the future, what year should I use?",
+        "Do you want me to look for accounts created after 2028? That year is in the future."
+      ],
+      "id": "mentions_year_in_the_future",
+      "resolution": "Look for accounts created after 1995\n",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The \"clean accounts\" term is used in the prompt and is mentioned in the business information as accounts from clean districts, which does not solve the doubdt\n",
+      "example_questions": [
+        "How exactly can I look for clean accounts or clean districts?",
+        "How can I do to look for clean districts?",
+        "Which set of filters should I use to look for clean accounts or clean districts?"
+      ],
+      "id": "clean_definition_unclear",
+      "resolution": "\"clean accounts\" are those who are from districts with a ratio of urban inhabitants lower than 70\n",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The prompt first asks for accounts that have never had a loan, but then requests to only consider accounts with at least 3 loans, which is contraictory.\n",
+      "example_questions": [
+        "Should I look for accounts that have never had a loan or with at least 3 loans? These conditions are incompatible.",
+        "I can not look for that have never had a loan who also have at least 3 loans. Which condition should I use?",
+        "Looking for that have never had a loan who also have at least 3 loans is incompatible. Which condition should I use?"
+      ],
+      "id": "contradicting_loan_requirements",
+      "resolution": "Only consider accounts with at least 1 loan\n",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The district table has columns named A11 to A16 with no useful definition, which makes it impossible to know which column to use to find accounts that are in a district with fewer than 5000 crimes committed in 1995\n",
+      "example_questions": [
+        "How can I obtain the number of crimes committed in 1995?",
+        "How should I obtain the number of crimes committed in 1995?",
+        "Which column can I use to obtain the number of crimes committed in 1995?"
+      ],
+      "id": "district_unclear_crime",
+      "resolution": "The column A15 from the district table shows the number of crimes committed in 1995\n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

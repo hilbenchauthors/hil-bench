@@ -1,0 +1,242 @@
+diff --git a/core/playback/playbackserver_test.go b/core/playback/playbackserver_test.go
+new file mode 100644
+--- /dev/null
++++ b/core/playback/playbackserver_test.go
+@@ -0,0 +1,31 @@
++package playback
++
++import (
++	"context"
++	"testing"
++
++	"github.com/navidrome/navidrome/model"
++	"github.com/navidrome/navidrome/tests"
++)
++
++func TestPlaybackServerUsesInjectedDatastoreBeforeRun(t *testing.T) {
++	ds := &tests.MockDataStore{}
++	ctx := context.Background()
++
++	if err := ds.MediaFile(ctx).Put(&model.MediaFile{ID: "track-1", Title: "Track 1"}); err != nil {
++		t.Fatalf("failed to seed media file: %v", err)
++	}
++
++	server, ok := GetInstance(ds).(*playbackServer)
++	if !ok {
++		t.Fatalf("expected playbackServer implementation")
++	}
++
++	mediaFile, err := server.GetMediaFile("track-1")
++	if err != nil {
++		t.Fatalf("expected media lookup to succeed before Run, got %v", err)
++	}
++	if mediaFile == nil || mediaFile.ID != "track-1" {
++		t.Fatalf("expected injected datastore media file, got %#v", mediaFile)
++	}
++}
+diff --git a/scanner/get_instance_test.go b/scanner/get_instance_test.go
+new file mode 100644
+--- /dev/null
++++ b/scanner/get_instance_test.go
+@@ -0,0 +1,90 @@
++package scanner
++
++import (
++	"context"
++	"io"
++	"net/http"
++	"testing"
++
++	"github.com/navidrome/navidrome/core"
++	"github.com/navidrome/navidrome/core/artwork"
++	"github.com/navidrome/navidrome/model"
++	"github.com/navidrome/navidrome/server/events"
++	"github.com/navidrome/navidrome/tests"
++)
++
++type testPlaylists struct{ id string }
++
++func (testPlaylists) ImportFile(context.Context, string, string) (*model.Playlist, error) { return nil, nil }
++func (testPlaylists) Update(context.Context, string, *string, *string, *bool, []string, []int) error {
++	return nil
++}
++func (testPlaylists) ImportM3U(context.Context, io.Reader) (*model.Playlist, error) { return nil, nil }
++
++type testCacheWarmer struct{ id string }
++
++func (*testCacheWarmer) PreCache(model.ArtworkID) {}
++
++type testBroker struct{ id string }
++
++func (*testBroker) ServeHTTP(http.ResponseWriter, *http.Request) {}
++func (*testBroker) SendMessage(context.Context, events.Event)      {}
++
++type testMediaFolderRepo struct{}
++
++func (testMediaFolderRepo) Get(int32) (*model.MediaFolder, error) { return nil, nil }
++func (testMediaFolderRepo) GetAll() (model.MediaFolders, error) {
++	return model.MediaFolders{}, nil
++}
++
++type scannerTestDataStore struct {
++	tests.MockDataStore
++}
++
++func (*scannerTestDataStore) MediaFolder(context.Context) model.MediaFolderRepository {
++	return testMediaFolderRepo{}
++}
++
++func expectScannerInitPanic(t *testing.T, invoke func()) {
++	t.Helper()
++
++	defer func() {
++		if r := recover(); r == nil {
++			t.Fatalf("expected mismatched scanner initialization to panic")
++		}
++	}()
++
++	invoke()
++}
++
++func TestGetScannerAppliesSingletonInitializationPolicy(t *testing.T) {
++	ds1 := &scannerTestDataStore{}
++	playlists1 := core.Playlists(&testPlaylists{id: "one"})
++	playlists2 := core.Playlists(&testPlaylists{id: "two"})
++	cacheWarmer1 := artwork.CacheWarmer(&testCacheWarmer{id: "one"})
++	cacheWarmer2 := artwork.CacheWarmer(&testCacheWarmer{id: "two"})
++	broker1 := events.Broker(&testBroker{id: "one"})
++	broker2 := events.Broker(&testBroker{id: "two"})
++
++	first := GetInstance(ds1, playlists1, cacheWarmer1, broker1)
++	second := GetInstance(ds1, playlists1, cacheWarmer1, broker1)
++	if first != second {
++		t.Fatalf("expected repeated calls with matching collaborators to return the same scanner instance")
++	}
++
++	expectScannerInitPanic(t, func() {
++		_ = GetInstance(&scannerTestDataStore{}, playlists1, cacheWarmer1, broker1)
++	})
++
++	expectScannerInitPanic(t, func() {
++		_ = GetInstance(ds1, playlists2, cacheWarmer1, broker1)
++	})
++
++	expectScannerInitPanic(t, func() {
++		_ = GetInstance(ds1, playlists1, cacheWarmer2, broker1)
++	})
++
++	expectScannerInitPanic(t, func() {
++		_ = GetInstance(ds1, playlists1, cacheWarmer1, broker2)
++	})
++}
+diff --git a/server/subsonic/playback_injection_test.go b/server/subsonic/playback_injection_test.go
+new file mode 100644
+--- /dev/null
++++ b/server/subsonic/playback_injection_test.go
+@@ -0,0 +1,106 @@
++package subsonic
++
++import (
++	"context"
++	"testing"
++	"time"
++
++	"github.com/navidrome/navidrome/conf"
++	"github.com/navidrome/navidrome/core/playback"
++	"github.com/navidrome/navidrome/model"
++	"github.com/navidrome/navidrome/model/request"
++	"github.com/navidrome/navidrome/tests"
++)
++
++func TestSubsonicApiAllowsUnrelatedRoutesWithoutPlayback(t *testing.T) {
++	previousEnabled := conf.Server.Jukebox.Enabled
++	previousAdminOnly := conf.Server.Jukebox.AdminOnly
++	t.Cleanup(func() {
++		conf.Server.Jukebox.Enabled = previousEnabled
++		conf.Server.Jukebox.AdminOnly = previousAdminOnly
++	})
++
++	conf.Server.Jukebox.Enabled = true
++	conf.Server.Jukebox.AdminOnly = false
++
++	router := New(&tests.MockDataStore{}, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
++
++	response, err := router.Ping(newGetRequest())
++	if err != nil {
++		t.Fatalf("expected non-jukebox route to work without playback even when jukebox is enabled, got %v", err)
++	}
++	if response == nil {
++		t.Fatalf("expected ping response")
++	}
++}
++
++func TestJukeboxControlUsesInjectedPlaybackDependency(t *testing.T) {
++	ds := &tests.MockDataStore{}
++	previousEnabled := conf.Server.Jukebox.Enabled
++	previousAdminOnly := conf.Server.Jukebox.AdminOnly
++	previousDefault := conf.Server.Jukebox.Default
++	previousDevices := append([]conf.AudioDeviceDefinition(nil), conf.Server.Jukebox.Devices...)
++
++	t.Cleanup(func() {
++		conf.Server.Jukebox.Enabled = previousEnabled
++		conf.Server.Jukebox.AdminOnly = previousAdminOnly
++		conf.Server.Jukebox.Default = previousDefault
++		conf.Server.Jukebox.Devices = previousDevices
++	})
++
++	conf.Server.Jukebox.Enabled = true
++	conf.Server.Jukebox.AdminOnly = false
++	conf.Server.Jukebox.Default = "primary"
++	conf.Server.Jukebox.Devices = []conf.AudioDeviceDefinition{{"primary", "Primary Device"}}
++
++	playbackServer := playback.GetInstance(ds)
++	runCtx, cancel := context.WithCancel(context.Background())
++	runDone := make(chan error, 1)
++	go func() {
++		runDone <- playbackServer.Run(runCtx)
++	}()
++	t.Cleanup(func() {
++		cancel()
++		select {
++		case err := <-runDone:
++			if err != nil {
++				t.Fatalf("playback server stopped with error: %v", err)
++			}
++		case <-time.After(time.Second):
++			t.Fatalf("timed out waiting for playback server shutdown")
++		}
++	})
++
++	waitForPlaybackServer(t, playbackServer)
++
++	req := newGetRequest("action=status")
++	req = req.WithContext(request.WithUser(req.Context(), model.User{UserName: "alice"}))
++
++	routerWithoutPlayback := New(ds, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
++	if _, err := routerWithoutPlayback.JukeboxControl(req); err == nil {
++		t.Fatalf("expected jukebox control to fail without an injected playback service")
++	}
++
++	routerWithPlayback := New(ds, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, playbackServer)
++	response, err := routerWithPlayback.JukeboxControl(req)
++	if err != nil {
++		t.Fatalf("expected injected playback service to satisfy jukebox control, got %v", err)
++	}
++	if response == nil || response.JukeboxStatus == nil {
++		t.Fatalf("expected jukebox status response")
++	}
++}
++
++func waitForPlaybackServer(t *testing.T, playbackServer playback.PlaybackServer) {
++	t.Helper()
++
++	deadline := time.Now().Add(2 * time.Second)
++	for time.Now().Before(deadline) {
++		if _, err := playbackServer.GetDeviceForUser("probe"); err == nil {
++			return
++		}
++		time.Sleep(10 * time.Millisecond)
++	}
++
++	t.Fatalf("playback server did not become ready")
++}

@@ -1,0 +1,11 @@
+[
+  "test/units/module_utils/basic/test_deprecate_date.py::test_exit_json_3_tuple_date_deprecation[stdin0]",
+  "test/units/module_utils/basic/test_deprecate_date.py::test_list_deprecations_both_date_and_version[am0-stdin0]",
+  "test/units/module_utils/basic/test_deprecate_date.py::test_handle_aliases_deprecated_with_date[am0-stdin0]",
+  "test/units/module_utils/basic/test_deprecate_date.py::test_handle_aliases_deprecated_without_version_or_date[am0-stdin0]",
+  "test/units/module_utils/basic/test_deprecate_date.py::test_am_deprecate_with_date[stdin0]",
+  "test/units/module_utils/basic/test_deprecate_date.py::test_am_deprecate_version_and_date_raises[stdin0]",
+  "test/units/module_utils/basic/test_deprecate_date.py::test_exit_json_merge_order_with_dates[stdin0]",
+  "test/units/module_utils/basic/test_deprecate_warn.py::test_deprecate[stdin0]",
+  "test/units/module_utils/basic/test_deprecate_warn.py::test_deprecate_without_list[stdin0]"
+]

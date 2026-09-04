@@ -1,0 +1,226 @@
+diff --git a/internal/server/audit/checker_test.go b/internal/server/audit/checker_test.go
+index 17e412f8..0fff62bb 100644
+--- a/internal/server/audit/checker_test.go
++++ b/internal/server/audit/checker_test.go
+@@ -1,10 +1,13 @@
+-package audit
++package audit_test
+ 
+ import (
+ 	"fmt"
+ 	"testing"
+ 
+ 	"github.com/stretchr/testify/assert"
++	auth "go.flipt.io/flipt/internal/server/auth"
++	"go.flipt.io/flipt/internal/server/audit"
++	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
+ )
+ 
+ func TestChecker(t *testing.T) {
+@@ -26,6 +29,7 @@ func TestChecker(t *testing.T) {
+ 				"rollout:created":      true,
+ 				"rule:created":         true,
+ 				"segment:created":      true,
++				"token:created":        true,
+ 				"variant:created":      true,
+ 				"constraint:deleted":   false,
+ 				"distribution:deleted": false,
+@@ -34,6 +38,7 @@ func TestChecker(t *testing.T) {
+ 				"rollout:deleted":      false,
+ 				"rule:deleted":         false,
+ 				"segment:deleted":      false,
++				"token:deleted":        false,
+ 				"variant:deleted":      false,
+ 				"constraint:updated":   false,
+ 				"distribution:updated": false,
+@@ -57,6 +62,7 @@ func TestChecker(t *testing.T) {
+ 				"rollout:created":      false,
+ 				"rule:created":         false,
+ 				"segment:created":      false,
++				"token:created":        false,
+ 				"variant:created":      false,
+ 				"constraint:deleted":   false,
+ 				"distribution:deleted": false,
+@@ -65,6 +71,7 @@ func TestChecker(t *testing.T) {
+ 				"rollout:deleted":      false,
+ 				"rule:deleted":         false,
+ 				"segment:deleted":      false,
++				"token:deleted":        false,
+ 				"variant:deleted":      false,
+ 				"constraint:updated":   false,
+ 				"distribution:updated": false,
+@@ -88,6 +95,7 @@ func TestChecker(t *testing.T) {
+ 				"rollout:created":      false,
+ 				"rule:created":         false,
+ 				"segment:created":      false,
++				"token:created":        false,
+ 				"variant:created":      false,
+ 				"constraint:deleted":   false,
+ 				"distribution:deleted": false,
+@@ -96,6 +104,7 @@ func TestChecker(t *testing.T) {
+ 				"rollout:deleted":      false,
+ 				"rule:deleted":         false,
+ 				"segment:deleted":      false,
++				"token:deleted":        false,
+ 				"variant:deleted":      false,
+ 				"constraint:updated":   false,
+ 				"distribution:updated": false,
+@@ -115,7 +124,7 @@ func TestChecker(t *testing.T) {
+ 	}
+ 
+ 	for _, tc := range testCases {
+-		checker, err := NewChecker(tc.eventPairs)
++		checker, err := audit.NewChecker(tc.eventPairs)
+ 		if tc.expectedError != nil {
+ 			assert.EqualError(t, err, tc.expectedError.Error())
+ 			continue
+@@ -127,3 +136,29 @@ func TestChecker(t *testing.T) {
+ 		}
+ 	}
+ }
++
++func Test1(t *testing.T) {
++	a := &rpcauth.Authentication{
++		Id:     "0123456789ABCDEF",
++		Method: rpcauth.Method_METHOD_TOKEN,
++	}
++	payload := auth.BuildTokenDeleteAuditPayload(a)
++
++	authID, ok := payload["auth_id"].(string)
++	assert.True(t, ok, "auth_id must be a string")
++	assert.Len(t, authID, 7, "auth_id must be exactly 7 characters")
++	assert.Equal(t, "0123456", authID, "auth_id must be first 7 chars of source id")
++}
++
++func Test3(t *testing.T) {
++	a := &rpcauth.Authentication{
++		Id:     "01HXYZ9ABC",
++		Method: rpcauth.Method_METHOD_TOKEN,
++	}
++	payload := auth.BuildTokenDeleteAuditPayload(a)
++
++	assert.Contains(t, payload, "auth_method")
++	assert.Contains(t, payload, "auth_method_enum")
++	assert.Equal(t, "token", payload["auth_method"])
++	assert.Equal(t, "METHOD_TOKEN", payload["auth_method_enum"])
++}
+diff --git a/internal/cmd/grpc_test.go b/internal/cmd/grpc_test.go
+new file mode 100644
+index 00000000..00000000
+--- /dev/null
++++ b/internal/cmd/grpc_test.go
+@@ -0,0 +1,114 @@
++package cmd
++
++import (
++	"context"
++	"path/filepath"
++	"testing"
++	"time"
++
++	"github.com/stretchr/testify/require"
++	"go.flipt.io/flipt/internal/config"
++	"go.flipt.io/flipt/internal/info"
++	rpcauth "go.flipt.io/flipt/rpc/flipt/auth"
++	"go.uber.org/zap"
++	"google.golang.org/grpc"
++	"google.golang.org/grpc/credentials/insecure"
++)
++
++// DeleteAuthentication with a non-existent id behaves differently depending on whether the auth server
++// was built with token audit pre-fetch enabled (tokenDeletedEnabled). Wrong checker/tokenDeletedEnabled
++// wiring in NewGRPCServer fails one of these cases unambiguously:
++//   - Audit off but Events list token:deleted → must not build a checker from events alone (success).
++//   - Audit on but events exclude token:deleted → tokenDeletedEnabled must stay false (success).
++//   - Audit on and token:deleted allowed → tokenDeletedEnabled true → pre-fetch fails (error).
++func TestGRPCAuditCheckerInitializationFollowsAuditEnabled(t *testing.T) {
++	ctx := context.Background()
++	logger := zap.NewNop()
++
++	// 1) cfg.Audit.Enabled() is false: no checker, tokenDeletedEnabled false — even if Events would enable token:deleted.
++	cfgDisabled := grpcTestConfig(t, config.AuditConfig{
++		Sinks: config.SinksConfig{
++			LogFile: config.LogFileSinkConfig{Enabled: false},
++			Webhook: config.WebhookSinkConfig{Enabled: false},
++		},
++		Events: []string{"token:deleted"},
++	})
++	require.False(t, cfgDisabled.Audit.Enabled(),
++		"fixture: audit disabled via sinks; checker must not be inferred from Events or from future non-empty sink slice alone")
++
++	err := grpcDeleteMissingAuthentication(t, ctx, logger, cfgDisabled)
++	require.NoError(t, err,
++		"if a checker were built unconditionally from Events, or tokenDeletedEnabled were true without Enabled(), DeleteAuthentication would error on the missing id")
++
++	// 2) cfg.Audit.Enabled() true but token:deleted not in the configured events: checker exists, tokenDeletedEnabled false.
++	dir := t.TempDir()
++	cfgEnabledNoToken := grpcTestConfig(t, config.AuditConfig{
++		Sinks: config.SinksConfig{
++			LogFile: config.LogFileSinkConfig{Enabled: true, File: filepath.Join(dir, "audit-a.log")},
++		},
++		Buffer: config.BufferConfig{Capacity: 2, FlushPeriod: 2 * time.Minute},
++		Events: []string{"flag:created"},
++	})
++	require.True(t, cfgEnabledNoToken.Audit.Enabled(), "fixture: audit enabled via log sink")
++
++	err = grpcDeleteMissingAuthentication(t, ctx, logger, cfgEnabledNoToken)
++	require.NoError(t, err,
++		"tokenDeletedEnabled must follow checker.Check(token:deleted); if it were forced true whenever audit sinks exist, this would error")
++
++	// 3) cfg.Audit.Enabled() true and token:deleted allowed: tokenDeletedEnabled true → auth pre-fetch runs and fails for missing id.
++	dirB := t.TempDir()
++	cfgEnabledToken := grpcTestConfig(t, config.AuditConfig{
++		Sinks: config.SinksConfig{
++			LogFile: config.LogFileSinkConfig{Enabled: true, File: filepath.Join(dirB, "audit-b.log")},
++		},
++		Buffer: config.BufferConfig{Capacity: 2, FlushPeriod: 2 * time.Minute},
++		Events: []string{"token:deleted"},
++	})
++	require.True(t, cfgEnabledToken.Audit.Enabled(), "fixture: audit enabled via log sink")
++
++	err = grpcDeleteMissingAuthentication(t, ctx, logger, cfgEnabledToken)
++	require.Error(t, err,
++		"with audit enabled and token:deleted in events, tokenDeletedEnabled must be true; omitting the checker or always passing false would incorrectly succeed here")
++}
++
++func grpcTestConfig(t *testing.T, audit config.AuditConfig) *config.Config {
++	t.Helper()
++	return &config.Config{
++		Log: config.LogConfig{GRPCLevel: "ERROR"},
++		Server: config.ServerConfig{
++			Host:     "127.0.0.1",
++			Protocol: config.HTTP,
++			GRPCPort: 0,
++		},
++		Storage: config.StorageConfig{
++			Type:  config.LocalStorageType,
++			Local: &config.Local{Path: t.TempDir()},
++		},
++		Authentication: config.AuthenticationConfig{},
++		Audit:          audit,
++	}
++}
++
++// grpcDeleteMissingAuthentication returns only the error from DeleteAuthentication; setup failures fail the test.
++func grpcDeleteMissingAuthentication(t *testing.T, ctx context.Context, logger *zap.Logger, cfg *config.Config) error {
++	t.Helper()
++	srv, err := NewGRPCServer(ctx, logger, cfg, info.Flipt{Version: "test"}, false)
++	require.NoError(t, err)
++
++	// NewGRPCServer only binds the listener; gRPC must Serve or DialContext+WithBlock waits forever.
++	go func() { _ = srv.Run() }()
++	t.Cleanup(func() { _ = srv.Shutdown(ctx) })
++
++	dialCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
++	defer cancel()
++	conn, err := grpc.DialContext(dialCtx, srv.ln.Addr().String(),
++		grpc.WithTransportCredentials(insecure.NewCredentials()),
++		grpc.WithBlock(),
++	)
++	require.NoError(t, err)
++	t.Cleanup(func() { _ = conn.Close() })
++
++	client := rpcauth.NewAuthenticationServiceClient(conn)
++	_, err = client.DeleteAuthentication(ctx, &rpcauth.DeleteAuthenticationRequest{Id: "missing-auth-id"})
++	return err
++}

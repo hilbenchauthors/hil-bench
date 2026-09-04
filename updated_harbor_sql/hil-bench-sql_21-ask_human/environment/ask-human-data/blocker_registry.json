@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for Premier League clubs \"whose team names include references to ports or coastal cities\" but does not specify which exact words, phrases, or naming patterns in the database count as port or coastal references.",
+      "example_questions": [
+        "What criteria define Premier League clubs \"whose names evoke maritime heritage\"?",
+        "How should I identify which Premier League club names \"evoke maritime heritage\"?",
+        "Which specific naming elements or geographic connections qualify as evoking \"maritime heritage\" for Premier League clubs?"
+      ],
+      "id": "port_coastal_references_unclear_value",
+      "resolution": "Team names that include references to ports or coastal cities are identified by matching the following specific team_long_name values in the Team table: 'Portsmouth', 'Plymouth Argyle', 'Southampton', 'Liverpool', 'Manchester City', 'Manchester United', and 'Brighton & Hove Albion'. Use exact matching against these team_long_name values: t.team_long_name IN ('Portsmouth', 'Plymouth Argyle', 'Southampton', 'Liverpool', 'Manchester City', 'Manchester United', 'Brighton & Hove Albion').",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The question asks to consider only players \"who have a lower center of gravity,\" but the business information does not define what qualifies as a \"lower center of gravity\" or how to identify such players in the database.",
+      "example_questions": [
+        "How do I identify players with a lower center of gravity in the database?",
+        "What attribute or threshold determines if a player has a lower center of gravity?",
+        "Which database field and value should I use to filter for players with a lower center of gravity?"
+      ],
+      "id": "lower_center",
+      "resolution": "Players with a lower center of gravity are defined as those with a height lower than 173 cm. Filter for players where height < 173.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The Player table contains a favorite_language column with single-letter coded values (C, E, W, XI, O) but the column description does not explain what language each code represents. It is unclear which code corresponds to French-speaking players when filtering for players whose favorite language is French.\n",
+      "example_questions": [
+        "The favorite_language column contains coded values (C, E, W, XI, O) without clear definitions. Which code represents French as a player's preferred language - is it C, E, W, XI, or O?",
+        "What do the favorite_language codes C, E, W, XI, and O represent? Specifically, which single-letter code corresponds to French-speaking players when filtering by preferred language?",
+        "Players have favorite_language values of C, E, W, XI, and O but the meaning of each code is unclear. To identify players whose favorite language is French, which of these codes should I use?"
+      ],
+      "id": "language",
+      "resolution": "The favorite_language column uses coded values where each code represents a different language group. French-speaking players are identified by the code 'E'. Filter for players where favorite_language = 'E' to identify French-speaking players.\n",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+services:
+  main:
+    image: public.ecr.aws/b2z8n5q1/hil-bench@sha256:6f0dea89b5e59e09db997e279db1467e028e0d2e44db44b0f6cef0645d622fb8
+    pull_policy: missing

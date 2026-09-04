@@ -1,0 +1,6 @@
+[
+  "components/drawer/views/SecurityCenter/PassAliases/test/PassBridgeFactory.blockers.test.ts | PassBridgeFactory createDefaultVault uses a seven-minute getDefault precheck before creating default vault",
+  "components/drawer/views/SecurityCenter/PassAliases/test/PassBridgeFactory.blockers.test.ts | PassBridgeFactory createDefaultVault returns existing vault without creating a new one",
+  "components/drawer/views/SecurityCenter/PassAliases/test/PassAliasesProvider.blockers.test.tsx | PassAliasesProvider blocker behavior keeps memoized aliases across no-vault reopens and provisions vault during initialization",
+  "components/drawer/views/SecurityCenter/PassAliases/test/PassAliasesProvider.blockers.test.tsx | PassAliasesProvider blocker behavior computes limit state from total aliases count after getAliasOptions flow"
+]

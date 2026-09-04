@@ -1,0 +1,7 @@
+[
+  "TestSimpleCacheBasicContract",
+  "TestSimpleCacheRespectsMaxActiveEntriesLimit",
+  "TestSimpleCacheServesStaleValueOnRefreshFailure",
+  "TestSimpleCacheHandlesNonPositiveLifetimes",
+  "TestSimpleCacheSharesOutcomeAcrossOverlappingLoads"
+]

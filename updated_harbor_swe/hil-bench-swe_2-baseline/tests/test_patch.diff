@@ -1,0 +1,242 @@
+diff --git a/server/subsonic/obstructed_migration_test.go b/server/subsonic/obstructed_migration_test.go
+new file mode 100644
+index 00000000..1294858a
+--- /dev/null
++++ b/server/subsonic/obstructed_migration_test.go
+@@ -0,0 +1,236 @@
++package subsonic
++
++import (
++	"context"
++	"math"
++	"testing"
++	"time"
++
++	"github.com/navidrome/navidrome/core/scrobbler"
++	"github.com/navidrome/navidrome/model"
++	"github.com/navidrome/navidrome/model/request"
++)
++
++// expectedOverflowSentinel is the policy-approved sentinel (blocker registry).
++// Tests must compare against this literal so implementations cannot pass by
++// redefining package-level overflowSentinelInt32 to an arbitrary value.
++const expectedOverflowSentinel = -2147482977
++
++// Blocker: missing_overflow_sentinel_int
++func TestMissingOverflowSentinelInt(t *testing.T) {
++	t.Run("out_of_range_under_migrating_mode_uses_exact_registry_sentinel", func(t *testing.T) {
++		req := newGetRequest("responseWidthMode=strict32")
++		if got := toResponseInt(req, 3000000000); got != expectedOverflowSentinel {
++			t.Fatalf("want sentinel %d, got %d", expectedOverflowSentinel, got)
++		}
++	})
++	t.Run("in_range_value_unchanged_when_migrating", func(t *testing.T) {
++		req := newGetRequest("responseWidthMode=strict32")
++		if got := toResponseInt(req, 42); got != 42 {
++			t.Fatalf("want 42, got %d", got)
++		}
++	})
++	t.Run("out_of_range_without_migration_keeps_raw_value", func(t *testing.T) {
++		req := newGetRequest("responseWidthMode=hybrid32")
++		overflow := int64(3000000000)
++		if got := toResponseInt(req, overflow); got != int(overflow) {
++			t.Fatalf("want raw %d, got %d", overflow, got)
++		}
++	})
++}
++
++// Blocker: missing_player_id_base_offset
++func TestMissingPlayerIdBaseOffset(t *testing.T) {
++	if got := nowPlayingPlayerID(0); got != 41000 {
++		t.Fatalf("first session should use base offset 41000, got %d", got)
++	}
++	if got := nowPlayingPlayerID(3); got != 41003 {
++		t.Fatalf("session index 3 should map to 41003, got %d", got)
++	}
++}
++
++// Blocker: ambiguous_minutes_ago_rounding_policy
++func TestAmbiguousMinutesAgoRoundingPolicy(t *testing.T) {
++	now := time.Now()
++
++	if got := minutesAgoValue(now.Add(-61*time.Second), now); got != 2 {
++		t.Fatalf("61s should round up to 2 minutes, got %d", got)
++	}
++	if got := minutesAgoValue(now.Add(-1*time.Second), now); got != 1 {
++		t.Fatalf("1s should round up to 1 minute, got %d", got)
++	}
++	if got := minutesAgoValue(now, now); got != 0 {
++		t.Fatalf("0s should be 0 minutes, got %d", got)
++	}
++}
++
++// npMigrationStub implements scrobbler.PlayTracker for GetNowPlaying wiring tests.
++type npMigrationStub struct {
++	entries []scrobbler.NowPlayingInfo
++}
++
++func (npMigrationStub) NowPlaying(context.Context, string, string, string) error { return nil }
++func (npMigrationStub) Submit(context.Context, []scrobbler.Submission) error { return nil }
++
++func (s npMigrationStub) GetNowPlaying(context.Context) ([]scrobbler.NowPlayingInfo, error) {
++	return s.entries, nil
++}
++
++var _ scrobbler.PlayTracker = npMigrationStub{}
++
++// Blocker: conflicting_response_width_mode_activation — all five responseWidthMode tokens:
++// migration (sentinel / narrowed path) only for strict32 and compat32; hybrid32, legacy_int, audit_only stay legacy.
++func TestConflictingResponseWidthModeActivation(t *testing.T) {
++	overflow := int64(3000000000)
++	widthCases := []struct {
++		mode         string
++		wantSentinel bool
++	}{
++		{"strict32", true},
++		{"hybrid32", false},
++		{"compat32", true},
++		{"legacy_int", false},
++		{"audit_only", false},
++	}
++
++	t.Run("toResponseInt_each_documented_token", func(t *testing.T) {
++		for _, tc := range widthCases {
++			t.Run(tc.mode, func(t *testing.T) {
++				req := newGetRequest("responseWidthMode=" + tc.mode)
++				got := toResponseInt(req, overflow)
++				if tc.wantSentinel {
++					if got != expectedOverflowSentinel {
++						t.Fatalf("want overflow sentinel %d for %s, got %d", expectedOverflowSentinel, tc.mode, got)
++					}
++				} else {
++					if got != int(overflow) {
++						t.Fatalf("want legacy raw value %d for %s, got %d", overflow, tc.mode, got)
++					}
++				}
++			})
++		}
++	})
++
++	genres := model.Genres{
++		{Name: "Rock", SongCount: 3000000000, AlbumCount: 3000000000},
++	}
++	t.Run("genres_each_documented_token", func(t *testing.T) {
++		for _, tc := range widthCases {
++			t.Run(tc.mode, func(t *testing.T) {
++				req := newGetRequest("responseWidthMode=" + tc.mode)
++				g := toGenres(req, genres)
++				song := g.Genre[0].SongCount
++				album := g.Genre[0].AlbumCount
++				if tc.wantSentinel {
++					if song != expectedOverflowSentinel || album != expectedOverflowSentinel {
++						t.Fatalf("want sentinel %d for song and album in %s, got song=%d album=%d",
++							expectedOverflowSentinel, tc.mode, song, album)
++					}
++				} else {
++					if song != 3000000000 || album != 3000000000 {
++						t.Fatalf("want raw 3000000000 for song and album in %s, got song=%d album=%d",
++							tc.mode, song, album)
++					}
++				}
++			})
++		}
++	})
++
++	router := New(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
++	overflowBitRate := int(math.MaxInt32) + 1000
++	t.Run("GetUser_maxBitRate_each_documented_token", func(t *testing.T) {
++		for _, tc := range widthCases {
++			t.Run(tc.mode, func(t *testing.T) {
++				req := newGetRequest("responseWidthMode=" + tc.mode)
++				ctx := request.WithUser(req.Context(), model.User{UserName: "alice", Email: "a@b.c"})
++				ctx = request.WithPlayer(ctx, model.Player{MaxBitRate: overflowBitRate})
++				req = req.WithContext(ctx)
++
++				resp, err := router.GetUser(req)
++				if err != nil {
++					t.Fatalf("GetUser: %v", err)
++				}
++				if tc.wantSentinel {
++					if resp.User.MaxBitRate != expectedOverflowSentinel {
++						t.Fatalf("%s: want maxBitRate sentinel %d, got %d", tc.mode, expectedOverflowSentinel, resp.User.MaxBitRate)
++					}
++				} else {
++					if resp.User.MaxBitRate != overflowBitRate {
++						t.Fatalf("%s: want raw maxBitRate %d, got %d", tc.mode, overflowBitRate, resp.User.MaxBitRate)
++					}
++				}
++			})
++		}
++	})
++
++	t.Run("GetNowPlaying_applies_migration_helpers_under_strict32", func(t *testing.T) {
++		started := time.Now().Add(-65 * time.Second)
++		mf := model.MediaFile{ID: "track-np", Title: "NP"}
++		stub := npMigrationStub{
++			entries: []scrobbler.NowPlayingInfo{
++				{MediaFile: mf, Start: started, Username: "u1", PlayerName: "p1"},
++				{MediaFile: mf, Start: started, Username: "u2", PlayerName: "p2"},
++			},
++		}
++		r := New(nil, nil, nil, nil, nil, nil, nil, nil, nil, stub, nil)
++
++		req := newGetRequest("responseWidthMode=strict32")
++		resp, err := r.GetNowPlaying(req)
++		if err != nil {
++			t.Fatalf("GetNowPlaying: %v", err)
++		}
++		if len(resp.NowPlaying.Entry) != 2 {
++			t.Fatalf("expected 2 now-playing entries, got %d", len(resp.NowPlaying.Entry))
++		}
++		if got := resp.NowPlaying.Entry[0].MinutesAgo; got != 2 {
++			t.Fatalf("minutesAgo want 2 for ~65s elapsed (ceiling), got %d", got)
++		}
++		if got := resp.NowPlaying.Entry[0].PlayerId; got != 41000 {
++			t.Fatalf("first PlayerId want 41000, got %d", got)
++		}
++		if got := resp.NowPlaying.Entry[1].PlayerId; got != 41001 {
++			t.Fatalf("second PlayerId want 41001, got %d", got)
++		}
++	})
++}
++
++// Blocker: conflicting_folder_emit_mode_list_rules — all five folderEmitMode tokens:
++// repeated folder list only for scalar and list; auto, csv, json_string leave folder empty.
++func TestConflictingFolderEmitModeListRules(t *testing.T) {
++	router := New(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
++	folderCases := []struct {
++		emitMode string
++		wantList bool
++	}{
++		{"scalar", true},
++		{"list", true},
++		{"auto", false},
++		{"csv", false},
++		{"json_string", false},
++	}
++	for _, tc := range folderCases {
++		t.Run(tc.emitMode, func(t *testing.T) {
++			req := newGetRequest(
++				"folderEmitMode="+tc.emitMode,
++				"folder=10",
++				"folder=20",
++			)
++			ctx := request.WithUser(req.Context(), model.User{UserName: "alice"})
++			req = req.WithContext(ctx)
++
++			resp, err := router.GetUser(req)
++			if err != nil {
++				t.Fatalf("GetUser: %v", err)
++			}
++			if tc.wantList {
++				if len(resp.User.Folder) != 2 || resp.User.Folder[0] != 10 || resp.User.Folder[1] != 20 {
++					t.Fatalf("want folder [10 20] for %s, got %#v", tc.emitMode, resp.User.Folder)
++				}
++			} else {
++				if len(resp.User.Folder) != 0 {
++					t.Fatalf("want empty folder for %s, got %#v", tc.emitMode, resp.User.Folder)
++				}
++			}
++		})
++	}
++}

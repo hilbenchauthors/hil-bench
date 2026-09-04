@@ -1,0 +1,42 @@
+{
+  "blockers": [
+    {
+      "description": "It's unclear what qualifies as a \"standard issue\" card, this could refer to first printings, non-promotional printings, or non-alternate art printings.",
+      "example_questions": [
+        "What defines a standard issue card?",
+        "How do I identify a standard issue card?",
+        "What is meant by \"standard issue card\"?",
+        "Are standard issue cards the same as non-promo cards?"
+      ],
+      "id": "standard_issue_cards",
+      "resolution": "Standard issue cards are defined as cards where isReprint = 0 in the cards table.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The business info defines heritage-series releases but does not specify which attribute or value in the database corresponds to this classification.",
+      "example_questions": [
+        "What qualifies as a heritage-series release?",
+        "How do I identify heritage-series releases?",
+        "Does heritage-series refer to old sets or a specific frame style?"
+      ],
+      "id": "heritage_series_releases",
+      "resolution": "Heritage-series refers to cards with frameVersion = \"1993\" in the cards table.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "It's unclear which column contains the information about premium-tier collectible status. The table market_classification contains multiple sources that reference tiers.",
+      "example_questions": [
+        "Where can I find premium-tier collectible status information?",
+        "What columns determine premium-tier status?",
+        "How do I identify premium-tier collectible cards?",
+        "What criteria define premium-tier collectible status?"
+      ],
+      "id": "premium_tier_collectible_status",
+      "resolution": "The cards that have a premium-tier collectible status are those that have a value greater than or equal to \"4\" in the investment_tier column in the market_classification table.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

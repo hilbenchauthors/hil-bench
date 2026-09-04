@@ -1,0 +1,126 @@
+diff --git a/test/units/plugins/lookup/test_password.py b/test/units/plugins/lookup/test_password.py
+index 73b50418e1..0dd28ca47b 100644
+--- a/test/units/plugins/lookup/test_password.py
++++ b/test/units/plugins/lookup/test_password.py
+@@ -28,6 +28,7 @@ except ImportError:
+     pbkdf2 = None
+ 
+ import pytest
++import hashlib
+ 
+ from units.mock.loader import DictDataLoader
+ 
+@@ -123,7 +124,8 @@ old_style_params_data = (
+     dict(
+         term=u'/path/to/file seed=1',
+         filename=u'/path/to/file',
+-        params=dict(length=password.DEFAULT_LENGTH, encrypt=None, ident=None, chars=DEFAULT_CHARS, seed='1'),
++        params=dict(length=password.DEFAULT_LENGTH, encrypt=None, ident=None, chars=DEFAULT_CHARS,
++                    seed=hashlib.new('sha256', to_bytes('1')).hexdigest()),
+         candidate_chars=DEFAULT_CANDIDATE_CHARS,
+     ),
+ 
+@@ -210,25 +212,52 @@ old_style_params_data = (
+ 
+ class TestParseParameters(unittest.TestCase):
+     def test(self):
++        lookup = password.LookupModule(loader=DictDataLoader({}))
++        option_values = {
++            'length': password.DEFAULT_LENGTH,
++            'encrypt': None,
++            'ident': None,
++            'seed': None,
++            'chars': [u'ascii_letters', u'digits', u".,:-_"],
++        }
+         for testcase in old_style_params_data:
+-            filename, params = password._parse_parameters(testcase['term'])
++            with patch.object(lookup, 'get_option', side_effect=lambda key: option_values[key]):
++                filename, params = lookup._parse_parameters(testcase['term'])
+             params['chars'].sort()
+             self.assertEqual(filename, testcase['filename'])
+             self.assertEqual(params, testcase['params'])
+ 
+     def test_unrecognized_value(self):
++        lookup = password.LookupModule(loader=DictDataLoader({}))
++        option_values = {
++            'length': password.DEFAULT_LENGTH,
++            'encrypt': None,
++            'ident': None,
++            'seed': None,
++            'chars': [u'ascii_letters', u'digits', u".,:-_"],
++        }
+         testcase = dict(term=u'/path/to/file chars=くらとみi  sdfsdf',
+                         filename=u'/path/to/file',
+                         params=dict(length=password.DEFAULT_LENGTH, encrypt=None, chars=[u'くらとみ']),
+                         candidate_chars=u'くらとみ')
+-        self.assertRaises(AnsibleError, password._parse_parameters, testcase['term'])
++        with patch.object(lookup, 'get_option', side_effect=lambda key: option_values[key]):
++            self.assertRaises(AnsibleError, lookup._parse_parameters, testcase['term'])
+ 
+     def test_invalid_params(self):
++        lookup = password.LookupModule(loader=DictDataLoader({}))
++        option_values = {
++            'length': password.DEFAULT_LENGTH,
++            'encrypt': None,
++            'ident': None,
++            'seed': None,
++            'chars': [u'ascii_letters', u'digits', u".,:-_"],
++        }
+         testcase = dict(term=u'/path/to/file chars=くらとみi  somethign_invalid=123',
+                         filename=u'/path/to/file',
+                         params=dict(length=password.DEFAULT_LENGTH, encrypt=None, chars=[u'くらとみ']),
+                         candidate_chars=u'くらとみ')
+-        self.assertRaises(AnsibleError, password._parse_parameters, testcase['term'])
++        with patch.object(lookup, 'get_option', side_effect=lambda key: option_values[key]):
++            self.assertRaises(AnsibleError, lookup._parse_parameters, testcase['term'])
+ 
+ 
+ class TestReadPasswordFile(unittest.TestCase):
+@@ -410,6 +439,47 @@ class BaseTestLookupModule(unittest.TestCase):
+ 
+ 
+ class TestLookupModuleWithoutPasslib(BaseTestLookupModule):
++    def test_parse_parameters_is_instance_method_only(self):
++        self.assertTrue(hasattr(self.password_lookup, '_parse_parameters'))
++        self.assertFalse(hasattr(password, '_parse_parameters'))
++
++    def test_run_sets_options_and_uses_plugin_default_chars_list(self):
++        # Force generation path so random_password is called.
++        password.os.path.exists = lambda x: False
++        default_seed = 'myseed'
++        expected_seed = hashlib.new('sha256', to_bytes(default_seed)).hexdigest()
++        option_values = {
++            'length': 8,
++            'encrypt': None,
++            'ident': None,
++            'seed': default_seed,
++            'chars': [u'digits', u'abc'],
++        }
++
++        with patch.object(self.password_lookup, 'set_options', wraps=self.password_lookup.set_options) as mock_set_options, \
++                patch.object(self.password_lookup, 'get_option', side_effect=lambda key: option_values[key]), \
++                patch('ansible.plugins.lookup.password._write_password_file'), \
++                patch('ansible.plugins.lookup.password.random_password', return_value=u'X' * 8) as mock_random_password:
++            self.password_lookup.run([u'/path/to/newfile'], {'test': 'value'})
++
++        mock_set_options.assert_called_once_with(var_options={'test': 'value'}, direct={})
++        mock_random_password.assert_called_once_with(8, u'0123456789abc', expected_seed)
++
++    def test_parse_parameters_hashes_term_seed(self):
++        option_values = {
++            'length': password.DEFAULT_LENGTH,
++            'encrypt': None,
++            'ident': None,
++            'seed': None,
++            'chars': [u'ascii_letters', u'digits', u".,:-_"],
++        }
++        with patch.object(self.password_lookup, 'get_option', side_effect=lambda key: option_values[key]):
++            _, params = self.password_lookup._parse_parameters(u'/tmp/file seed=myseed')
++        self.assertEqual(
++            params['seed'],
++            u'6321af8cdc81c0c1e162223e284081660ff2393322cdb59b85ed931f9995a0ef',
++        )
++
+     @patch.object(PluginLoader, '_get_paths')
+     @patch('ansible.plugins.lookup.password._write_password_file')
+     def test_no_encrypt(self, mock_get_paths, mock_write_file):

@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for \"elements usually found in inorganic compounds\", and \"elements usually found in organic compounds\", which makes it unclear which elements can be considered as such \n",
+      "example_questions": [
+        "Which elements should I consider as usually found in inorganic or organic compounds?",
+        "Which are the elements usually found in inorganic or organic compounds?",
+        "Which elements do you refer as usually found in inorganic or organic compounds?"
+      ],
+      "id": "organic_inorganic",
+      "resolution": "The elements usually found in inorganic compounds are: na, sn, pb, zn, cl, br and i, and the elements usually found in inorganic compounds are: c, h, o, n, s, p, and f\n",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The prompt mentions a \"high rate\", but it is not explained what is considered as high exactly, regardless of which elements are organic or inorganic. It is missing information from the business information.\n",
+      "example_questions": [
+        "What would a \"high rate\" of elements usually found in inorganic compounds vs elements usually found in organic compounds be?",
+        "What value does a \"high rate\" of elements usually found in inorganic compounds vs elements usually found in organic compounds refer to?",
+        "What should I consider as a \"high rate\" of elements usually found in inorganic compounds vs elements usually found in organic compounds?"
+      ],
+      "id": "high_meaning",
+      "resolution": "A \"high rate\" of elements usually found in inorganic compounds vs elements usually found in organic compounds is a rate higher than 0.6.\n",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The \"tox_grade\" column in the \"molecule\" table contains values that are numeric and cannot be interpreted as whether a molecule is safe or not. It is impossible to understand how to determine if a molecule is safe or not.\n",
+      "example_questions": [
+        "How should I interpret the values from the \"tox_grade\" column in the \"molecule\" table?",
+        "What do the values from the \"tox_grade\" column in the \"molecule\" table mean?",
+        "How do I interpret the values from the \"tox_grade\" column in the \"molecule\" table?"
+      ],
+      "id": "molecule_safety",
+      "resolution": "A molecule is safe if the \"tox_grade\" column in the \"molecule\" table has the values \"L1\", \"L2\", or \"L3\"\n",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

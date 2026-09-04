@@ -1,0 +1,89 @@
+diff --git a/test/units/cli/test_doc.py b/test/units/cli/test_doc.py
+index d93b5aa13a..9924f0618b 100644
+--- a/test/units/cli/test_doc.py
++++ b/test/units/cli/test_doc.py
+@@ -4,7 +4,7 @@ __metaclass__ = type
+ 
+ import pytest
+ 
+-from ansible.cli.doc import DocCLI
++from ansible.cli.doc import DocCLI, RoleMixin
+ 
+ 
+ TTY_IFY_DATA = {
+@@ -33,3 +33,75 @@ TTY_IFY_DATA = {
+ @pytest.mark.parametrize('text, expected', sorted(TTY_IFY_DATA.items()))
+ def test_ttyify(text, expected):
+     assert DocCLI.tty_ify(text) == expected
++
++
++def test_rolemixin__build_doc():
++    obj = RoleMixin()
++    role_name = 'test_role'
++    path = '/a/b/c'
++    collection_name = 'test.units'
++    entrypoint_filter = 'main'
++    argspec = {
++        'main': {'short_description': 'main short description'},
++        'alternate': {'short_description': 'alternate short description'},
++    }
++    expected = {
++        'path': path,
++        'collection': collection_name,
++        'entry_points': {
++            'main': argspec['main'],
++        }
++    }
++    fqcn, doc = obj._build_doc(role_name, path, collection_name, argspec, entrypoint_filter)
++    assert fqcn == '.'.join([collection_name, role_name])
++    assert doc == expected
++
++
++def test_rolemixin__build_doc_no_filter_match():
++    obj = RoleMixin()
++    role_name = 'test_role'
++    path = '/a/b/c'
++    collection_name = 'test.units'
++    entrypoint_filter = 'doesNotExist'
++    argspec = {
++        'main': {'short_description': 'main short description'},
++        'alternate': {'short_description': 'alternate short description'},
++    }
++    fqcn, doc = obj._build_doc(role_name, path, collection_name, argspec, entrypoint_filter)
++    assert fqcn == '.'.join([collection_name, role_name])
++    assert doc is None
++
++
++def test_rolemixin__build_doc_empty_collection():
++    obj = RoleMixin()
++    role_name = 'test_role'
++    path = '/a/b/c'
++    collection_name = ''
++    argspec = {
++        'main': {'short_description': 'main short description'},
++    }
++    fqcn, doc = obj._build_doc(role_name, path, collection_name, argspec, None)
++    assert fqcn == role_name
++    assert doc is not None
++
++
++def test_rolemixin__build_doc_no_entry_point_filter():
++    obj = RoleMixin()
++    role_name = 'test_role'
++    path = '/a/b/c'
++    collection_name = 'test.units'
++    argspec = {
++        'main': {'short_description': 'main short description'},
++        'alternate': {'short_description': 'alternate short description'},
++    }
++    expected = {
++        'path': path,
++        'collection': collection_name,
++        'entry_points': {
++            'main': argspec['main'],
++            'alternate': argspec['alternate'],
++        }
++    }
++    fqcn, doc = obj._build_doc(role_name, path, collection_name, argspec, None)
++    assert fqcn == '.'.join([collection_name, role_name])
++    assert doc == expected

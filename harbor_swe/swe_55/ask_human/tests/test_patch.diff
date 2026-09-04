@@ -1,0 +1,305 @@
+diff --git a/internal/cleanup/cleanup_test.go b/internal/cleanup/cleanup_test.go
+index 0c17920b..b33de69f 100644
+--- a/internal/cleanup/cleanup_test.go
++++ b/internal/cleanup/cleanup_test.go
+@@ -1 +1,124 @@
+ package cleanup
++
++import (
++	"context"
++	"fmt"
++	"testing"
++	"time"
++
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/require"
++	"os"
++	"path/filepath"
++
++	"go.flipt.io/flipt/internal/config"
++	authstorage "go.flipt.io/flipt/internal/storage/authn"
++	inmemauth "go.flipt.io/flipt/internal/storage/authn/memory"
++	inmemoplock "go.flipt.io/flipt/internal/storage/oplock/memory"
++	"go.flipt.io/flipt/rpc/flipt/auth"
++	"go.uber.org/zap/zaptest"
++	"google.golang.org/protobuf/types/known/timestamppb"
++)
++
++func TestCleanup(t *testing.T) {
++	if testing.Short() {
++		t.Skip("skipping test in short mode.")
++	}
++
++	t.Run("non-database methods must not receive cleanup defaults", func(t *testing.T) {
++		pubKeyPath := filepath.Join(t.TempDir(), "jwt.pem")
++		require.NoError(t, os.WriteFile(pubKeyPath, []byte("key"), 0o600))
++		cfgPath := filepath.Join(t.TempDir(), "flipt.yml")
++		yml := fmt.Sprintf("authentication:\n  methods:\n    jwt:\n      enabled: true\n      public_key_file: %q\n", pubKeyPath)
++		require.NoError(t, os.WriteFile(cfgPath, []byte(yml), 0o600))
++		result, err := config.Load(cfgPath)
++		require.NoError(t, err)
++		require.Nil(t, result.Config.Authentication.Methods.JWT.Cleanup,
++			"configuration defaulting must not assign a cleanup schedule to JWT (non-database method)")
++	})
++
++	var (
++		ctx        = context.Background()
++		logger     = zaptest.NewLogger(t)
++		authstore  = inmemauth.NewStore()
++		lock       = inmemoplock.New()
++		authConfig = config.AuthenticationConfig{
++			Methods: config.AuthenticationMethods{},
++		}
++	)
++
++	// enable all methods and set their cleanup configuration
++	for _, info := range authConfig.Methods.AllMethods() {
++		info.Enable(t)
++		info.SetCleanup(t, config.AuthenticationCleanupSchedule{
++			Interval:    time.Second,
++			GracePeriod: 5 * time.Second,
++		})
++	}
++
++	// create an initial non-expiring token
++	clientToken, storedAuth, err := authstore.CreateAuthentication(
++		ctx,
++		&authstorage.CreateAuthenticationRequest{Method: auth.Method_METHOD_TOKEN},
++	)
++	require.NoError(t, err)
++
++	for i := 0; i < 5; i++ {
++		// run five instances of service
++		// it should be a safe operation given they share the same lock service
++		service := NewAuthenticationService(logger, lock, authstore, authConfig)
++		service.Run(ctx)
++		t.Cleanup(func() {
++			require.NoError(t, service.Shutdown(context.TODO()))
++		})
++	}
++
++	t.Run("ensure non-expiring token exists", func(t *testing.T) {
++		retrievedAuth, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
++		require.NoError(t, err)
++		assert.Equal(t, storedAuth, retrievedAuth)
++	})
++
++	for _, info := range authConfig.Methods.AllMethods() {
++		info := info
++		if !info.RequiresDatabase {
++			continue
++		}
++
++		t.Run(fmt.Sprintf("Authentication Method %q", info.Method), func(t *testing.T) {
++			t.Parallel()
++
++			t.Log("create an expiring token and ensure it exists")
++			clientToken, storedAuth, err := authstore.CreateAuthentication(
++				ctx,
++				&authstorage.CreateAuthenticationRequest{
++					Method:    info.Method,
++					ExpiresAt: timestamppb.New(time.Now().UTC().Add(5 * time.Second)),
++				},
++			)
++			require.NoError(t, err)
++
++			retrievedAuth, err := authstore.GetAuthenticationByClientToken(ctx, clientToken)
++			require.NoError(t, err)
++			assert.Equal(t, storedAuth, retrievedAuth)
++
++			t.Log("ensure grace period protects token from being deleted")
++			// token should still exist as it wont be deleted until
++			// expiry + grace period (5s + 5s == 10s)
++			time.Sleep(5 * time.Second)
++
++			retrievedAuth, err = authstore.GetAuthenticationByClientToken(ctx, clientToken)
++			require.NoError(t, err)
++			assert.Equal(t, storedAuth, retrievedAuth)
++
++			// ensure authentication is expired but still persisted
++			assert.True(t, retrievedAuth.ExpiresAt.AsTime().Before(time.Now().UTC()))
++
++			t.Log("once expiry and grace period ellapses ensure token is deleted")
++			time.Sleep(10 * time.Second)
++
++			_, err = authstore.GetAuthenticationByClientToken(ctx, clientToken)
++			require.Error(t, err, "token should not be fetchable")
++		})
++	}
++}
+diff --git a/internal/cmd/authn_store_test.go b/internal/cmd/authn_store_test.go
+index 1d619dd0..574fe4d4 100644
+--- a/internal/cmd/authn_store_test.go
++++ b/internal/cmd/authn_store_test.go
+@@ -1 +1,103 @@
+ package cmd
++
++import (
++	"context"
++	"crypto/rand"
++	"crypto/rsa"
++	"crypto/x509"
++	"encoding/pem"
++	"fmt"
++	"os"
++	"path/filepath"
++	"sync"
++	"testing"
++
++	sq "github.com/Masterminds/squirrel"
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/require"
++	"go.flipt.io/flipt/internal/config"
++	storageauthmemory "go.flipt.io/flipt/internal/storage/authn/memory"
++	"go.uber.org/zap/zaptest"
++)
++
++func resetStoreTestState() {
++	cacheOnce = sync.Once{}
++	cacher = nil
++	cacheFunc = func(context.Context) error { return nil }
++	cacheErr = nil
++
++	dbOnce = sync.Once{}
++	db = nil
++	builder = sq.StatementBuilderType{}
++	driver = 0
++	dbFunc = func(context.Context) error { return nil }
++	dbErr = nil
++}
++
++func writeJWTPublicKeyForStore(t *testing.T) string {
++	t.Helper()
++
++	privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
++	require.NoError(t, err)
++
++	encoded, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
++	require.NoError(t, err)
++
++	path := filepath.Join(t.TempDir(), "jwt-public.pem")
++	require.NoError(t, os.WriteFile(path, pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: encoded}), 0o600))
++
++	return path
++}
++
++func newJWTOnlyConfigForStore(t *testing.T) *config.Config {
++	t.Helper()
++
++	pubKeyPath := writeJWTPublicKeyForStore(t)
++	cfgPath := filepath.Join(t.TempDir(), "flipt.yml")
++	content := fmt.Sprintf(
++		"authentication:\n  methods:\n    jwt:\n      enabled: true\n      public_key_file: %q\n",
++		pubKeyPath,
++	)
++	require.NoError(t, os.WriteFile(cfgPath, []byte(content), 0o600))
++
++	result, err := config.Load(cfgPath)
++	require.NoError(t, err)
++
++	result.Config.Storage.Type = config.LocalStorageType
++	result.Config.Database.URL = "unsupported://auth-db-should-not-be-used"
++
++	return result.Config
++}
++
++// TestGetAuthStoreReturnsMemoryStoreWhenNoDBRequired validates that
++// when RequiresDatabase() returns false, the store is storageauthmemory.NewStore().
++// It also verifies that configuration defaulting did not populate a cleanup
++// schedule for the JWT method, which does not require a database.
++func TestGetAuthStoreReturnsMemoryStoreWhenNoDBRequired(t *testing.T) {
++	resetStoreTestState()
++	t.Cleanup(resetStoreTestState)
++
++	cfg := newJWTOnlyConfigForStore(t)
++
++	// Verify precondition: RequiresDatabase should be false for JWT-only
++	require.False(t, cfg.Authentication.RequiresDatabase(),
++		"JWT-only config must have RequiresDatabase() == false")
++
++	// Verify precondition: setDefaults must not populate cleanup for non-DB methods
++	require.Nil(t, cfg.Authentication.Methods.JWT.Cleanup,
++		"configuration defaulting must not assign a cleanup schedule to JWT (non-database method)")
++
++	store, shutdown, err := getAuthStore(
++		context.Background(),
++		zaptest.NewLogger(t),
++		cfg,
++		false,
++	)
++	require.NoError(t, err)
++	defer shutdown(context.Background())
++
++	// Assert: store must be of type *memory.Store
++	_, isMemoryStore := store.(*storageauthmemory.Store)
++	assert.True(t, isMemoryStore,
++		"when RequiresDatabase() is false, getAuthStore must return *memory.Store, got %T", store)
++}
+diff --git a/internal/config/authentication_test.go b/internal/config/authentication_test.go
+index d912156b..e4f9c1a2 100644
+--- a/internal/config/authentication_test.go
++++ b/internal/config/authentication_test.go
+@@ -1 +1,63 @@
+ package config
++
++import (
++	"fmt"
++	"os"
++	"path/filepath"
++	"testing"
++	"time"
++
++	"go.flipt.io/flipt/rpc/flipt/auth"
++	"github.com/stretchr/testify/require"
++)
++
++func TestAuthenticationSetDefaultsSkipsCleanupForNonDBMethods(t *testing.T) {
++	tmp := t.TempDir()
++	publicKeyPath := filepath.Join(tmp, "jwt-public.pem")
++	require.NoError(t, os.WriteFile(publicKeyPath, []byte("public-key"), 0o600))
++
++	configPath := filepath.Join(tmp, "flipt.yml")
++	config := fmt.Sprintf("authentication:\n  methods:\n    token:\n      enabled: true\n    jwt:\n      enabled: true\n      public_key_file: %q\n", publicKeyPath)
++	require.NoError(t, os.WriteFile(configPath, []byte(config), 0o600))
++
++	result, err := Load(configPath)
++	require.NoError(t, err)
++	require.NotNil(t, result.Config.Authentication.Methods.Token.Cleanup,
++		"enabled database-backed methods should still receive cleanup defaults")
++	require.Nil(t, result.Config.Authentication.Methods.JWT.Cleanup,
++		"enabled non-database methods must not receive cleanup defaults")
++}
++
++func TestValidateRejectsCleanupScheduleForNonDBMethods(t *testing.T) {
++	tmp := t.TempDir()
++	publicKeyPath := filepath.Join(tmp, "jwt-public.pem")
++	require.NoError(t, os.WriteFile(publicKeyPath, []byte("public-key"), 0o600))
++
++	configPath := filepath.Join(tmp, "flipt.yml")
++	config := fmt.Sprintf("authentication:\n  methods:\n    jwt:\n      enabled: true\n      public_key_file: %q\n      cleanup:\n        interval: 1h\n        grace_period: 30m\n", publicKeyPath)
++	require.NoError(t, os.WriteFile(configPath, []byte(config), 0o600))
++
++	_, err := Load(configPath)
++	require.Error(t, err,
++		"validate() must reject configurations where an enabled non-database method has an explicit cleanup schedule")
++}
++
++func TestShouldRunCleanupReturnsFalseForNonDBMethod(t *testing.T) {
++	authConfig := AuthenticationConfig{Methods: AuthenticationMethods{}}
++	schedule := AuthenticationCleanupSchedule{
++		Interval:    time.Hour,
++		GracePeriod: 30 * time.Minute,
++	}
++
++	// Directly enable JWT and assign it a cleanup schedule bypassing Load() and validate(),
++	// to isolate whether ShouldRunCleanup correctly handles non-database methods.
++	for _, info := range authConfig.Methods.AllMethods() {
++		if info.Method == auth.Method_METHOD_JWT {
++			info.Enable(t)
++			info.SetCleanup(t, schedule)
++		}
++	}
++
++	require.False(t, authConfig.ShouldRunCleanup(),
++		"ShouldRunCleanup must return false when only JWT (non-database method) has cleanup configured")
++}

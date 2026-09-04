@@ -1,0 +1,369 @@
+diff --git a/packages/components/components/drawer/views/SecurityCenter/PassAliases/test/PassAliasesProvider.blockers.test.tsx b/packages/components/components/drawer/views/SecurityCenter/PassAliases/test/PassAliasesProvider.blockers.test.tsx
+new file mode 100644
+index 0000000000..05ea050591
+--- /dev/null
++++ b/packages/components/components/drawer/views/SecurityCenter/PassAliases/test/PassAliasesProvider.blockers.test.tsx
+@@ -0,0 +1,235 @@
++import React from 'react';
++
++import { act, render, screen, waitFor } from '@testing-library/react';
++
++import { useModalStateObject } from '@proton/components/components';
++import { useAddresses, useAuthentication, useNotifications, useUser } from '@proton/components/hooks';
++import useAsyncError from '@proton/hooks/useAsyncError';
++import useIsMounted from '@proton/hooks/useIsMounted';
++import { usePassBridge } from '@proton/pass/lib/bridge/PassBridgeProvider';
++import { ItemState } from '@proton/pass/types';
++import { UNIX_DAY } from '@proton/pass/utils/time/constants';
++
++import { PassAliasesProvider, usePassAliasesContext } from '../PassAliasesProvider';
++
++jest.mock('@proton/components/components', () => ({
++    useModalStateObject: jest.fn(),
++}));
++jest.mock('@proton/components/hooks', () => ({
++    useAddresses: jest.fn(),
++    useAuthentication: jest.fn(),
++    useNotifications: jest.fn(),
++    useUser: jest.fn(),
++}));
++jest.mock('@proton/hooks/useAsyncError', () => jest.fn());
++jest.mock('@proton/hooks/useIsMounted', () => jest.fn());
++jest.mock('@proton/pass/lib/bridge/PassBridgeProvider', () => ({
++    usePassBridge: jest.fn(),
++}));
++
++type AnyContext = ReturnType<typeof usePassAliasesContext>;
++
++const buildAliasItem = (state: ItemState, aliasEmail: string, revisionTime: number) =>
++    ({
++        item: {
++            state,
++            aliasEmail,
++            revisionTime,
++            data: {
++                metadata: {
++                    name: aliasEmail,
++                },
++            },
++        },
++    }) as any;
++
++const mockedUseUser = jest.mocked(useUser);
++const mockedUseAddresses = jest.mocked(useAddresses);
++const mockedUseAuthentication = jest.mocked(useAuthentication);
++const mockedUseNotifications = jest.mocked(useNotifications);
++const mockedUsePassBridge = jest.mocked(usePassBridge);
++const mockedUseAsyncError = jest.mocked(useAsyncError);
++const mockedUseIsMounted = jest.mocked(useIsMounted);
++const mockedUseModalStateObject = jest.mocked(useModalStateObject);
++
++describe('PassAliasesProvider blocker behavior', () => {
++    const createNotificationMock = jest.fn();
++    const asyncErrorMock = jest.fn();
++    const openModalMock = jest.fn();
++
++    let passBridgeMock: any;
++    let latestContext: AnyContext | undefined;
++
++    const ContextProbe = () => {
++        latestContext = usePassAliasesContext();
++        return (
++            <div data-testid="provider-state">
++                {latestContext.loading ? 'loading' : 'ready'}:{latestContext.passAliasesItems.length}:
++                {latestContext.hasReachedAliasesCountLimit ? 'limit' : 'open'}
++            </div>
++        );
++    };
++
++    const renderProvider = () => {
++        return render(
++            <PassAliasesProvider>
++                <ContextProbe />
++            </PassAliasesProvider>
++        );
++    };
++
++    beforeEach(() => {
++        latestContext = undefined;
++        createNotificationMock.mockReset();
++        asyncErrorMock.mockReset();
++        openModalMock.mockReset();
++
++        passBridgeMock = {
++            init: jest.fn().mockResolvedValue(true),
++            vault: {
++                getDefault: jest.fn(),
++                createDefaultVault: jest.fn(),
++            },
++            alias: {
++                getAllByShareId: jest.fn(),
++                getAliasOptions: jest.fn().mockResolvedValue({}),
++                create: jest.fn(),
++            },
++            user: {
++                getUserAccess: jest.fn(),
++            },
++        };
++
++        mockedUseUser.mockReturnValue([{} as any, false] as any);
++        mockedUseAddresses.mockReturnValue([[], false] as any);
++        mockedUseAuthentication.mockReturnValue({} as any);
++        mockedUseNotifications.mockReturnValue({ createNotification: createNotificationMock } as any);
++        mockedUsePassBridge.mockReturnValue(passBridgeMock);
++        mockedUseAsyncError.mockReturnValue(asyncErrorMock as any);
++        mockedUseIsMounted.mockReturnValue(() => true);
++        mockedUseModalStateObject.mockReturnValue({ openModal: openModalMock } as any);
++    });
++
++    it('keeps memoized aliases across no-vault reopens and provisions vault during initialization', async () => {
++        passBridgeMock.vault.getDefault
++            .mockResolvedValueOnce({
++                shareId: 'vault-1',
++                content: { name: 'Personal' },
++            })
++            .mockResolvedValueOnce(undefined);
++        passBridgeMock.vault.createDefaultVault.mockResolvedValue({
++            shareId: 'vault-2',
++            content: { name: 'Personal' },
++        });
++        passBridgeMock.alias.getAllByShareId.mockResolvedValue([
++            buildAliasItem(ItemState.Active, 'seed@alias.test', 100),
++        ]);
++        passBridgeMock.user.getUserAccess.mockResolvedValue({
++            plan: {
++                AliasLimit: 99,
++            },
++        });
++
++        const firstRender = renderProvider();
++        await waitFor(() => {
++            expect(screen.getByTestId('provider-state')).toHaveTextContent('ready:1:open');
++        });
++        firstRender.unmount();
++
++        renderProvider();
++        await waitFor(() => {
++            expect(screen.getByTestId('provider-state')).toHaveTextContent('ready:1:open');
++        });
++
++        expect(passBridgeMock.vault.getDefault).toHaveBeenNthCalledWith(1, { maxAge: UNIX_DAY * 1 });
++        expect(passBridgeMock.vault.getDefault).toHaveBeenNthCalledWith(2, { maxAge: UNIX_DAY * 1 });
++        expect(passBridgeMock.vault.createDefaultVault).toHaveBeenCalledTimes(1);
++        expect(latestContext?.passAliasesVaultName).toBe('Personal');
++        expect(passBridgeMock.alias.getAllByShareId).toHaveBeenCalledTimes(1);
++    });
++
++    it('computes limit state from total aliases count after getAliasOptions flow', async () => {
++        passBridgeMock.vault.getDefault.mockResolvedValue(undefined);
++        passBridgeMock.vault.createDefaultVault.mockResolvedValue({
++            shareId: 'vault-created',
++            content: { name: 'Personal' },
++        });
++        passBridgeMock.alias.getAllByShareId.mockResolvedValue([
++            buildAliasItem(ItemState.Active, 'visible@alias.test', 200),
++            buildAliasItem(ItemState.Trashed, 'trashed@alias.test', 100),
++        ]);
++        passBridgeMock.user.getUserAccess.mockResolvedValue({
++            plan: {
++                AliasLimit: 2,
++            },
++        });
++
++        renderProvider();
++        await waitFor(() => {
++            expect(screen.getByTestId('provider-state')).toHaveTextContent('ready');
++        });
++        expect(passBridgeMock.vault.getDefault).toHaveBeenCalledWith({ maxAge: UNIX_DAY * 1 });
++        expect(passBridgeMock.alias.getAllByShareId).not.toHaveBeenCalled();
++        expect(passBridgeMock.user.getUserAccess).not.toHaveBeenCalled();
++
++        await act(async () => {
++            await latestContext?.getAliasOptions();
++        });
++
++        await waitFor(() => {
++            expect(screen.getByTestId('provider-state')).toHaveTextContent('ready:1:limit');
++        });
++
++        expect(passBridgeMock.vault.createDefaultVault).toHaveBeenCalledTimes(1);
++        expect(passBridgeMock.alias.getAllByShareId).toHaveBeenCalledTimes(1);
++        expect(passBridgeMock.alias.getAliasOptions).toHaveBeenCalledWith('vault-created');
++
++        passBridgeMock.alias.getAllByShareId.mockResolvedValueOnce([
++            buildAliasItem(ItemState.Active, 'visible-only@alias.test', 300),
++        ]);
++        passBridgeMock.user.getUserAccess.mockResolvedValueOnce({
++            plan: {
++                AliasLimit: 2,
++            },
++        });
++        await act(async () => {
++            await latestContext?.getAliasOptions();
++        });
++        await waitFor(() => {
++            expect(screen.getByTestId('provider-state')).toHaveTextContent('ready:1:open');
++        });
++
++        passBridgeMock.alias.getAllByShareId.mockResolvedValueOnce([
++            buildAliasItem(ItemState.Active, 'visible-threshold@alias.test', 400),
++            buildAliasItem(ItemState.Trashed, 'trashed-threshold@alias.test', 350),
++        ]);
++        passBridgeMock.user.getUserAccess.mockResolvedValueOnce({
++            plan: {
++                AliasLimit: 3,
++            },
++        });
++        await act(async () => {
++            await latestContext?.getAliasOptions();
++        });
++        await waitFor(() => {
++            expect(screen.getByTestId('provider-state')).toHaveTextContent('ready:1:open');
++        });
++
++        passBridgeMock.alias.getAllByShareId.mockResolvedValueOnce([
++            buildAliasItem(ItemState.Active, 'visible-threshold-2@alias.test', 500),
++            buildAliasItem(ItemState.Trashed, 'trashed-threshold-2@alias.test', 450),
++            buildAliasItem(ItemState.Trashed, 'trashed-threshold-3@alias.test', 425),
++        ]);
++        passBridgeMock.user.getUserAccess.mockResolvedValueOnce({
++            plan: {
++                AliasLimit: 3,
++            },
++        });
++        await act(async () => {
++            await latestContext?.getAliasOptions();
++        });
++        await waitFor(() => {
++            expect(screen.getByTestId('provider-state')).toHaveTextContent('ready:1:limit');
++        });
++    });
++});
+diff --git a/packages/components/components/drawer/views/SecurityCenter/PassAliases/test/PassBridgeFactory.blockers.test.ts b/packages/components/components/drawer/views/SecurityCenter/PassAliases/test/PassBridgeFactory.blockers.test.ts
+new file mode 100644
+index 0000000000..3e48b95e2c
+--- /dev/null
++++ b/packages/components/components/drawer/views/SecurityCenter/PassAliases/test/PassBridgeFactory.blockers.test.ts
+@@ -0,0 +1,122 @@
++import { UNIX_MINUTE } from '@proton/pass/utils/time/constants';
++
++const mockRequestShares = jest.fn();
++const mockCreateVault = jest.fn();
++const mockParseShareResponse = jest.fn();
++const mockObservedMaxAges: Array<number | undefined> = [];
++const mockCallOrder: string[] = [];
++
++jest.mock('@proton/pass/lib/alias/alias.requests', () => ({
++    getAliasOptions: jest.fn(),
++}));
++jest.mock('@proton/pass/lib/api/api', () => ({
++    exposeApi: jest.fn(),
++}));
++jest.mock('@proton/pass/lib/crypto', () => ({
++    exposePassCrypto: jest.fn(() => ({
++        hydrate: jest.fn().mockResolvedValue(undefined),
++        ready: true,
++    })),
++}));
++jest.mock('@proton/pass/lib/crypto/pass-crypto', () => ({
++    createPassCrypto: jest.fn(() => ({})),
++}));
++jest.mock('@proton/pass/lib/items/item.parser', () => ({
++    parseItemRevision: jest.fn(),
++}));
++jest.mock('@proton/pass/lib/items/item.requests', () => ({
++    createAlias: jest.fn(),
++    requestAllItemsForShareId: jest.fn().mockResolvedValue([]),
++}));
++jest.mock('@proton/pass/lib/shares/share.parser', () => ({
++    parseShareResponse: (...args: any[]) => mockParseShareResponse(...args),
++}));
++jest.mock('@proton/pass/lib/shares/share.requests', () => ({
++    requestShares: (...args: any[]) => mockRequestShares(...args),
++}));
++jest.mock('@proton/pass/lib/user/user.requests', () => ({
++    getUserAccess: jest.fn(),
++}));
++jest.mock('@proton/pass/lib/vaults/vault.requests', () => ({
++    createVault: (...args: any[]) => {
++        mockCallOrder.push('createVault');
++        return mockCreateVault(...args);
++    },
++}));
++jest.mock('@proton/pass/lib/vaults/vault.predicates', () => ({
++    isActiveVault: () => true,
++    isOwnVault: () => true,
++    isWritableVault: () => true,
++}));
++jest.mock('@proton/pass/utils/fp/memo', () => ({
++    maxAgeMemoize: (fn: (...args: any[]) => Promise<any>) =>
++        (async (...args: any[]) => {
++            mockCallOrder.push(`getDefault:${String(args.at(-1)?.maxAge)}`);
++            mockObservedMaxAges.push(args.at(-1)?.maxAge);
++            return fn(...args);
++        }) as any,
++}));
++jest.mock('@proton/pass/utils/fp/wait-until', () => ({
++    waitUntil: jest.fn().mockResolvedValue(true),
++}));
++
++describe('PassBridgeFactory createDefaultVault', () => {
++    beforeEach(() => {
++        jest.resetModules();
++        mockRequestShares.mockReset();
++        mockCreateVault.mockReset();
++        mockParseShareResponse.mockReset();
++        mockObservedMaxAges.length = 0;
++        mockCallOrder.length = 0;
++    });
++
++    it('uses a seven-minute getDefault precheck before creating default vault', async () => {
++        mockRequestShares.mockResolvedValue(['encrypted-share']);
++        mockParseShareResponse.mockResolvedValue(undefined);
++        mockCreateVault.mockResolvedValue({
++            shareId: 'new-vault',
++            content: { name: 'Personal' },
++        });
++
++        const { createPassBridge } = await import('@proton/pass/lib/bridge/PassBridgeFactory');
++        const bridge = createPassBridge({} as any);
++
++        await bridge.vault.createDefaultVault();
++
++        expect(mockObservedMaxAges).toEqual([UNIX_MINUTE * 7]);
++        expect(mockCallOrder).toEqual([`getDefault:${UNIX_MINUTE * 7}`, 'createVault']);
++        expect(mockCreateVault).toHaveBeenCalledTimes(1);
++        expect(mockCreateVault).toHaveBeenCalledWith({
++            content: {
++                name: 'Personal',
++                description: 'Personal vault (created from Mail)',
++                display: {},
++            },
++        });
++    });
++
++    it('returns existing vault without creating a new one', async () => {
++        const existingVault = {
++            shareId: 'existing-vault',
++            createTime: 10,
++            content: { name: 'Personal' },
++        };
++
++        mockRequestShares.mockResolvedValue(['encrypted-share']);
++        mockParseShareResponse.mockResolvedValue(existingVault);
++        mockCreateVault.mockResolvedValue({
++            shareId: 'new-vault',
++            content: { name: 'Personal' },
++        });
++
++        const { createPassBridge } = await import('@proton/pass/lib/bridge/PassBridgeFactory');
++        const bridge = createPassBridge({} as any);
++
++        const resolvedVault = await bridge.vault.createDefaultVault();
++
++        expect(mockObservedMaxAges).toEqual([UNIX_MINUTE * 7]);
++        expect(mockCallOrder).toEqual([`getDefault:${UNIX_MINUTE * 7}`]);
++        expect(resolvedVault).toEqual(existingVault);
++        expect(mockCreateVault).not.toHaveBeenCalled();
++    });
++});

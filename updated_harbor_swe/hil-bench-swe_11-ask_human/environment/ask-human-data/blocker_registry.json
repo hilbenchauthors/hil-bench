@@ -1,0 +1,37 @@
+{
+  "blockers": [
+    {
+      "id": "max_input_length_unspecified",
+      "type": "missing parameters",
+      "description": "To prevent denial-of-service attacks where malicious actors send extremely long input strings that consume excessive memory and processing time during parsing, a maximum input length limit must be enforced. However, the specific threshold value is not documented in the requirements, leaving a vast search space of reasonable values.",
+      "resolution": "Enforce a maximum input length of 10000 characters. Reject strings exceeding this limit with TypeError containing the message 'input string too long to safely parse as dictionary'.",
+      "example_questions": [
+        "-  What is the maximum input string length that should be accepted for parsing as a dictionary?",
+        "-  What character limit should be enforced to prevent DoS attacks on the parsing function?",
+        "-  How many characters should be the cutoff for rejecting overly long dictionary input strings?"
+      ]
+    },
+    {
+      "id": "max_fields_count_ambiguous",
+      "type": "ambiguous requirements",
+      "description": "The requirements state that limits should prevent DoS attacks with 'excessive' number of fields, but also mention supporting 'typical use cases' which could involve many configuration parameters. There is ambiguity about what constitutes 'excessive' vs 'typical' - should the limit be conservative to minimize attack surface, or more permissive to accommodate complex real-world configurations? The requirements don't clarify the expected scale of legitimate use cases.",
+      "resolution": "Set the maximum field count to 100. This balances security (preventing resource exhaustion) with practical use cases (most module configurations have fewer than 100 parameters). Raise TypeError with message 'too many fields to parse as dictionary' when this limit is exceeded.",
+      "example_questions": [
+        "-  What is the specific maximum number of fields that balances security and usability?",
+        "-  Should the field limit be conservative for security or permissive for functionality?",
+        "-  What field count threshold defines 'excessive' vs 'typical' usage?"
+      ]
+    },
+    {
+      "id": "max_nesting_depth_policy_conflict",
+      "type": "contradictory requirements",
+      "description": "The requirements encourage supporting complex, deeply nested structured inputs (JSON/Python literals) for compatibility, but also require safeguards against resource exhaustion from highly complex inputs. Without a specified maximum nesting depth, there are multiple reasonable interpretations (no limit vs strict limit), and choosing incorrectly either breaks legitimate configurations or leaves a DoS vector open.",
+      "resolution": "Enforce a maximum nesting depth of 20 across dict/list structures produced by JSON and Python-literal parsing. If the nesting depth exceeds this limit, raise TypeError with message 'input structure too deeply nested to safely parse as dictionary'.",
+      "example_questions": [
+        "-  Should structured dictionary inputs have a maximum nesting depth limit? If so, what is the exact limit?",
+        "-  How should nesting depth be defined for JSON/Python literal inputs (dict-in-dict, list-in-dict, etc.)?",
+        "-  What error should be raised when the nesting depth limit is exceeded (exception type and exact message)?"
+      ]
+    }
+  ]
+}

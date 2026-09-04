@@ -1,0 +1,43 @@
+diff --git a/test/units/config/test_manager.py b/test/units/config/test_manager.py
+index 56ce4f0..d64a7d2 100644
+--- a/test/units/config/test_manager.py
++++ b/test/units/config/test_manager.py
+@@ -64,12 +64,12 @@ ensure_test_data = [
+ ]
+ 
+ ensure_unquoting_test_data = [
+-    ('"value"', '"value"', 'str', 'env'),
+-    ('"value"', '"value"', 'str', 'yaml'),
+-    ('"value"', 'value', 'str', 'ini'),
+-    ('\'value\'', 'value', 'str', 'ini'),
+-    ('\'\'value\'\'', '\'value\'', 'str', 'ini'),
+-    ('""value""', '"value"', 'str', 'ini')
++    ('"value"', '"value"', 'str', 'default', None),
++    ('"value"', '"value"', 'str', os.path.join(curdir, 'test.yml'), 'yaml'),
++    ('"value"', 'value', 'str', cfg_file, 'ini'),
++    ("''value''", "'value'", 'str', cfg_file, 'ini'),
++    ('""value""', '"value"', 'str', cfg_file, 'ini'),
++    ('"value"', '"value"', 'str', 'ini', None)
+ ]
+ 
+ 
+@@ -86,9 +86,16 @@ class TestConfigManager:
+     def test_ensure_type(self, value, expected_type, python_type):
+         assert isinstance(ensure_type(value, expected_type), python_type)
+ 
+-    @pytest.mark.parametrize("value, expected_value, value_type, origin", ensure_unquoting_test_data)
+-    def test_ensure_type_unquoting(self, value, expected_value, value_type, origin):
+-        actual_value = ensure_type(value, value_type, origin)
++    @pytest.mark.parametrize("value, expected_value, value_type, origin, ft", ensure_unquoting_test_data)
++    def test_ensure_type_unquoting(self, value, expected_value, value_type, origin, ft):
++        actual_value = ensure_type(value, value_type, origin, ft)
+         assert actual_value == expected_value
+ 
++    def test_value_and_origin_from_ini_string_is_unquoted(self, tmp_path):
++        cfg_path = tmp_path / 'quoted.cfg'
++        cfg_path.write_text('[defaults]\ninikey = "fromini"\n', encoding='utf-8')
++
++        manager = ConfigManager(str(cfg_path), os.path.join(curdir, 'test.yml'))
++        assert manager.get_config_value_and_origin('config_entry') == ('fromini', str(cfg_path))
++
+     def test_resolve_path(self):

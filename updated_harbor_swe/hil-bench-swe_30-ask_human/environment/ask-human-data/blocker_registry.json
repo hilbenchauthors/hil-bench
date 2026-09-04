@@ -1,0 +1,37 @@
+{
+  "blockers": [
+    {
+      "id": "ambiguous_non_collection_spec_ownership",
+      "type": "ambiguous requirements",
+      "description": "The requirements preserve third-party fallback behavior for spec-based probing of non-collection modules, but they do not define whether this path-hook finder should surface successful delegated results for those modules or step aside so later importers can continue resolution.",
+      "resolution": "For non-collection modules, `_AnsiblePathHookFinder.find_spec()` must raise `AttributeError` directly and return no spec object from this finder. It must not delegate to the wrapped finder's `find_spec()`, and it must not synthesize a `ModuleSpec` via `find_module()` plus `spec_from_loader()`. The purpose of the exception is to force the caller to leave spec-based resolution for this path-hook finder and fall back to the separate legacy `find_module()` path this finder already proxies for third-party modules.\n",
+      "example_questions": [
+        "-  When a non-collection module is probed through this path-hook finder, should a delegated spec be surfaced or should the finder decline ownership of the result?",
+        "-  How should spec-based probing behave for non-collection modules so that downstream importers still get their expected fallback opportunities?",
+        "-  Should successful delegated `find_spec()` results for non-collection modules be treated as final answers or intentionally suppressed?"
+      ]
+    },
+    {
+      "id": "contradictory_path_argument_type",
+      "type": "contradictory requirements",
+      "description": "The problem statement says the delegated call should use its own stable snapshot of the path context rather than a mutable container that can continue to change after handoff, while the requirements say other finders must be called with a single-element list containing `self._pathctx`.",
+      "resolution": "For delegated legacy `find_module()` calls outside the FileFinder special case, materialize the path argument at call time as a fresh one-element tuple, `(self._pathctx,)`. The delegated call must use that tuple exactly as the `path` value, not a list and not a positional second argument; the required form is `finder.find_module(fullname, path=(self._pathctx,))`.",
+      "example_questions": [
+        "-  For delegated legacy `find_module()` calls, should the path be passed as the single-element list described in the requirements, or as a stable snapshot of the path context as described in the problem statement?",
+        "-  What concrete path container should be used so the delegated call gets its own stable snapshot instead of a mutable container that can continue to change after handoff?",
+        "-  When delegating to non-FileFinder legacy finders, which interpretation takes precedence: the requirement's single-element list or the problem statement's stable-snapshot wording?"
+      ]
+    },
+    {
+      "id": "missing_filefinder_identification_rule",
+      "type": "missing parameters",
+      "description": "The requirements mandate special handling when the delegated legacy finder is `FileFinder`, but they omit the specific runtime identifier value needed to safely recognize this object in environments where the class itself cannot be imported.",
+      "resolution": "The required runtime identifier value is the exact internal CPython string `'_frozen_importlib_external.FileFinder'`, which must be matched against the combined `__module__` and `__name__` attributes of the finder's class. When `_AnsiblePathHookFinder.find_module()` detects this exact finder type, it must call the delegated finder as `finder.find_module(fullname)` with no `path` argument and must return that result directly.",
+      "example_questions": [
+        "-  What exact string value must be used as the runtime identifier to safely recognize the FileFinder object?",
+        "-  Since the class cannot be imported, what specific string literal should be matched against the finder's class attributes?",
+        "-  To prevent false positives from custom finders, what is the exact fully qualified string parameter required to identify the standard FileFinder?"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+[
+  "test/units/cli/test_doc.py::test_rolemixin__build_doc",
+  "test/units/cli/test_doc.py::test_rolemixin__build_doc_no_filter_match",
+  "test/units/cli/test_doc.py::test_rolemixin__build_doc_empty_collection",
+  "test/units/cli/test_doc.py::test_rolemixin__build_doc_no_entry_point_filter"
+]

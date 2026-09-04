@@ -1,0 +1,37 @@
+{
+  "blockers": [
+    {
+      "id": "missing_platform_fallback_mapping_values",
+      "type": "missing parameters",
+      "description": "The requirements state that build-tagged files must define platform-specific default configuration paths, but do not specify whether non-Linux platforms should have a filesystem fallback path or skip filesystem fallback entirely.",
+      "resolution": "On Linux, the platform fallback path must be \\\"/etc/flipt/config/default.yml\\\". On non-Linux, the platform fallback path must be empty (no filesystem fallback), so that non-Linux platforms proceed directly to default configuration when no user config directory or explicit path is available.",
+      "example_questions": [
+        "-  \"Should non-Linux platforms have a filesystem fallback path or skip filesystem fallback entirely?",
+        "-  What filesystem path should Linux use as its platform-specific default configuration fallback?",
+        "-  What is the expected behavior on non-Linux when neither user config directory nor explicit path is available?"
+      ]
+    },
+    {
+      "id": "ambiguous_determinepath_return_signature",
+      "type": "ambiguous requirements",
+      "description": "The requirements state that the configuration path resolution step must provide both a selected path and a separate boolean signal for whether startup should continue with defaults, but do not define which boolean value corresponds to which outcome.",
+      "resolution": "The boolean signal indicates whether startup should continue with default configuration. determinePath must evaluate candidate paths in this order: user config directory path, explicit --config path, then platform fallback path. A candidate counts as found only if os.Stat succeeds on it. If the explicit --config path is non-empty but missing or unreadable, do not return it immediately; continue checking the next candidate. Return (matchedPath, false) when a readable configuration file is found. Return (\\\"\\\", true) when no readable candidate was found and defaults should be used.",
+      "example_questions": [
+        "-  What concrete value of the readiness signal means file-backed configuration should be loaded versus using defaults?",
+        "-  How should the configuration path resolution step compute the readiness signal from candidate paths?",
+        "-  What is the expected readiness signal value when no candidate configuration file exists?"
+      ]
+    },
+    {
+      "id": "contradictory_defaultcfgpath_declaration_type",
+      "type": "contradictory requirements",
+      "description": "The Problem Statement requires the default configuration path to remain a single compile-time constant shared across platforms, while the Requirements require platform-specific default configuration paths defined through build-tagged files. These instructions conflict on both whether the fallback path is shared or platform-specific and whether it should remain a single compile-time constant versus a per-platform declaration.",
+      "resolution": "Resolve the contradiction by favoring the platform-specific approach: use build-tagged declarations in cmd/flipt/default_linux.go and cmd/flipt/default.go, and remove only the single `defaultCfgPath` declaration from cmd/flipt/main.go while preserving all other existing package-level variables. Because each build tag supplies a different value, the declaration must use var rather than const and must not include a type annotation. Each build-tagged file must include both the modern `//go:build` constraint line and the legacy `// +build` constraint line.",
+      "example_questions": [
+        "-  Should defaultCfgPath be declared as const or var?",
+        "-  How should defaultCfgPath be declared across Linux and non-Linux builds?",
+        "-  What file layout is required for platform-specific declarations?"
+      ]
+    }
+  ]
+}

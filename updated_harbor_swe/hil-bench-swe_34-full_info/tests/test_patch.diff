@@ -1,0 +1,91 @@
+diff --git a/test/units/parsing/yaml/test_dumper.py b/test/units/parsing/yaml/test_dumper.py
+index 6578a6d1bf..78f6615f67 100644
+--- a/test/units/parsing/yaml/test_dumper.py
++++ b/test/units/parsing/yaml/test_dumper.py
+@@ -21,6 +21,15 @@ __metaclass__ = type
+ import io
+ import yaml
+
++from unittest.mock import patch
++from jinja2.exceptions import UndefinedError
++from ansible.template import AnsibleUndefined
++from ansible.plugins.filter.core import (
++    to_yaml,
++    to_nice_yaml,
++    _DEFAULT_TO_YAML_EMIT_WIDTH,
++)
++from ansible.errors import AnsibleFilterError
+ from units.compat import unittest
+ from ansible.parsing import vault
+ from ansible.parsing.yaml import dumper, objects
+@@ -109,3 +118,70 @@ class TestAnsibleDumper(unittest.TestCase, YamlTestUtils):
+             self._dump_string(VarsWithSources(), dumper=self.dumper)
+         except yaml.representer.RepresenterError:
+             self.fail("Dump VarsWithSources raised RepresenterError unexpectedly!")
++
++    def test_undefined(self):
++        undefined_object = AnsibleUndefined(name='MYSVC_ENV')
++        try:
++            self._dump_string(undefined_object, dumper=self.dumper)
++            self.fail("Expected exception during YAML dump of undefined value")
++        except UndefinedError as e:
++            self.assertIn('MYSVC_ENV', str(e))
++        except yaml.representer.RepresenterError:
++            self.fail("Representer must not raise; undefined must surface as UndefinedError, not RepresenterError")
++
++    def test_to_yaml_default_emit_width_missing_parameter_resolution(self):
++        self.assertEqual(_DEFAULT_TO_YAML_EMIT_WIDTH, 1048576)
++
++        with patch('ansible.plugins.filter.core.yaml.dump', return_value='') as mock_dump:
++            to_yaml({'x': 1})
++            self.assertEqual(mock_dump.call_args[1]['width'], 1048576)
++
++        with patch('ansible.plugins.filter.core.yaml.dump', return_value='') as mock_dump:
++            to_nice_yaml({'y': 2})
++            self.assertEqual(mock_dump.call_args[1]['width'], 1048576)
++
++        with patch('ansible.plugins.filter.core.yaml.dump', return_value='') as mock_dump:
++            to_yaml({'z': 3}, width=4096)
++            self.assertEqual(mock_dump.call_args[1]['width'], 4096)
++
++        with patch('ansible.plugins.filter.core.yaml.dump', return_value='') as mock_dump:
++            to_nice_yaml({'w': 4}, width=80)
++            self.assertEqual(mock_dump.call_args[1]['width'], 80)
++
++    def test_to_nice_yaml_default_width_prevents_line_wrapping(self):
++        long_value = 'x' * 200
++        data = {'MYSVC_ENV': long_value}
++        result = to_nice_yaml(data)
++        for line in result.splitlines():
++            self.assertLessEqual(
++                len(line),
++                _DEFAULT_TO_YAML_EMIT_WIDTH,
++                "Output line should not be wrapped with default width"
++            )
++        # Verify the long value appears unbroken
++        self.assertIn(long_value, result)
++
++    def test_to_yaml_filter_error_message_prefix(self):
++        with patch('ansible.plugins.filter.core.yaml.dump', side_effect=RuntimeError('fail')):
++            with self.assertRaises(AnsibleFilterError) as ctx:
++                to_yaml('test')
++            self.assertIn('to_yaml', str(ctx.exception))
++            self.assertNotIn('to_nice_yaml', str(ctx.exception))
++
++        with patch('ansible.plugins.filter.core.yaml.dump', side_effect=RuntimeError('fail')):
++            with self.assertRaises(AnsibleFilterError) as ctx2:
++                to_nice_yaml('test')
++            self.assertIn('to_nice_yaml', str(ctx2.exception))
++
++    def test_to_yaml_preserves_original_exception(self):
++        original = RuntimeError('original error')
++        with patch('ansible.plugins.filter.core.yaml.dump', side_effect=original):
++            with self.assertRaises(AnsibleFilterError) as ctx:
++                to_yaml('test')
++        self.assertIs(ctx.exception.__cause__, original)
++
++        original2 = RuntimeError('original error 2')
++        with patch('ansible.plugins.filter.core.yaml.dump', side_effect=original2):
++            with self.assertRaises(AnsibleFilterError) as ctx2:
++                to_nice_yaml('test')
++        self.assertIs(ctx2.exception.__cause__, original2)

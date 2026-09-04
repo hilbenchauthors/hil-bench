@@ -1,0 +1,302 @@
+diff --git a/conf/configuration.go b/conf/configuration.go
+index 46c1abb7..3881303b 100644
+--- a/conf/configuration.go
++++ b/conf/configuration.go
+@@ -67,6 +67,7 @@ type configOptions struct {
+ 	EnableUserEditing            bool
+ 	EnableSharing                bool
+ 	DefaultDownloadableShare     bool
++	ShareLinkUpdatePolicy       string
+ 	DefaultTheme                 string
+ 	DefaultLanguage              string
+ 	DefaultUIVolume              int
+@@ -354,6 +355,7 @@ func init() {
+ 	viper.SetDefault("devactivitypanel", true)
+ 	viper.SetDefault("enablesharing", false)
+ 	viper.SetDefault("defaultdownloadableshare", false)
++	viper.SetDefault("sharelinkupdatepolicy", "BALANCED")
+ 	viper.SetDefault("devenablebufferedscrobble", true)
+ 	viper.SetDefault("devsidebarplaylists", true)
+ 	viper.SetDefault("devshowartistpage", true)
+diff --git a/core/archiver.go b/core/archiver.go
+index c48f292f..677e782c 100644
+--- a/core/archiver.go
++++ b/core/archiver.go
+@@ -91,12 +91,12 @@ func (a *archiver) albumFilename(mf model.MediaFile, format string, isMultDisc b
+ 
+ func (a *archiver) ZipShare(ctx context.Context, id string, out io.Writer) error {
+ 	s, err := a.shares.Load(ctx, id)
+-	if !s.Downloadable {
+-		return model.ErrNotAuthorized
+-	}
+ 	if err != nil {
+ 		return err
+ 	}
++	if !s.Downloadable {
++		return model.ErrNotAuthorized
++	}
+ 	log.Debug(ctx, "Zipping share", "name", s.ID, "format", s.Format, "bitrate", s.MaxBitRate, "numTracks", len(s.Tracks))
+ 	return a.zipMediaFiles(ctx, id, s.Format, s.MaxBitRate, out, s.Tracks)
+ }
+diff --git a/core/share.go b/core/share.go
+index 6f025bf1..4dc7562b 100644
+--- a/core/share.go
++++ b/core/share.go
+@@ -8,13 +8,16 @@ import (
+ 	"github.com/Masterminds/squirrel"
+ 	"github.com/deluan/rest"
+ 	gonanoid "github.com/matoous/go-nanoid/v2"
++	"github.com/navidrome/navidrome/conf"
+ 	"github.com/navidrome/navidrome/log"
+ 	"github.com/navidrome/navidrome/model"
++	"github.com/navidrome/navidrome/utils/gg"
+ 	"github.com/navidrome/navidrome/utils/slice"
+ )
+ 
+ type Share interface {
+ 	Load(ctx context.Context, id string) (*model.Share, error)
++	LoadWithOptions(ctx context.Context, id string, opts *model.ShareLoadOptions) (*model.Share, error)
+ 	NewRepository(ctx context.Context) rest.Repository
+ }
+ 
+@@ -29,20 +32,32 @@ type shareService struct {
+ }
+ 
+ func (s *shareService) Load(ctx context.Context, id string) (*model.Share, error) {
++	return s.LoadWithOptions(ctx, id, nil)
++}
++
++func (s *shareService) LoadWithOptions(ctx context.Context, id string, opts *model.ShareLoadOptions) (*model.Share, error) {
++	trackVisit := opts == nil || opts.TrackVisitOnLoad || opts.UpdateVisitOnLoad
++	if opts != nil && !trackVisit {
++		return nil, model.ErrVisitTrackingRequired
++	}
+ 	repo := s.ds.Share(ctx)
+ 	share, err := repo.Get(id)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+-	if !share.ExpiresAt.IsZero() && share.ExpiresAt.Before(time.Now()) {
++	expiresAt := gg.V(share.ExpiresAt)
++	if !expiresAt.IsZero() && expiresAt.Before(time.Now()) {
+ 		return nil, model.ErrExpired
+ 	}
+-	share.LastVisitedAt = time.Now()
+-	share.VisitCount++
+-
+-	err = repo.(rest.Persistable).Update(id, share, "last_visited_at", "visit_count")
+-	if err != nil {
+-		log.Warn(ctx, "Could not increment visit count for share", "share", share.ID)
++	updateVisit := opts == nil || opts.TrackVisitOnLoad || opts.UpdateVisitOnLoad
++	if updateVisit && (conf.Server.ShareLinkUpdatePolicy == "FAST" || conf.Server.ShareLinkUpdatePolicy == "BALANCED") {
++		now := time.Now()
++		share.LastVisitedAt = &now
++		share.VisitCount++
++		err = repo.(rest.Persistable).Update(id, share, "last_visited_at", "visit_count")
++		if err != nil {
++			log.Warn(ctx, "Could not increment visit count for share", "share", share.ID)
++		}
+ 	}
+ 	return share, nil
+ }
+@@ -90,8 +105,8 @@ func (r *shareRepositoryWrapper) Save(entity interface{}) (string, error) {
+ 		return "", err
+ 	}
+ 	s.ID = id
+-	if s.ExpiresAt.IsZero() {
+-		s.ExpiresAt = time.Now().Add(365 * 24 * time.Hour)
++	if gg.V(s.ExpiresAt).IsZero() {
++		s.ExpiresAt = gg.P(time.Now().Add(90 * 24 * time.Hour))
+ 	}
+ 
+ 	firstId := strings.SplitN(s.ResourceIDs, ",", 2)[0]
+@@ -127,8 +142,7 @@ func (r *shareRepositoryWrapper) Save(entity interface{}) (string, error) {
+ func (r *shareRepositoryWrapper) Update(id string, entity interface{}, _ ...string) error {
+ 	cols := []string{"description", "downloadable"}
+ 
+-	// TODO Better handling of Share expiration
+-	if !entity.(*model.Share).ExpiresAt.IsZero() {
++	if entity.(*model.Share).ExpiresAt != nil && !gg.V(entity.(*model.Share).ExpiresAt).IsZero() {
+ 		cols = append(cols, "expires_at")
+ 	}
+ 	return r.Persistable.Update(id, entity, cols...)
+diff --git a/model/album.go b/model/album.go
+index 7de6864f..a3c51fef 100644
+--- a/model/album.go
++++ b/model/album.go
+@@ -52,7 +52,7 @@ type Album struct {
+ 	MediumImageUrl        string    `structs:"medium_image_url" json:"mediumImageUrl,omitempty"`
+ 	LargeImageUrl         string    `structs:"large_image_url" json:"largeImageUrl,omitempty"`
+ 	ExternalUrl           string    `structs:"external_url" json:"externalUrl,omitempty"`
+-	ExternalInfoUpdatedAt time.Time `structs:"external_info_updated_at" json:"externalInfoUpdatedAt"`
++	ExternalInfoUpdatedAt time.Time `structs:"external_info_updated_at" json:"externalInfoUpdatedAt,omitempty"`
+ 	CreatedAt             time.Time `structs:"created_at" json:"createdAt"`
+ 	UpdatedAt             time.Time `structs:"updated_at" json:"updatedAt"`
+ }
+diff --git a/model/artist.go b/model/artist.go
+index dedb402e..7be34666 100644
+--- a/model/artist.go
++++ b/model/artist.go
+@@ -21,7 +21,7 @@ type Artist struct {
+ 	LargeImageUrl         string    `structs:"large_image_url" json:"largeImageUrl,omitempty"`
+ 	ExternalUrl           string    `structs:"external_url" json:"externalUrl,omitempty"`
+ 	SimilarArtists        Artists   `structs:"similar_artists"  json:"-"`
+-	ExternalInfoUpdatedAt time.Time `structs:"external_info_updated_at" json:"externalInfoUpdatedAt"`
++	ExternalInfoUpdatedAt time.Time `structs:"external_info_updated_at" json:"externalInfoUpdatedAt,omitempty"`
+ }
+ 
+ func (a Artist) ArtistImageUrl() string {
+diff --git a/model/errors.go b/model/errors.go
+index ff4be572..d818203d 100644
+--- a/model/errors.go
++++ b/model/errors.go
+@@ -3,9 +3,10 @@ package model
+ import "errors"
+ 
+ var (
+-	ErrNotFound      = errors.New("data not found")
+-	ErrInvalidAuth   = errors.New("invalid authentication")
+-	ErrNotAuthorized = errors.New("not authorized")
+-	ErrExpired       = errors.New("access expired")
+-	ErrNotAvailable  = errors.New("functionality not available")
++	ErrNotFound                = errors.New("data not found")
++	ErrInvalidAuth             = errors.New("invalid authentication")
++	ErrNotAuthorized           = errors.New("not authorized")
++	ErrExpired                 = errors.New("access expired")
++	ErrNotAvailable            = errors.New("functionality not available")
++	ErrVisitTrackingRequired   = errors.New("visit tracking required")
+ )
+diff --git a/model/share.go b/model/share.go
+index d8bc3bdd..6aae809a 100644
+--- a/model/share.go
++++ b/model/share.go
+@@ -13,8 +13,8 @@ type Share struct {
+ 	Username      string     `structs:"-" json:"username,omitempty"`
+ 	Description   string     `structs:"description" json:"description,omitempty"`
+ 	Downloadable  bool       `structs:"downloadable" json:"downloadable"`
+-	ExpiresAt     time.Time  `structs:"expires_at" json:"expiresAt,omitempty"`
+-	LastVisitedAt time.Time  `structs:"last_visited_at" json:"lastVisitedAt,omitempty"`
++	ExpiresAt     *time.Time `structs:"expires_at" json:"expiresAt,omitempty"`
++	LastVisitedAt *time.Time `structs:"last_visited_at" json:"lastVisitedAt,omitempty"`
+ 	ResourceIDs   string     `structs:"resource_ids" json:"resourceIds,omitempty"`
+ 	ResourceType  string     `structs:"resource_type" json:"resourceType,omitempty"`
+ 	Contents      string     `structs:"contents" json:"contents,omitempty"`
+@@ -46,6 +46,15 @@ func (s Share) CoverArtID() ArtworkID {
+ 	return s.Tracks[rnd].CoverArtID()
+ }
+ 
++// ShareLoadOptions configures behavior when loading a share.
++type ShareLoadOptions struct {
++	// UpdateVisitOnLoad when true allows updating last-visited timestamp and visit count when policy permits.
++	UpdateVisitOnLoad bool
++	// TrackVisitOnLoad when true allows updating last-visited timestamp and visit count when policy permits.
++	// When both UpdateVisitOnLoad and TrackVisitOnLoad are false, LoadWithOptions returns ErrVisitTrackingRequired and does not return the share.
++	TrackVisitOnLoad bool
++}
++
+ type Shares []Share
+ 
+ type ShareRepository interface {
+diff --git a/server/public/encode_id.go b/server/public/encode_id.go
+index 77660c86..a9b7e26f 100644
+--- a/server/public/encode_id.go
++++ b/server/public/encode_id.go
+@@ -13,6 +13,7 @@ import (
+ 	"github.com/navidrome/navidrome/core/auth"
+ 	"github.com/navidrome/navidrome/model"
+ 	"github.com/navidrome/navidrome/server"
++	"github.com/navidrome/navidrome/utils/gg"
+ )
+ 
+ func ImageURL(r *http.Request, artID model.ArtworkID, size int) string {
+@@ -66,6 +67,6 @@ func encodeMediafileShare(s model.Share, id string) string {
+ 	if s.MaxBitRate != 0 {
+ 		claims["b"] = s.MaxBitRate
+ 	}
+-	token, _ := auth.CreateExpiringPublicToken(s.ExpiresAt, claims)
++	token, _ := auth.CreateExpiringPublicToken(gg.V(s.ExpiresAt), claims)
+ 	return token
+ }
+diff --git a/server/public/handle_shares.go b/server/public/handle_shares.go
+index a4fa99d8..46c07bfe 100644
+--- a/server/public/handle_shares.go
++++ b/server/public/handle_shares.go
+@@ -49,6 +49,9 @@ func checkShareError(ctx context.Context, w http.ResponseWriter, err error, id s
+ 	case errors.Is(err, model.ErrNotAuthorized):
+ 		log.Error(ctx, "Share is not downloadable", "id", id, err)
+ 		http.Error(w, "This share is not downloadable", http.StatusForbidden)
++	case errors.Is(err, model.ErrVisitTrackingRequired):
++		log.Error(ctx, "Visit tracking required", "id", id, err)
++		http.Error(w, "Share not available", http.StatusForbidden)
+ 	case err != nil:
+ 		log.Error(ctx, "Error retrieving share", "id", id, err)
+ 		http.Error(w, "Error retrieving share", http.StatusInternalServerError)
+diff --git a/server/subsonic/sharing.go b/server/subsonic/sharing.go
+index 02110b08..d85f2f5d 100644
+--- a/server/subsonic/sharing.go
++++ b/server/subsonic/sharing.go
+@@ -9,6 +9,7 @@ import (
+ 	"github.com/navidrome/navidrome/model"
+ 	"github.com/navidrome/navidrome/server/public"
+ 	"github.com/navidrome/navidrome/server/subsonic/responses"
++	"github.com/navidrome/navidrome/utils/gg"
+ 	"github.com/navidrome/navidrome/utils/req"
+ )
+ 
+@@ -34,8 +35,8 @@ func (api *Router) buildShare(r *http.Request, share model.Share) responses.Shar
+ 		Description: share.Description,
+ 		Username:    share.Username,
+ 		Created:     share.CreatedAt,
+-		Expires:     &share.ExpiresAt,
+-		LastVisited: share.LastVisitedAt,
++		Expires:     share.ExpiresAt,
++		LastVisited: gg.V(share.LastVisitedAt),
+ 		VisitCount:  int32(share.VisitCount),
+ 	}
+ 	if resp.Description == "" {
+@@ -62,9 +63,11 @@ func (api *Router) CreateShare(r *http.Request) (*responses.Subsonic, error) {
+ 	repo := api.share.NewRepository(r.Context())
+ 	share := &model.Share{
+ 		Description: description,
+-		ExpiresAt:   expires,
+ 		ResourceIDs: strings.Join(ids, ","),
+ 	}
++	if !expires.IsZero() {
++		share.ExpiresAt = gg.P(expires)
++	}
+ 
+ 	id, err := repo.(rest.Persistable).Save(share)
+ 	if err != nil {
+@@ -95,7 +98,9 @@ func (api *Router) UpdateShare(r *http.Request) (*responses.Subsonic, error) {
+ 	share := &model.Share{
+ 		ID:          id,
+ 		Description: description,
+-		ExpiresAt:   expires,
++	}
++	if !expires.IsZero() {
++		share.ExpiresAt = gg.P(expires)
+ 	}
+ 
+ 	err = repo.(rest.Persistable).Update(id, share)
+diff --git a/utils/gg/gg.go b/utils/gg/gg.go
+index 6da9082a..87f15e82 100644
+--- a/utils/gg/gg.go
++++ b/utils/gg/gg.go
+@@ -30,3 +30,17 @@ func FirstOr[T comparable](or T, values ...T) T {
+ 	// If all the input values are zero, return the default value.
+ 	return or
+ }
++
++// P returns a pointer to the input value.
++func P[T any](v T) *T {
++	return &v
++}
++
++// V returns the value of the input pointer, or the zero value of the type if the pointer is nil.
++func V[T any](p *T) T {
++	if p == nil {
++		var zero T
++		return zero
++	}
++	return *p
++}

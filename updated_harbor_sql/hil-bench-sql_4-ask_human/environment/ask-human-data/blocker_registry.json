@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The question references \"R version 5.0 was released,\" but R version 5.0 has never been released.",
+      "example_questions": [
+        "R version 5.0 has never been released. What date should I use as the cutoff for filtering posts 'after R version 5.0 was released'?",
+        "The database contains data from 2009 to 2014. Since R 5.0 does not exist, should I use the latest major R release in that period (R 3.1.0, April 2014) as the reference date?",
+        "Since R version 5.0 is not a real release, could you clarify what milestone or date you intended to reference?"
+      ],
+      "id": "r_version_five_release",
+      "resolution": "Filter for contributions on or after the fixed date 2012-07-01 (inclusive).",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for \"adult teenagers,\" but the database schema defines \"teenager\" as users aged 13\u201318 and \"adult\" as users aged 19\u201365. These are mutually exclusive age categories.",
+      "example_questions": [
+        "The database defines teenagers as ages 13\u201318 and adults as 19\u201365. These are mutually exclusive. What age range should I use for 'adult teenagers'?\" 2. \"Should 'adult teenagers' mean users at the boundary between both categories, such as ages 18\u201321?",
+        "Do you want me to prioritize the 'adult' label (19\u201365) or the 'teenager' label (13\u201318), or find a compromise range?",
+        "Should I interpret 'adult teenagers' as young adults aged 18\u201322, or strictly users who are exactly 18 or 19?"
+      ],
+      "id": "adult_teenager_contradiction",
+      "resolution": "Interpret \"adult teenagers\" as users in the transitional age range of 18 to 21 years old (inclusive), bridging the boundary between the teenager (13\u201318) and adult (19\u201365) categories.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The term \"most popular contributions\" lacks a specific metric definition and could plausibly mean highest Score, ViewCount, FavoriteCount, CommentCount, or AnswerCount \u2014 each producing different rankings.",
+      "example_questions": [
+        "What metric should I use to determine 'most popular'? Total score, view count, favorite count, comment count, or answer count?",
+        "Should 'popular' be measured by views (reach), score (community rating), favorites (saved by users), or a combination of these?",
+        "'Most popular' could mean most viewed, highest scored, or most favorited. These produce different rankings \u2014 which interpretation do you prefer?"
+      ],
+      "id": "popular_contributions_metric",
+      "resolution": "Interpret \"most popular contributions\" as the highest total view count from their posts. Rank users by the sum of the ViewCount column in the posts table across all their qualifying posts, from highest to lowest. The output column should display this total. Break ties alphabetically by display name.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"active contributors\" as \"users who demonstrate strong community participation and consistent engagement,\" but \"strong\" and \"consistent\" are not quantified with any numeric thresholds.",
+      "example_questions": [
+        "The business info says active contributors have 'strong community participation and consistent engagement,' but doesn't provide numeric thresholds. What specific criteria should I use?",
+        "Should 'active contributor' be defined by a minimum number of posts, badges earned, reputation score, or posting frequency?",
+        "What quantitative threshold defines 'strong participation' \u2014 is it 5 posts, 10 posts, 50 posts, or something else?"
+      ],
+      "id": "active_contributor_definition",
+      "resolution": "Interpret \"active contributor\" as a user who has authored at least 5 posts as owner across all time, and has been awarded at least 5 badges in total. Both conditions must be met.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question filters posts \"dated after\" a certain date, but the `posts` table has four date columns:  `CreaionDate`, `LasActivityDate`, `LastEditDate`, and `LastUpdateDate`  with no schema clarification on which represents the relevant \"date\" of a post.",
+      "example_questions": [
+        "The `posts` table has four date columns: `CreaionDate`, `LasActivityDate`, `LastEditDate`, and `LastUpdateDate`. Which one should I use to determine which posts are 'dated after' a given date?",
+        "Does 'dated after' refer to when the post was created, when it was last active, when it was last edited, or when it was last updated?",
+        "Should I use `CreaionDate` (original posting date), `LasActivityDate`, `LastEditDate`, or `LastUpdateDate` for the date filter?"
+      ],
+      "id": "post_date_column_ambiguity",
+      "resolution": "Interpret \"dated after\" as the `LasActivityDate` column in the `posts` table.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

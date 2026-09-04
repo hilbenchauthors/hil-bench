@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question requires a \u201cpositive CRP\" but the column contains values like '+','+-','value+','++' and it's unclear which values are considered positive.",
+      "example_questions": [
+        "What value should determine whether CRP is positive?",
+        "Which values are considered positive in the Laboratory.CRP column?",
+        "How should I identify patients with positive CRP?"
+      ],
+      "id": "positive_CRP",
+      "resolution": "Consider positive any value of Laboratory.CRP containing a plus sign anywhere (LIKE %+%) or the value 'POS'.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for high-risk thrombosis and the business information is vague as it as patients with notable coagulation markers. 'Notable' is undefined and there are multiple coagulation markers available.",
+      "example_questions": [
+        "Which values should be used to identify patients with high-risk thrombosis?",
+        "What should I consider as notable coagulation activity?",
+        "What coagulation markers should I use to identify patients with high-risk thrombosis?"
+      ],
+      "id": "high_risk_thrombosis",
+      "resolution": "Filter for Examination.Patients thrombosis equal to 1 and values of PT higher or equal than 14 AND values of APTT higher or equal than 45.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "There are multiple columns with diagnosis with values 1 and 0 and there's no information in the schema that shows which values refers to SLE or BEHCET.",
+      "example_questions": [
+        "Which Diagnosis record source should be used when multiple sources contains diagnosis?",
+        "How should I identify patients diagnosed with SLE or BEHCET?",
+        "There are multiple records containing diagnosis, which one refers to SLE and BEHCET?"
+      ],
+      "id": "sle_behcet_diagnosis",
+      "resolution": "Identify patients with SLE using the Patient.DX3 = 1 and BEHCET using the Patient.DX6 equal to 1.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

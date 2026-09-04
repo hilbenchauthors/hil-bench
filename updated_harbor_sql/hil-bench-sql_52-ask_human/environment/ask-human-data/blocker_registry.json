@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for the total withdrawal amount in USD using the current CZK\u2192USD exchange rate. The database stores amounts in CZK and contains no live FX rates, so the \u201ccurrent\u201d conversion cannot be derived from the DB.",
+      "example_questions": [
+        "What is the current CZK\u2192USD exchange rate?",
+        "Could you let me know what the current CZK\u2192USD exchange rate is?",
+        "Could you provide the current CZK\u2192USD exchange rate?"
+      ],
+      "id": "current_client_age_requires_today",
+      "resolution": "Use CZK\u2192USD = 0.052416 for conversion (USD = CZK \u00d7 0.052416).",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for accounts \"registered in the Prague district of Prerov\", but Prague and Prerov are independent districts, so this is a real world contradiction.",
+      "example_questions": [
+        "Prague and Prerov are independent districts. Which one should I use?",
+        "Should I use Prague or Prerov district?",
+        "Could you clarify which district should I use: Prague or Prerov?"
+      ],
+      "id": "prague_not_in_slovakia",
+      "resolution": "Interpret this as Prague and Prerov as independent districts. Filter for clients whose district is Prague and Prerov: district.A2 = 'Hl.m. Praha' and 'Prerov' (joined via client.district_id).",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for \"recently established long-term accounts,\" which contain contradictory requirements. An account cannot simultaneously be recently established (implying new) and long-term (implying old or mature).",
+      "example_questions": [
+        "How can an account be both recently established and long-term at the same time?",
+        "The terms \"recently established\" and \"long-term\" seem contradictory. Which criterion should I prioritize?",
+        "Should I interpret \"recently established long-term accounts\" as new accounts with high activity, or something else?"
+      ],
+      "id": "recently_established_longterm_conflict",
+      "resolution": "Recently established: account.date >= '1997-07-01' (last ~18 months of the dataset ending 1998-12-31). Long-term: the account has an activity span \u2265 365 days, i.e. MAX(trans.date) - MIN(trans.date) >= 365 for that account.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for accounts \"owned by priority banking clients\", but the term \"priority banking clients\" is not defined in the business information provided, but there is no column in the database explicitly identifying priority status.",
+      "example_questions": [
+        "What criteria define a \"priority banking client\"?",
+        "How do I identify which clients are considered priority banking clients in the database?",
+        "Is priority status determined by loan history, account balance, card type, or another factor?"
+      ],
+      "id": "priority_banking_clients_undefined",
+      "resolution": "Priority banking clients are defined as account owners (disposition type = 'OWNER') who hold a gold-class credit card (card type = 'gold').",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question filters for accounts \u201cwith a performing loan,\u201d but the only relevant field is loan.status, whose values are encoded (e.g., A/B/C/D). If the schema only says \u201crepayment status\u201d and does not define what each code means, it becomes unclear which specific value(s) correspond to a \u201cperforming\u201d loan.",
+      "example_questions": [
+        "In the loan.status column, which specific code(s) should be treated as a performing loan (e.g., A/B/C/D)?",
+        "Which loan.status values correspond to \u2018performing loan\u2019: A, B, C, or D?",
+        "Could you clarify which loan.status values correspond to \u2018performing loan\u2019: A, B, C, or D?"
+      ],
+      "id": "standard_frequency_ambiguous",
+      "resolution": "Treat a \u201cperforming loan\u201d as loans where loan.status = 'B'.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

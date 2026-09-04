@@ -1,0 +1,171 @@
+diff --git a/test/units/plugins/connection/test_psrp.py b/test/units/plugins/connection/test_psrp.py
+index de0def01fc..6cda493065 100644
+--- a/test/units/plugins/connection/test_psrp.py
++++ b/test/units/plugins/connection/test_psrp.py
+@@ -147,41 +147,6 @@ class TestConnectionPSRP(object):
+                 '_psrp_protocol': 'http'
+             },
+         ),
+-        # psrp extras
+-        (
+-            {'_extras': {'ansible_psrp_mock_test1': True}},
+-            {
+-                '_psrp_conn_kwargs': {
+-                    'server': 'inventory_hostname',
+-                    'port': 5986,
+-                    'username': None,
+-                    'password': None,
+-                    'ssl': True,
+-                    'path': 'wsman',
+-                    'auth': 'negotiate',
+-                    'cert_validation': True,
+-                    'connection_timeout': 30,
+-                    'encryption': 'auto',
+-                    'proxy': None,
+-                    'no_proxy': False,
+-                    'max_envelope_size': 153600,
+-                    'operation_timeout': 20,
+-                    'certificate_key_pem': None,
+-                    'certificate_pem': None,
+-                    'credssp_auth_mechanism': 'auto',
+-                    'credssp_disable_tlsv1_2': False,
+-                    'credssp_minimum_version': 2,
+-                    'negotiate_delegate': None,
+-                    'negotiate_hostname_override': None,
+-                    'negotiate_send_cbt': True,
+-                    'negotiate_service': 'WSMAN',
+-                    'read_timeout': 30,
+-                    'reconnection_backoff': 2.0,
+-                    'reconnection_retries': 0,
+-                    'mock_test1': True
+-                },
+-            },
+-        ),
+         # cert validation through string repr of bool
+         (
+             {'_extras': {}, 'ansible_psrp_cert_validation': 'ignore'},
+@@ -214,17 +179,117 @@ class TestConnectionPSRP(object):
+                 "psrp attr '%s', actual '%s' != expected '%s'"\
+                 % (attr, actual, expected)
+ 
++    # --- Requirement 1: ignore_proxy strict normalization (raw value, only 'true'/'y' → True) ---
++    @pytest.mark.parametrize(
++        "raw_value, expected",
++        (
++            ("true", True),
++            ("TRUE", True),
++            ("True", True),
++            ("y", True),
++            ("Y", True),
++            ("yes", False),
++            ("1", False),
++            (True, False),
++            (1, False),
++            ("false", False),
++            ("no", False),
++            ("", False),
++            (None, False),
++        ),
++    )
++    def test_ignore_proxy_input_normalization(self, raw_value, expected):
++        """Only case-insensitive 'true' and 'y' → True; all other values → False. Uses raw var value."""
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get("psrp", pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}, "ansible_psrp_ignore_proxy": raw_value})
++        conn._build_kwargs()
++
++        assert conn._psrp_conn_kwargs["no_proxy"] is expected
++        assert isinstance(conn._psrp_conn_kwargs["no_proxy"], bool)
++        # Fail before golden: plugin must capture raw in set_options; without golden this is unset
++        if expected is True:
++            assert getattr(conn, "_psrp_ignore_proxy_raw", None) is not None, (
++                "ignore_proxy True must come from raw inventory value (captured in set_options)"
++            )
++
++    # --- Requirement 2: cert_validation = ignore → False; path provided → path; else True ---
++    def test_cert_validation_ignore(self):
++        """cert_validation='ignore' must set cert_validation to False."""
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get("psrp", pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}, "ansible_psrp_cert_validation": "ignore"})
++        conn._build_kwargs()
++        assert conn._psrp_cert_validation is False
++        assert conn._psrp_conn_kwargs["cert_validation"] is False
++
++    def test_cert_validation_trust_path(self):
++        """When a certificate trust path is provided, use it for cert_validation."""
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get("psrp", pc, new_stdin)
++        conn.set_options(var_options={
++            "_extras": {},
++            "ansible_psrp_cert_trust_path": "/path/to/ca.pem",
++        })
++        conn._build_kwargs()
++        assert conn._psrp_cert_validation == "/path/to/ca.pem"
++        assert conn._psrp_conn_kwargs["cert_validation"] == "/path/to/ca.pem"
++
++    def test_cert_validation_default_true(self):
++        """Default (no ignore, no path) must set cert_validation to True."""
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get("psrp", pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}})
++        conn._build_kwargs()
++        assert conn._psrp_cert_validation is True
++        assert conn._psrp_conn_kwargs["cert_validation"] is True
++
++    # --- Requirement 3: Only documented options influence config; extras ignored, single Display.debug ---
++    def test_extras_do_not_influence_effective_config_and_are_debug_logged(self, monkeypatch):
++        """Extras must not appear in conn_kwargs; one Display.debug must list all ignored keys."""
++        from ansible.plugins.connection import psrp as psrp_module
++
++        mock_debug = MagicMock()
++        monkeypatch.setattr(psrp_module.display, "debug", mock_debug)
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get("psrp", pc, new_stdin)
++        conn.set_options(var_options={
++            "_extras": {
++                "ansible_psrp_foo": 1,
++                "ansible_psrp_bar": 2,
++            },
++        })
++        conn._build_kwargs()
++
++        assert "foo" not in conn._psrp_conn_kwargs
++        assert "bar" not in conn._psrp_conn_kwargs
++        assert mock_debug.call_count == 1
++        msg = mock_debug.call_args[0][0]
++        assert "PSRP: Ignoring extra vars" in msg
++        assert "ansible_psrp_foo" in msg
++        assert "ansible_psrp_bar" in msg
++
+     def test_set_invalid_extras_options(self, monkeypatch):
++        """Unknown/extra options: no failure; single Display.debug lists ignored key(s)."""
++        from ansible.plugins.connection import psrp as psrp_module
++
++        mock_debug = MagicMock()
++        monkeypatch.setattr(psrp_module.display, "debug", mock_debug)
+         pc = PlayContext()
+         new_stdin = StringIO()
+ 
+-        for conn_name in ('psrp', 'ansible.legacy.psrp'):
++        for conn_name in ("psrp", "ansible.legacy.psrp"):
+             conn = connection_loader.get(conn_name, pc, new_stdin)
+-            conn.set_options(var_options={'_extras': {'ansible_psrp_mock_test3': True}})
+-
+-            mock_display = MagicMock()
+-            monkeypatch.setattr(Display, "warning", mock_display)
++            conn.set_options(var_options={"_extras": {"ansible_psrp_mock_test3": True}})
+             conn._build_kwargs()
+ 
+-            assert mock_display.call_args[0][0] == \
+-                'ansible_psrp_mock_test3 is unsupported by the current psrp version installed'
++            assert mock_debug.called
++            msg = mock_debug.call_args[0][0]
++            assert "PSRP: Ignoring extra vars" in msg
++            assert "ansible_psrp_mock_test3" in msg
++            assert "mock_test3" not in conn._psrp_conn_kwargs

@@ -1,0 +1,45 @@
+diff --git a/applications/mail/src/app/metrics/mailMetricsHelper.ts b/applications/mail/src/app/metrics/mailMetricsHelper.ts
+new file mode 100644
+index 0000000..2222222
+--- /dev/null
++++ b/applications/mail/src/app/metrics/mailMetricsHelper.ts
+@@ -0,0 +1,39 @@
++import { MAILBOX_LABEL_IDS } from '@proton/shared/lib/constants';
++import type { MailSettings } from '@proton/shared/lib/interfaces';
++
++import { isCustomLabelOrFolder } from '../helpers/labels';
++
++const CUSTOM_LABEL_METRIC_TOKEN = 'custom-folder';
++const BLANK_LABEL_METRIC_TOKEN = 'mailbox-missing';
++const PAGE_SIZE_FALLBACK_TOKEN = 'page-size-other';
++
++export const getLabelID = (labelID: string): MAILBOX_LABEL_IDS | string => {
++    if (!labelID.trim()) {
++        return BLANK_LABEL_METRIC_TOKEN;
++    }
++
++    if (isCustomLabelOrFolder(labelID)) {
++        return CUSTOM_LABEL_METRIC_TOKEN;
++    }
++
++    return labelID as MAILBOX_LABEL_IDS;
++};
++
++export const getPageSizeString = (settings: MailSettings | undefined): string => {
++    if (settings?.PageSize === undefined) {
++        return PAGE_SIZE_FALLBACK_TOKEN;
++    }
++
++    if (settings.PageSize === 50) {
++        return 'page-size-50';
++    }
++
++    if (settings.PageSize === 100) {
++        return 'page-size-100';
++    }
++
++    if (settings.PageSize === 200) {
++        return 'page-size-200';
++    }
++    return 'page-size-other';
++};

@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "id": "state_value",
+      "type": "missing parameters",
+      "description": "The batch must include response entries for disabled flags, but no specification defines what concrete string the value field should contain for those entries.",
+      "resolution": "For a disabled batch entry, the value field must be exactly \\\"disabled\\\" in lowercase. Example: {\\\"flag_key\\\": \\\"bar\\\", \\\"value\\\": \\\"disabled\\\"}; do NOT use an empty string, \\\"DISABLED\\\", \\\"off\\\", \\\"inactive\\\", or omit the field.",
+      "example_questions": [
+        "-  How should disabled status be represented in the value field?",
+        "-  Which literal value marks a disabled flag in batch responses?",
+        "-  What goes in the value field when a batch flag is not enabled?",
+        "-  \u00a0Is there a specific value string required for disabled entries?"
+      ]
+    },
+    {
+      "id": "disabled_duration",
+      "type": "missing parameters",
+      "description": "Each batch response entry must report request_duration_millis, but the specification does not define what duration value disabled flag entries should carry when no actual evaluation work was performed.",
+      "resolution": "Disabled flag entries must set request_duration_millis to exactly 0.0 since no evaluation was performed. Example: an enabled entry reports elapsed time from batch start (e.g., 2.4), but a disabled entry always reports 0.0; do NOT report the elapsed time for disabled entries, and do NOT use -1 or any other sentinel value.",
+      "example_questions": [
+        "-  What request_duration_millis should disabled flag entries report?",
+        "-  Should disabled entries report elapsed time or zero duration?",
+        "-  How is the per-entry duration calculated when a flag is disabled?",
+        "-  What duration value represents a skipped evaluation in batch mode?"
+      ]
+    },
+    {
+      "id": "batch_stamp",
+      "type": "ambiguous requirements",
+      "description": "The API requires a timestamp on every evaluation response, but batch mode does not specify the timestamping strategy for entries processed sequentially within a single batch operation.",
+      "resolution": "Capture one batch timestamp once at the start of batchEvaluate and assign that same timestamp to every response entry in that batch. Example: if a batch has three requests, all three entries carry the identical timestamp; do NOT generate a fresh timestamp per entry, and do NOT use the batch completion time.",
+      "example_questions": [
+        "-  What timestamping strategy should batch mode use for entries?",
+        "-  How should the timestamp field be assigned across batch entries?",
+        "-  Should batch entries receive a single shared timestamp or individual ones?",
+        "-  When is the timestamp captured for batch response entries?"
+      ]
+    },
+    {
+      "id": "entry_id",
+      "type": "contradictory requirements",
+      "description": "The problem statement requires each response entry to carry request identification for traceability, while requirements state that the batch-level response carries the request identifier for the entire operation. The per-entry request_id policy is not specified.",
+      "resolution": "Each batch entry must set request_id to the compound format \\\"<batch_request_id>:<flag_key>\\\". Example: for batch request_id \\\"12345\\\" evaluating flag \\\"bar\\\", the entry request_id must be \\\"12345:bar\\\"; do NOT use an empty string, copy the batch ID directly, use only the flag key, or generate unique UUIDs.",
+      "example_questions": [
+        "-  What format should request_id use in individual batch entries?",
+        "-  How should per-entry request identification be structured in a batch?",
+        "-  What value should request_id contain for each batch response entry?",
+        "-  Should batch entries derive request_id from the batch-level identifier?"
+      ]
+    },
+    {
+      "id": "abort_rule",
+      "type": "contradictory requirements",
+      "description": "The problem statement guarantees one response entry per input flag regardless of evaluation outcomes, while requirements state that non-disabled errors must abort batch processing. The expected return shape when a non-disabled failure occurs mid-batch is not defined.",
+      "resolution": "When a non-disabled error occurs mid-batch, BatchEvaluate must return the partial results collected so far, along with the error. Example: batch [ok, hard_error, ok] returns a response containing 1 entry (the successful first evaluation) and the error; do NOT return nil with the error, do NOT return an empty response with the error, and do NOT continue evaluating entries after the hard failure.",
+      "example_questions": [
+        "-  Should BatchEvaluate preserve partial results when a hard error occurs?",
+        "-  What response shape is expected after a non-disabled batch failure?",
+        "-  Are successfully processed entries returned when a later entry causes a hard error?",
+        "-  How should already-collected batch results be handled after a fatal error?"
+      ]
+    }
+  ]
+}

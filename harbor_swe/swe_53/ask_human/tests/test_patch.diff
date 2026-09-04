@@ -1,0 +1,256 @@
+diff --git a/test/units/galaxy/test_collection_install.py b/test/units/galaxy/test_collection_install.py
+index a4f5c35a3b..e8e63da483 100644
+--- a/test/units/galaxy/test_collection_install.py
++++ b/test/units/galaxy/test_collection_install.py
+@@ -392,7 +392,7 @@ def test_build_requirement_from_name(galaxy_server, monkeypatch, tmp_path_factor
+     requirements = cli._require_one_of_collections_requirements(
+         collections, requirements_file, artifacts_manager=concrete_artifact_cm
+     )['collections']
+-    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, True, False)['namespace.collection']
++    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, True, False, False)['namespace.collection']
+ 
+     assert actual.namespace == u'namespace'
+     assert actual.name == u'collection'
+@@ -419,7 +419,7 @@ def test_build_requirement_from_name_with_prerelease(galaxy_server, monkeypatch,
+     requirements = cli._require_one_of_collections_requirements(
+         ['namespace.collection'], None, artifacts_manager=concrete_artifact_cm
+     )['collections']
+-    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, True, False)['namespace.collection']
++    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, True, False, False)['namespace.collection']
+ 
+     assert actual.namespace == u'namespace'
+     assert actual.name == u'collection'
+@@ -447,7 +447,7 @@ def test_build_requirment_from_name_with_prerelease_explicit(galaxy_server, monk
+     requirements = cli._require_one_of_collections_requirements(
+         ['namespace.collection:2.0.1-beta.1'], None, artifacts_manager=concrete_artifact_cm
+     )['collections']
+-    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, True, False)['namespace.collection']
++    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, True, False, False)['namespace.collection']
+ 
+     assert actual.namespace == u'namespace'
+     assert actual.name == u'collection'
+@@ -480,7 +480,7 @@ def test_build_requirement_from_name_second_server(galaxy_server, monkeypatch, t
+     requirements = cli._require_one_of_collections_requirements(
+         ['namespace.collection:>1.0.1'], None, artifacts_manager=concrete_artifact_cm
+     )['collections']
+-    actual = collection._resolve_depenency_map(requirements, [broken_server, galaxy_server], concrete_artifact_cm, None, True, False)['namespace.collection']
++    actual = collection._resolve_depenency_map(requirements, [broken_server, galaxy_server], concrete_artifact_cm, None, True, False, False)['namespace.collection']
+ 
+     assert actual.namespace == u'namespace'
+     assert actual.name == u'collection'
+@@ -510,7 +510,7 @@ def test_build_requirement_from_name_missing(galaxy_server, monkeypatch, tmp_pat
+ 
+     expected = "Failed to resolve the requested dependencies map. Could not satisfy the following requirements:\n* namespace.collection:* (direct request)"
+     with pytest.raises(AnsibleError, match=re.escape(expected)):
+-        collection._resolve_depenency_map(requirements, [galaxy_server, galaxy_server], concrete_artifact_cm, None, False, True)
++        collection._resolve_depenency_map(requirements, [galaxy_server, galaxy_server], concrete_artifact_cm, None, False, True, False)
+ 
+ 
+ def test_build_requirement_from_name_401_unauthorized(galaxy_server, monkeypatch, tmp_path_factory):
+@@ -530,7 +530,7 @@ def test_build_requirement_from_name_401_unauthorized(galaxy_server, monkeypatch
+ 
+     expected = "error (HTTP Code: 401, Message: msg)"
+     with pytest.raises(api.GalaxyError, match=re.escape(expected)):
+-        collection._resolve_depenency_map(requirements, [galaxy_server, galaxy_server], concrete_artifact_cm, None, False, False)
++        collection._resolve_depenency_map(requirements, [galaxy_server, galaxy_server], concrete_artifact_cm, None, False, False, False)
+ 
+ 
+ def test_build_requirement_from_name_single_version(galaxy_server, monkeypatch, tmp_path_factory):
+@@ -557,7 +557,7 @@ def test_build_requirement_from_name_single_version(galaxy_server, monkeypatch,
+         ['namespace.collection:==2.0.0'], None, artifacts_manager=concrete_artifact_cm
+     )['collections']
+ 
+-    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, False, True)['namespace.collection']
++    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, False, True, False)['namespace.collection']
+ 
+     assert actual.namespace == u'namespace'
+     assert actual.name == u'collection'
+@@ -593,7 +593,7 @@ def test_build_requirement_from_name_multiple_versions_one_match(galaxy_server,
+         ['namespace.collection:>=2.0.1,<2.0.2'], None, artifacts_manager=concrete_artifact_cm
+     )['collections']
+ 
+-    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, False, True)['namespace.collection']
++    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, False, True, False)['namespace.collection']
+ 
+     assert actual.namespace == u'namespace'
+     assert actual.name == u'collection'
+@@ -634,7 +634,7 @@ def test_build_requirement_from_name_multiple_version_results(galaxy_server, mon
+         ['namespace.collection:!=2.0.2'], None, artifacts_manager=concrete_artifact_cm
+     )['collections']
+ 
+-    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, False, True)['namespace.collection']
++    actual = collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, False, True, False)['namespace.collection']
+ 
+     assert actual.namespace == u'namespace'
+     assert actual.name == u'collection'
+@@ -668,7 +668,7 @@ def test_candidate_with_conflict(monkeypatch, tmp_path_factory, galaxy_server):
+     expected = "Failed to resolve the requested dependencies map. Could not satisfy the following requirements:\n"
+     expected += "* namespace.collection:!=2.0.5 (direct request)"
+     with pytest.raises(AnsibleError, match=re.escape(expected)):
+-        collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, False, True)
++        collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, False, True, False)
+ 
+ 
+ def test_dep_candidate_with_conflict(monkeypatch, tmp_path_factory, galaxy_server):
+@@ -693,7 +693,7 @@ def test_dep_candidate_with_conflict(monkeypatch, tmp_path_factory, galaxy_serve
+     expected = "Failed to resolve the requested dependencies map. Could not satisfy the following requirements:\n"
+     expected += "* namespace.collection:!=1.0.0 (dependency of parent.collection:2.0.5)"
+     with pytest.raises(AnsibleError, match=re.escape(expected)):
+-        collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, False, True)
++        collection._resolve_depenency_map(requirements, [galaxy_server], concrete_artifact_cm, None, False, True, False)
+ 
+ 
+ def test_install_installed_collection(monkeypatch, tmp_path_factory, galaxy_server):
+@@ -804,7 +804,7 @@ def test_install_collections_from_tar(collection_artifact, monkeypatch):
+     concrete_artifact_cm = collection.concrete_artifact_manager.ConcreteArtifactsManager(temp_path, validate_certs=False)
+ 
+     requirements = [Requirement('ansible_namespace.collection', '0.1.0', to_text(collection_tar), 'file')]
+-    collection.install_collections(requirements, to_text(temp_path), [], False, False, False, False, False, concrete_artifact_cm)
++    collection.install_collections(requirements, to_text(temp_path), [], False, False, False, False, False, False, concrete_artifact_cm)
+ 
+     assert os.path.isdir(collection_path)
+ 
+@@ -840,7 +840,7 @@ def test_install_collections_existing_without_force(collection_artifact, monkeyp
+     assert os.path.isdir(collection_path)
+ 
+     requirements = [Requirement('ansible_namespace.collection', '0.1.0', to_text(collection_tar), 'file')]
+-    collection.install_collections(requirements, to_text(temp_path), [], False, False, False, False, False, concrete_artifact_cm)
++    collection.install_collections(requirements, to_text(temp_path), [], False, False, False, False, False, False, concrete_artifact_cm)
+ 
+     assert os.path.isdir(collection_path)
+ 
+@@ -872,7 +872,7 @@ def test_install_missing_metadata_warning(collection_artifact, monkeypatch):
+ 
+     concrete_artifact_cm = collection.concrete_artifact_manager.ConcreteArtifactsManager(temp_path, validate_certs=False)
+     requirements = [Requirement('ansible_namespace.collection', '0.1.0', to_text(collection_tar), 'file')]
+-    collection.install_collections(requirements, to_text(temp_path), [], False, False, False, False, False, concrete_artifact_cm)
++    collection.install_collections(requirements, to_text(temp_path), [], False, False, False, False, False, False, concrete_artifact_cm)
+ 
+     display_msgs = [m[1][0] for m in mock_display.mock_calls if 'newline' not in m[2] and len(m[1]) == 1]
+ 
+@@ -893,7 +893,7 @@ def test_install_collection_with_circular_dependency(collection_artifact, monkey
+ 
+     concrete_artifact_cm = collection.concrete_artifact_manager.ConcreteArtifactsManager(temp_path, validate_certs=False)
+     requirements = [Requirement('ansible_namespace.collection', '0.1.0', to_text(collection_tar), 'file')]
+-    collection.install_collections(requirements, to_text(temp_path), [], False, False, False, False, False, concrete_artifact_cm)
++    collection.install_collections(requirements, to_text(temp_path), [], False, False, False, False, False, False, concrete_artifact_cm)
+ 
+     assert os.path.isdir(collection_path)
+ 
+@@ -916,3 +916,116 @@ def test_install_collection_with_circular_dependency(collection_artifact, monkey
+     assert display_msgs[1] == "Starting collection install process"
+     assert display_msgs[2] == "Installing 'ansible_namespace.collection:0.1.0' to '%s'" % to_text(collection_path)
+     assert display_msgs[3] == "ansible_namespace.collection:0.1.0 was installed successfully"
++
++
++def test_upgrade_deps_depth_limit():
++    from ansible.galaxy.dependency_resolution.providers import CollectionDependencyProvider
++
++    provider = CollectionDependencyProvider(
++        apis=MagicMock(),
++        concrete_artifacts_manager=MagicMock(),
++        user_requirements=[Requirement('root.col', '*', None, 'galaxy')],
++        preferred_candidates=[],
++        with_deps=True,
++        with_pre_releases=False,
++        upgrade=True,
++    )
++
++    assert provider._dep_depth.get('root.col') == 0
++
++    mock_candidate = MagicMock()
++    mock_candidate.fqcn = 'root.col'
++    mock_candidate.is_virtual = False
++
++    provider._api_proxy = MagicMock()
++    provider._api_proxy.get_collection_dependencies = MagicMock(return_value={
++        'level1.dep': '>=1.0.0',
++    })
++
++    deps = provider.get_dependencies(mock_candidate)
++    assert len(deps) == 1
++    assert provider._dep_depth.get('level1.dep') == 1
++
++    mock_candidate_l1 = MagicMock()
++    mock_candidate_l1.fqcn = 'level1.dep'
++    mock_candidate_l1.is_virtual = False
++
++    provider._api_proxy.get_collection_dependencies = MagicMock(return_value={
++        'level2.dep': '>=1.0.0',
++    })
++
++    deps_l1 = provider.get_dependencies(mock_candidate_l1)
++    assert len(deps_l1) == 1
++    assert provider._dep_depth.get('level2.dep') == 2
++
++    for fqcn, expected_upgrade in [('root.col', True), ('level1.dep', True), ('level2.dep', False)]:
++        dep_depth = provider._dep_depth.get(fqcn, 0)
++        upgrade_allowed = provider._upgrade and dep_depth <= 1
++        assert upgrade_allowed is expected_upgrade
++
++
++def test_upgrade_candidate_version_limit(monkeypatch, tmp_path_factory, galaxy_server):
++    from ansible.galaxy.dependency_resolution.providers import CollectionDependencyProvider
++
++    test_dir = to_bytes(tmp_path_factory.mktemp('test-ÅÑŚÌβŁÈ Collections Input'))
++    concrete_artifact_cm = collection.concrete_artifact_manager.ConcreteArtifactsManager(test_dir, validate_certs=False)
++
++    versions = [("1.0.%d" % i, galaxy_server) for i in range(50)]
++
++    mock_get_info = MagicMock(return_value=api.CollectionVersionMetadata('ns', 'coll', '1.0.49', None, None, {}))
++    monkeypatch.setattr(galaxy_server, 'get_collection_version_metadata', mock_get_info)
++
++    provider = CollectionDependencyProvider(
++        apis=MagicMock(),
++        concrete_artifacts_manager=concrete_artifact_cm,
++        user_requirements=[Requirement('ns.coll', '*', None, 'galaxy')],
++        preferred_candidates=[],
++        with_deps=True,
++        with_pre_releases=False,
++        upgrade=True,
++    )
++
++    provider._api_proxy = MagicMock()
++    provider._api_proxy.get_collection_versions = MagicMock(return_value=versions)
++
++    req = Requirement('ns.coll', '*', None, 'galaxy')
++    matches = provider.find_matches([req])
++
++    assert len(matches) <= 25
++
++
++def test_upgrade_source_fallback_depth(monkeypatch, tmp_path_factory):
++    from ansible.galaxy.dependency_resolution.providers import CollectionDependencyProvider
++
++    test_dir = to_bytes(tmp_path_factory.mktemp('test-ÅÑŚÌβŁÈ Collections Input'))
++    concrete_artifact_cm = collection.concrete_artifact_manager.ConcreteArtifactsManager(test_dir, validate_certs=False)
++
++    server1 = MagicMock()
++    server1.name = 'server1'
++    server2 = MagicMock()
++    server2.name = 'server2'
++
++    versions_from_both = [('1.0.0', server1), ('2.0.0', server2)]
++
++    provider = CollectionDependencyProvider(
++        apis=MagicMock(),
++        concrete_artifacts_manager=concrete_artifact_cm,
++        user_requirements=[Requirement('ns.coll', '*', None, 'galaxy')],
++        preferred_candidates=[],
++        with_deps=True,
++        with_pre_releases=False,
++        upgrade=True,
++    )
++
++    provider._api_proxy = MagicMock()
++    provider._api_proxy.get_collection_versions = MagicMock(return_value=versions_from_both)
++
++    req = Requirement('ns.coll', '*', None, 'galaxy')
++    matches = provider.find_matches([req])
++
++    server_ids_in_matches = set()
++    for m in matches:
++        if m.src is not None:
++            server_ids_in_matches.add(id(m.src))
++
++    assert len(server_ids_in_matches) <= 1

@@ -1,0 +1,38 @@
+{
+  "blockers": [
+    {
+      "id": "missing_cache_parameter_default",
+      "type": "missing parameters",
+      "description": "The load_from_file function must accept string cache values 'none' and 'selective', but the default value for the cache parameter when callers omit it is not specified. Without a defined default, implementations may choose incompatible values and break backward compatibility or cache behavior.",
+      "resolution": "The default value for the cache parameter must be the string 'all'. The signature must be cache: str = 'all'. When callers omit cache, behavior must match cache='all' (cache every loaded file). Example: calling load_from_file(path) with no cache argument must result in the path being added to _FILE_CACHE.",
+      "example_questions": [
+        "-  What should the default value of the cache parameter be when callers do not pass it?",
+        "-  Which cache mode should apply when the cache parameter is omitted?",
+        "-  How should load_from_file behave when the cache parameter is not provided?"
+      ]
+    },
+    {
+      "id": "ambiguous_selective_caching_criteria",
+      "type": "ambiguous requirements",
+      "description": "The cache='selective' mode must apply a content-aware caching strategy, but the criteria for deciding which files to cache and which to exclude is open to multiple valid interpretations. The function could filter by processing cost, file metadata, internal flags returned during loading, or other file characteristics, and different criteria lead to different performance and memory tradeoffs.",
+      "resolution": "Under cache='selective', cache only files where the internal show_content flag returned by _get_file_contents is False. Files where show_content is True must not be added to _FILE_CACHE. Example: load_from_file(plain.yml, cache='selective') returns parsed data but creates no cache entry when show_content is True. Counter-example: caching all files unconditionally when cache='selective', or using self._vault.is_encrypted() on the raw bytes, would be wrong.",
+      "example_questions": [
+        "-  When cache='selective' is used, what criteria should determine whether a file's parsed result is written to the internal file cache?",
+        "-  Which internal metadata or return value should the implementation inspect to make the caching decision under cache='selective'?",
+        "-  Should cache='selective' cache files based on their content type, processing cost, or some other characteristic of the loaded data?"
+      ]
+    },
+    {
+      "id": "contradictory_cache_versus_freshness",
+      "type": "contradictory requirements",
+      "description": "Variable and inventory loading is recommended to use cache='selective' for performance, but host_group_vars is separately required to cache every loaded file regardless of type, and inventory plugins must ensure fresh reads on each operation. These conflicting performance and freshness needs make the correct cache mode for each call site unclear.",
+      "resolution": "Apply cache mode per call site as follows, so that each location passes an explicit cache value. At inventory-related load_from_file calls\u2014BaseInventoryPlugin.\\_read_config_data in lib/ansible/plugins/inventory/\\_\\_init\\_\\_.py, InventoryModule.parse in lib/ansible/plugins/inventory/auto.py, and InventoryModule.parse in lib/ansible/plugins/inventory/yaml.py\u2014pass cache='none'. At host/group vars in lib/ansible/plugins/vars/host_group_vars.py (load_found_files), pass cache='all'. At play vars_files in lib/ansible/vars/manager.py (the load_from_file call for vars_file in the play vars_files loop), pass cache='selective'.",
+      "example_questions": [
+        "-  Should inventory plugin file loads populate the loader cache or bypass it entirely?",
+        "-  The problem statement recommends cache='selective', but host_group_vars needs aggressive caching and inventory needs fresh reads, which cache mode should each call site use?",
+        "-  For play vars_files and host_group_vars, which cache mode should be used?",
+        "-  How should the implementation resolve conflicting performance and freshness needs across different call sites?"
+      ]
+    }
+  ]
+}

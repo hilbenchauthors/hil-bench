@@ -1,0 +1,34 @@
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-swe_94-full_info"
+description = ""
+authors = []
+keywords = []
+[metadata]
+task_id = "full_info"
+task_type = "swe"
+mode = "full_info"
+repo_name = "flipt-io/flipt"
+task_attempt_id = "698648c3283d42a76056755a__69c5da18757f45becea717f8"
+image_name = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:78898e0f83d57bec48cd8eafb25cb41f6dcb7b5892038a14920770b124b91112"
+tags = [ "swe", "full_info", "hil-bench",]
+[verifier]
+timeout_sec = 1800.0
+
+[verifier.env]
+[agent]
+timeout_sec = 7200.0
+[environment]
+build_timeout_sec = 1200.0
+docker_image = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:78898e0f83d57bec48cd8eafb25cb41f6dcb7b5892038a14920770b124b91112"
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true
+mcp_servers = []
+
+[environment.env]
+[solution.env]

@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for users in the city where the next Super Bowl will be held, but this information changes annually and is not stored in the database. The location of the next Super Bowl depends on the current date and NFL scheduling decisions, requiring real-time external information that cannot be determined from the static database.",
+      "example_questions": [
+        "In which city will the next Super Bowl be held for filtering user locations?",
+        "What location value should be used to identify users in the next Super Bowl host city?",
+        "Which city is hosting the upcoming Super Bowl for the purpose of this analysis?"
+      ],
+      "id": "show_location",
+      "resolution": "The next Super Bowl will be held in Los Angeles. Filter for users where Location contains 'Los Angeles'.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "There is no description of what the valid age is to claim the recognition.",
+      "example_questions": [
+        "What is a valid age to claim the recognition?",
+        "How old must the user be to claim the recognition?",
+        "What is the minimum age limit for someone to claim the recognition?"
+      ],
+      "id": "valid_age",
+      "resolution": "To claim recognition, the user has to be under 28 years old.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The users table contains a `favorite_language` column with single-letter coded values (A, B, C, D, E, F, G, H, I, J) without clear documentation of which code corresponds to which language. It is unclear which letter code represents French-speaking users when filtering.\n",
+      "example_questions": [
+        "Which favorite_language code value in the users table corresponds to French-speaking users?",
+        "What letter code should be used to filter for French as the favorite language in the database?",
+        "How is French represented in the users table's favorite_language column?"
+      ],
+      "id": "reputation_grade",
+      "resolution": "Filter for users where `favorite_language = 'E'` to identify French-speaking users.\n",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

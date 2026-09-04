@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The term \"hallmark bonds\" has no standard chemistry definition and could refer to any of the bond classification codes in the database. Without clarification, it is impossible to determine which bond type to filter on.",
+      "example_questions": [
+        "What specific bond classification code corresponds to 'hallmark bonds' in the bond table?",
+        "Does 'hallmark bonds' refer to a particular bond_type value such as '-', '=', or '#'?",
+        "Is the term 'hallmark bonds' a domain-specific designation? Which bond type does it map to?"
+      ],
+      "id": "hallmark_bond_definition",
+      "resolution": "Interpret \"hallmark bonds\" as single bonds, identified by the bond_type code '-' in the bond table. A molecule \"has hallmark bonds\" if it contains at least one bond where bond_type = '-'.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The phrase \"preliminary study period\" lacks a specific date range. It could refer to the first year of the study, the first half of the data, or any arbitrary date boundary.",
+      "example_questions": [
+        "What specific date range defines the 'preliminary study period'?",
+        "Does 'preliminary study period' refer to a specific calendar year, or a cutoff date relative to the dataset?",
+        "What is the end date (or start date) for the 'preliminary study period' \u2014 is it the first year, first quarter, or some other boundary?"
+      ],
+      "id": "preliminary_study_period",
+      "resolution": "Interpret \"preliminary study period\" as molecules with dates strictly before 2003-09-01 (exclusive).",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The question asks to filter the data for \"Batch 3\", but it is unclear what exact string value should be matched. It is ambiguous whether the filter should look for the full phrase, a numeric value, or an alphanumeric abbreviation.",
+      "example_questions": [
+        "What exact string value should be used to filter for 'Batch 3' in the batch_code column?",
+        "Does 'Batch 3' correspond to the value 'B3', '3', or 'Batch 3' in the database?",
+        "How are the batch identifiers formatted in the batch_code column?"
+      ],
+      "id": "unclear_batch_code",
+      "resolution": "Interpret \"Batch 3\" as the specific alphanumeric string 'B3'. Filter the data using exactly batch_code = 'B3'.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"bond prevalence metrics\" as a \"normalized frequency measure against the applicable reference baseline,\" but does not clarify whether this means a bond-level count ratio, a molecule-level count ratio, a per-molecule averaged proportion, or a ratio against the entire database. The ambiguous phrasing leaves at least four plausible calculation methods.",
+      "example_questions": [
+        "Should the prevalence rate be calculated by counting individual bond rows (bond-level) or by counting distinct molecules (molecule-level)?",
+        "Does 'normalized frequency measure' mean a simple bond count ratio, a molecule count ratio, or an average of per-molecule bond proportions?",
+        "What is the 'applicable reference baseline' \u2014 total bonds in the filtered set, total molecules in the filtered set, or all bonds/molecules in the entire database?"
+      ],
+      "id": "prevalence_rate_calculation",
+      "resolution": "Calculate the prevalence rate as a molecule-level binary ratio: (count of distinct molecules in the filtered set that have at least one bond of the specified classification) / (count of all distinct molecules in the filtered set) \u00d7 100. Use COUNT(DISTINCT molecule_id) for both numerator and denominator \u2014 do not count individual bond rows, compute per-molecule averages, or use the entire database as the denominator.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The database has a `bond` table (with molecule_id and bond_type), a `connected` table (linking atoms to bonds), and an `atom` table (linking atoms to molecules), creating three plausible strategies for determining a molecule's bond classifications. It is unclear whether to join `molecule` \u2192 `bond` directly, route through `atom` \u2192 `connected` \u2192 `bond`, or use `connected` as the central joining table.",
+      "example_questions": [
+        "Should I join `molecule` directly to `bond` via molecule_id, or do I need to go through `atom` \u2192 `connected` \u2192 `bond` to properly link atoms and bonds?",
+        "The `connected` table links atoms to bonds \u2014 should I use it as the central joining table for the query, or is it not needed?",
+        "There are three bond-related tables (bond, connected, atom). Which combination and join path should I use to determine bond classifications for molecules?"
+      ],
+      "id": "bond_lookup_table_path",
+      "resolution": "Evaluate hallmark bonds strictly locally so, you must route the query through the connected table (atom \u2192 connected \u2192 bond) to only consider bonds that are directly attached to the filtered trace indicator elements ('p', 'na', 'br', 'sn'). Do not join the bond table directly to the molecule table.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[
+  "test/units/module_utils/common/test_locale.py::TestLocale::test_finding_last",
+  "test/units/module_utils/common/test_locale.py::TestLocale::test_default_preference_list",
+  "test/units/module_utils/common/test_locale.py::TestLocale::test_exact_locale_comparison",
+  "test/units/module_utils/common/test_locale.py::TestLocale::test_case_sensitive_no_match",
+  "test/units/module_utils/common/test_locale.py::TestLocale::test_locale_command_uses_c_environment",
+  "test/units/module_utils/common/test_locale.py::TestLocale::test_empty_preferences_uses_defaults",
+  "test/units/module_utils/common/test_locale.py::TestLocale::test_no_match_returns_fallback"
+]

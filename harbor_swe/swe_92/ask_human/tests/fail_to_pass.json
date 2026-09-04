@@ -1,0 +1,5 @@
+[
+  "test/units/utils/test_isidentifier.py::test_py2_additional_keywords_rejected",
+  "test/units/utils/test_isidentifier.py::test_string_type_check_in_each_helper",
+  "test/units/utils/test_isidentifier.py::test_isidentifier_bound_at_module_load"
+]

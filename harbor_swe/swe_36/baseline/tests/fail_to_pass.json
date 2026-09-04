@@ -1,0 +1,8 @@
+[
+  "test/units/module_utils/common/test_collections.py::test_runtime_files_use_canonical_runtime_collections_import_path",
+  "test/units/module_utils/common/test_collections.py::test_controller_files_use_canonical_controller_collections_import_path",
+  "test/units/module_utils/common/test_collections.py::test_collections_compat_transitional_signal_is_docstring_only",
+  "test/units/module_utils/common/test_collections.py::test_collections_compat_uses_single_import_block_without_fallback",
+  "test/units/executor/module_common/test_recursive_finder.py::TestRecursiveFinder::test_no_module_utils_excludes_legacy_collections_shim_from_discovery",
+  "test/units/executor/module_common/test_modify_module.py::test_new_style_module_bundle_includes_transitional_collections_shim"
+]

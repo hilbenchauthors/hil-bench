@@ -1,0 +1,23 @@
+[
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns null when localStorage is empty",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns the correct ID for a single item",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns the highest ID when multiple items exist",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID ignores non-prefixed keys",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID handles non-numeric IDs correctly",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID rejects partially numeric suffixes like 123abc",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns null when only keys with invalid suffixes exist",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID skips entries with unparseable JSON values",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns null when all entries have unparseable values",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID uses ID as tiebreaker when timestamps are equal",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns highest ID when all timestamps are equal",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID correctly handles mixed scenarios with invalid and valid entries",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns null when all sessions are expired",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns session at exactly 127 days old (boundary)",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns null for session just over 127 days old (boundary + 1ms)",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns session just under 127 days old (boundary - 1ms)",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID selects valid session when one is at 127-day boundary and another is expired",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns null when session is exactly 1ms over 127 days among multiple expired",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID prefers newer session over one at 127-day boundary",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID does not modify or delete localStorage",
+  "applications/drive/src/app/utils/lastActivePersistedUserSession.test.ts | getLastPersistedLocalID returns correct ID if valid session data exists from last ping"
+]

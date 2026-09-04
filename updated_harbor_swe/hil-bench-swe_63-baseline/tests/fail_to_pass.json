@@ -1,0 +1,18 @@
+[
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given app is proton-calendar, isAndroid is true, and isIos is false, should correctly render SmartBanner",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given app is proton-calendar, isAndroid is false, and isIos is true, should correctly render SmartBanner",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given app is proton-mail, isAndroid is true, and isIos is false, should correctly render SmartBanner",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given app is proton-mail, isAndroid is false, and isIos is true, should correctly render SmartBanner",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given title is Hawkeye and subtitle is The coolest Avenger, should render SmartBanner with correct text",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given title is undefined and subtitle is undefined, should render SmartBanner with correct text",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given Android in standalone mode, should still render SmartBanner",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given iOS in standalone mode, should not render SmartBanner",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner should not query document for meta tags when resolving store links",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given user has used Calendar native app, Mail banner should still render",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given user has used Mail native app, Calendar banner should still render",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given iOS Safari with version >= 6, should still render SmartBanner",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given user has used Mail native app, Mail banner should not render",
+  "components/smartBanner/SmartBanner.test.tsx | @proton/components/components/SmartBanner given user has used Calendar native app, Calendar banner should not render",
+  "components/smartBanner/SmartBanner.test.tsx | app.ejs meta tag removal Mail template should not contain app-store meta tags",
+  "components/smartBanner/SmartBanner.test.tsx | app.ejs meta tag removal Calendar template should not contain app-store meta tags"
+]

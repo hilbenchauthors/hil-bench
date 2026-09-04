@@ -1,0 +1,6 @@
+[
+  "TestBlockerMissingLoudnessNormalizationDefinition",
+  "TestBlockerConflictingCompatibilityVsNewFormatSupport",
+  "TestBlockerAmbiguousGainProcessingStage",
+  "TestSafeDefaultAndNoisesError"
+]

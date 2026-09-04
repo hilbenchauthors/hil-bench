@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for cards with natural names, but it is unclear what exact search terms should be used to accomplish this.\n",
+      "example_questions": [
+        "Which type of names should I search for when looking for cards with natural names?",
+        "What names would be natural names?",
+        "What type of names would you consider as \"natural\"?"
+      ],
+      "id": "natural_names",
+      "resolution": "The cards with natural names are those that contain the \"element\" word. Strictly name LIKE \"%element%\".\n",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The prompt requires comparing with the most played MTG monster. This information is not present in the dataset and needs to be found online.\n",
+      "example_questions": [
+        "What is the most played MTG card?",
+        "What card should I consider as the most played MTG card?",
+        "Could you provide the name of the most played MTG card?"
+      ],
+      "id": "most_played",
+      "resolution": "The most played MTG monster currently are those named \"Lurrus of the Dream-Den\" (there are multiple versions).\n",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The \"average balanced power\" is used in the prompt and is mentioned in the business information as a formula that takes into consideration a card's power (only for numeric values) and rarity, giving a higher value to rare cards, but the exact formula is not specified.\n",
+      "example_questions": [
+        "What exact formula should I use when calculating the average balanced power?",
+        "How can I calculate the average balanced power?",
+        "Which is the formula I should use when calculating the average balanced power?"
+      ],
+      "id": "average_balanced_power",
+      "resolution": "The average balanced power is calculated as the average of power*rarity, where \"rarity\" is worth 1 for uncommon and common cards, and 2 for rare and mythic cards.\n",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The cards table has columns named info*, which makes it impossible to know wich one mentions if a card is foiled or not\n",
+      "example_questions": [
+        "How can I know if a card is foiled?",
+        "How should I know if a card is foiled?",
+        "Which column can I use to know if a card is foiled?"
+      ],
+      "id": "foiled",
+      "resolution": "The column info6 from the cards table is the definitive column for determining whether a card is foiled or not. It has a value of 1 if foiled and 0 if not foiled.\n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

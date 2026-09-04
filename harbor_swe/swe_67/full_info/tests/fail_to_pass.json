@@ -1,0 +1,7 @@
+[
+  "components/modalTwo/ModalTwo.test.tsx | Dialog substitute module contract exposes an ES-module-shaped default export",
+  "components/modalTwo/ModalTwo.test.tsx | Dialog substitute behavior does not declare explicit dialog role on the substitute host",
+  "components/modalTwo/ModalTwo.test.tsx | Dialog substitute behavior intercepts the open prop and translates it to aria-hidden on the substitute host",
+  "components/modalTwo/ModalTwo.test.tsx | Dialog production abstraction wraps a native dialog element in the actual module",
+  "components/modalTwo/ModalTwo.test.tsx | ModalTwo constrained DOM compatibility exposes open content via role queries without per-test rewrites"
+]

@@ -1,0 +1,11 @@
+[
+  "test/units/module_utils/facts/hardware/test_linux_get_cpu_info.py::test_get_cpu_info",
+  "test/units/module_utils/facts/hardware/test_linux_get_cpu_info.py::test_get_cpu_info_nproc",
+  "test/units/module_utils/facts/hardware/test_linux_get_cpu_info.py::test_empty_sched_getaffinity_retains_processor_occurence",
+  "test/units/module_utils/facts/hardware/test_linux_get_cpu_info.py::test_run_command_non_3_tuple_falls_back_without_raising",
+  "test/units/module_utils/facts/hardware/test_linux_get_cpu_info.py::test_nproc_output_with_newline_accepted",
+  "test/units/module_utils/facts/hardware/test_linux_get_cpu_info.py::test_get_cpu_info_missing_arch",
+  "test/units/module_utils/facts/hardware/test_linux_get_cpu_info.py::test_processor_nproc_cache_ttl_is_300_seconds",
+  "test/units/module_utils/facts/hardware/test_linux_get_cpu_info.py::test_discrepancy_threshold_is_30_percent",
+  "test/units/module_utils/facts/hardware/test_linux_get_cpu_info.py::test_invalid_cpu_count_fallback_is_one"
+]

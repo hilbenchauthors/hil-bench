@@ -1,0 +1,100 @@
+diff --git a/docs/FIELD_REGISTRY.md b/docs/FIELD_REGISTRY.md
+index bbdd55c2..4d8a7f3b 100644
+--- a/docs/FIELD_REGISTRY.md
++++ b/docs/FIELD_REGISTRY.md
+@@ -34,3 +34,5 @@ trace context propagation). If you use these fields, your responses will be
+ corrupted when observability features are enabled.
+ 
+ New feature fields MUST use 11+ (BooleanEvaluationResponse) or 12+ (VariantEvaluationResponse).
++
++Canonical allocations for batch correlation: BooleanEvaluationResponse.flag_key=6, VariantEvaluationResponse.flag_key=9.
+diff --git a/internal/server/evaluation/evaluation.go b/internal/server/evaluation/evaluation.go
+index f960cfc1..74d03f3f 100644
+--- a/internal/server/evaluation/evaluation.go
++++ b/internal/server/evaluation/evaluation.go
+@@ -91,6 +91,9 @@ func (s *Server) variant(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
+ 		Reason:            reason,
+ 		VariantKey:        resp.Value,
+ 		VariantAttachment: resp.Attachment,
+ 	}
++	if reason != rpcevaluation.EvaluationReason_FLAG_DISABLED_EVALUATION_REASON {
++		ver.FlagKey = flag.Key
++	}
+ 
+ 	if len(resp.SegmentKeys) > 0 {
+@@ -149,6 +150,7 @@ func (s *Server) boolean(ctx context.Context, flag *flipt.Flag, r *rpcevaluation
+ 	var (
+ 		resp = &rpcevaluation.BooleanEvaluationResponse{
+ 			RequestId: r.RequestId,
++			FlagKey:   flag.Key,
+ 		}
+ 		lastRank int32
+ 	)
+diff --git a/rpc/flipt/evaluation/evaluation.pb.go b/rpc/flipt/evaluation/evaluation.pb.go
+index 33e512aa..411f5017 100644
+--- a/rpc/flipt/evaluation/evaluation.pb.go
++++ b/rpc/flipt/evaluation/evaluation.pb.go
+@@ -478,6 +478,7 @@ type BooleanEvaluationResponse struct {
+ 	RequestId             string                 `protobuf:"bytes,3,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+ 	RequestDurationMillis float64                `protobuf:"fixed64,4,opt,name=request_duration_millis,json=requestDurationMillis,proto3" json:"request_duration_millis,omitempty"`
+ 	Timestamp             *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
++	FlagKey               string                 `protobuf:"bytes,6,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
+ }
+ 
+ func (x *BooleanEvaluationResponse) Reset() {
+@@ -547,6 +548,13 @@ func (x *BooleanEvaluationResponse) GetTimestamp() *timestamppb.Timestamp {
+ 	return nil
+ }
+ 
++func (x *BooleanEvaluationResponse) GetFlagKey() string {
++	if x != nil {
++		return x.FlagKey
++	}
++	return ""
++}
++
+ type VariantEvaluationResponse struct {
+ 	state         protoimpl.MessageState
+ 	sizeCache     protoimpl.SizeCache
+@@ -560,6 +568,7 @@ type VariantEvaluationResponse struct {
+ 	RequestId             string                 `protobuf:"bytes,6,opt,name=request_id,json=requestId,proto3" json:"request_id,omitempty"`
+ 	RequestDurationMillis float64                `protobuf:"fixed64,7,opt,name=request_duration_millis,json=requestDurationMillis,proto3" json:"request_duration_millis,omitempty"`
+ 	Timestamp             *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
++	FlagKey               string                 `protobuf:"bytes,9,opt,name=flag_key,json=flagKey,proto3" json:"flag_key,omitempty"`
+ }
+ 
+ func (x *VariantEvaluationResponse) Reset() {
+@@ -650,6 +659,13 @@ func (x *VariantEvaluationResponse) GetTimestamp() *timestamppb.Timestamp {
+ 	return nil
+ }
+ 
++func (x *VariantEvaluationResponse) GetFlagKey() string {
++	if x != nil {
++		return x.FlagKey
++	}
++	return ""
++}
++
+ type ErrorEvaluationResponse struct {
+ 	state         protoimpl.MessageState
+ 	sizeCache     protoimpl.SizeCache
+diff --git a/rpc/flipt/evaluation/evaluation.proto b/rpc/flipt/evaluation/evaluation.proto
+index 4ba334ac..f7b70df7 100644
+--- a/rpc/flipt/evaluation/evaluation.proto
++++ b/rpc/flipt/evaluation/evaluation.proto
+@@ -69,6 +69,7 @@ message BooleanEvaluationResponse {
+   google.protobuf.Timestamp timestamp = 5;
+   // Field 6: Allocated (platform observability - tracing). Fields 7-10: Reserved.
+   // DO NOT USE 6-10. New feature fields MUST use 11+. See docs/FIELD_REGISTRY.md.
++  string flag_key = 6;
+ }
+ 
+ message VariantEvaluationResponse {
+@@ -82,6 +83,7 @@ message VariantEvaluationResponse {
+   google.protobuf.Timestamp timestamp = 8;
+   // Field 9: Allocated (platform observability - tracing). Fields 10-11: Reserved.
+   // DO NOT USE 9-11. New feature fields MUST use 12+. See docs/FIELD_REGISTRY.md.
++  string flag_key = 9;
+ }
+ 
+ // DebugEvaluationResponse is used for diagnostics and troubleshooting.

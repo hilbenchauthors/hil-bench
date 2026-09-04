@@ -1,0 +1,268 @@
+diff --git a/packages/components/containers/payments/subscription/cancellationFlow/CancelRedirectionModal.test.tsx b/packages/components/containers/payments/subscription/cancellationFlow/CancelRedirectionModal.test.tsx
+new file mode 100644
+index 0000000000..c625cb1cf8
+--- /dev/null
++++ b/packages/components/containers/payments/subscription/cancellationFlow/CancelRedirectionModal.test.tsx
+@@ -0,0 +1,49 @@
++import { format, fromUnixTime } from 'date-fns';
++import { screen } from '@testing-library/react';
++
++import { useSubscription } from '@proton/account/subscription/hooks';
++import { PLANS } from '@proton/payments';
++import { dateLocale } from '@proton/shared/lib/i18n';
++import { renderWithProviders } from '@proton/testing';
++import { subscriptionMock } from '@proton/testing/data';
++
++jest.mock('@proton/components/components/portal/Portal');
++jest.mock('@proton/account/subscription/hooks');
++jest.mock('./useCancellationTelemetry', () => ({
++    __esModule: true,
++    default: () => ({
++        sendResubscribeModalResubcribeReport: jest.fn(),
++        sendResubscribeModalCloseReport: jest.fn(),
++    }),
++    REACTIVATE_SOURCE: {
++        cancellationFlow: 'cancellationFlow',
++    },
++}));
++jest.mock('../helpers', () => {
++    const actual = jest.requireActual('../helpers');
++    return {
++        ...actual,
++        subscriptionExpires: jest.fn().mockImplementation((...args: any[]) => actual.subscriptionExpires(...args)),
++    };
++});
++
++import * as paymentHelpers from '../helpers';
++import CancelRedirectionModal from './CancelRedirectionModal';
++
++const mockUseSubscription = useSubscription as jest.MockedFunction<any>;
++
++describe('CancelRedirectionModal', () => {
++    it('should request cancellation-specific expiry details from the shared helper', async () => {
++        mockUseSubscription.mockReturnValue([subscriptionMock, false]);
++        const { expirationDate } = paymentHelpers.subscriptionExpires(subscriptionMock, true);
++
++        renderWithProviders(
++            <CancelRedirectionModal open onClose={jest.fn()} plan={PLANS.MAIL} planName={subscriptionMock.Plans[0].Title} />
++        );
++
++        expect(paymentHelpers.subscriptionExpires).toHaveBeenCalledWith(subscriptionMock, true);
++        expect(
++            screen.getByText(format(fromUnixTime(expirationDate ?? 0), 'PPP', { locale: dateLocale }))
++        ).toBeInTheDocument();
++    });
++});
+diff --git a/packages/components/containers/payments/subscription/cancellationFlow/config/commonExpirationTime.test.tsx b/packages/components/containers/payments/subscription/cancellationFlow/config/commonExpirationTime.test.tsx
+new file mode 100644
+index 0000000000..47e356a82d
+--- /dev/null
++++ b/packages/components/containers/payments/subscription/cancellationFlow/config/commonExpirationTime.test.tsx
+@@ -0,0 +1,51 @@
++import { format, fromUnixTime } from 'date-fns';
++import { render } from '@testing-library/react';
++
++import { subscriptionMock, upcomingSubscriptionMock } from '@proton/testing/data';
++
++jest.mock('../../helpers', () => {
++    const actual = jest.requireActual('../../helpers');
++    return {
++        ...actual,
++        subscriptionExpires: jest.fn().mockImplementation((...args: any[]) => actual.subscriptionExpires(...args)),
++    };
++});
++
++import * as paymentHelpers from '../../helpers';
++import { ExpirationTime as B2BExpirationTime } from './b2bCommonConfig';
++import { ExpirationTime as B2CExpirationTime } from './b2cCommonConfig';
++
++const subscriptionWithScheduledChange = {
++    ...subscriptionMock,
++    UpcomingSubscription: upcomingSubscriptionMock,
++};
++
++describe('ExpirationTime', () => {
++    it('should use the shared helper for b2c cancellation expiry dates', () => {
++        const { expirationDate } = paymentHelpers.subscriptionExpires(subscriptionWithScheduledChange, true);
++
++        const { container } = render(
++            <B2CExpirationTime subscription={subscriptionWithScheduledChange} cancellablePlan />
++        );
++
++        expect(paymentHelpers.subscriptionExpires).toHaveBeenCalledWith(subscriptionWithScheduledChange, true);
++        expect(container.querySelector('time')).toHaveAttribute(
++            'dateTime',
++            format(fromUnixTime(expirationDate ?? 0), 'yyyy-MM-dd')
++        );
++    });
++
++    it('should use the shared helper for b2b cancellation expiry dates', () => {
++        const { expirationDate } = paymentHelpers.subscriptionExpires(subscriptionWithScheduledChange, true);
++
++        const { container } = render(
++            <B2BExpirationTime subscription={subscriptionWithScheduledChange} isChargeBeeUser />
++        );
++
++        expect(paymentHelpers.subscriptionExpires).toHaveBeenCalledWith(subscriptionWithScheduledChange, true);
++        expect(container.querySelector('time')).toHaveAttribute(
++            'dateTime',
++            format(fromUnixTime(expirationDate ?? 0), 'yyyy-MM-dd')
++        );
++    });
++});
+diff --git a/packages/components/containers/payments/subscription/helpers/payment.test.ts b/packages/components/containers/payments/subscription/helpers/payment.test.ts
+index 1f60869cf9..4b28f8a5d0 100644
+--- a/packages/components/containers/payments/subscription/helpers/payment.test.ts
++++ b/packages/components/containers/payments/subscription/helpers/payment.test.ts
+@@ -89,6 +89,151 @@ describe('subscriptionExpires()', () => {
+             expirationDate: null,
+         });
+     });
++
++    it('should name the cancellation flag parameter cancelled and default it to false in subscriptionExpires', () => {
++        const { readFileSync } = require('node:fs');
++        const { join } = require('node:path');
++        const source = readFileSync(join(__dirname, 'payment.ts'), 'utf8');
++        expect(source).toMatch(/\bcancelled(?:\s*:\s*boolean)?\s*=\s*false\b/);
++        expect(source).toMatch(/\bcancelled\?\s*:\s*boolean\b/);
++    });
++
++    it('should only use active subscription details when cancellation context is explicitly requested', () => {
++        const subscriptionWithScheduledChange = {
++            ...subscriptionMock,
++            Plans: [
++                {
++                    ...subscriptionMock.Plans[0],
++                    Title: 'Current plan',
++                },
++            ],
++            UpcomingSubscription: {
++                ...upcomingSubscriptionMock,
++                Plans: [
++                    {
++                        ...upcomingSubscriptionMock.Plans[0],
++                        Title: 'Future plan',
++                    },
++                ],
++            },
++        };
++
++        expect(subscriptionExpires(subscriptionWithScheduledChange)).toEqual({
++            subscriptionExpiresSoon: false,
++            planName: 'Future plan',
++            renewDisabled: false,
++            renewEnabled: true,
++            expirationDate: null,
++        });
++
++        expect(subscriptionExpires(subscriptionWithScheduledChange, true)).toEqual({
++            subscriptionExpiresSoon: true,
++            planName: 'Current plan',
++            renewDisabled: true,
++            renewEnabled: false,
++            expirationDate: subscriptionMock.PeriodEnd,
++        });
++
++        expect(subscriptionExpires(subscriptionWithScheduledChange, false)).toEqual(
++            subscriptionExpires(subscriptionWithScheduledChange)
++        );
++    });
++
++    it('should force cancellation renewal flags even when base Renew stays Enabled', () => {
++        const subscriptionWithRenewEnabledAndUpcoming = {
++            ...subscriptionMock,
++            Renew: 1,
++            Plans: [
++                {
++                    ...subscriptionMock.Plans[0],
++                    Title: 'Current plan',
++                },
++            ],
++            UpcomingSubscription: {
++                ...upcomingSubscriptionMock,
++                Renew: 1,
++                Plans: [
++                    {
++                        ...upcomingSubscriptionMock.Plans[0],
++                        Title: 'Future plan',
++                    },
++                ],
++            },
++        };
++        const cancelled = subscriptionExpires(subscriptionWithRenewEnabledAndUpcoming, true);
++        expect(cancelled.subscriptionExpiresSoon).toBe(true);
++        expect(cancelled.renewDisabled).toBe(true);
++        expect(cancelled.renewEnabled).toBe(false);
++        expect(cancelled.planName).toBe('Current plan');
++        expect(cancelled.renewEnabled).toBe(!cancelled.renewDisabled);
++    });
++
++    it('should derive renewEnabled as the inverse of renewDisabled across inputs', () => {
++        const subscriptionWithScheduledChange = {
++            ...subscriptionMock,
++            Plans: [
++                {
++                    ...subscriptionMock.Plans[0],
++                    Title: 'Current plan',
++                },
++            ],
++            UpcomingSubscription: {
++                ...upcomingSubscriptionMock,
++                Plans: [
++                    {
++                        ...upcomingSubscriptionMock.Plans[0],
++                        Title: 'Future plan',
++                    },
++                ],
++            },
++        };
++        const variants = [
++            subscriptionMock,
++            { ...subscriptionMock, Renew: 0 },
++            { ...subscriptionMock, Renew: 2 },
++            subscriptionWithScheduledChange,
++        ];
++        variants.forEach((sub) => {
++            const withoutCancelled = subscriptionExpires(sub as any);
++            const withFalse = subscriptionExpires(sub as any, false);
++            const withTrue = subscriptionExpires(sub as any, true);
++            expect(withoutCancelled.renewEnabled).toBe(!withoutCancelled.renewDisabled);
++            expect(withFalse.renewEnabled).toBe(!withFalse.renewDisabled);
++            expect(withTrue.renewEnabled).toBe(!withTrue.renewDisabled);
++            expect(withFalse).toEqual(withoutCancelled);
++        });
++    });
++
++    it('should ignore UpcomingSubscription when base subscription Renew is Disabled', () => {
++        const subscriptionRenewDisabledWithUpcoming = {
++            ...subscriptionMock,
++            Renew: Renew.Disabled,
++            Plans: [
++                {
++                    ...subscriptionMock.Plans[0],
++                    Title: 'Current plan',
++                },
++            ],
++            UpcomingSubscription: {
++                ...upcomingSubscriptionMock,
++                Renew: Renew.Enabled,
++                Plans: [
++                    {
++                        ...upcomingSubscriptionMock.Plans[0],
++                        Title: 'Future plan',
++                    },
++                ],
++            },
++        };
++
++        expect(subscriptionExpires(subscriptionRenewDisabledWithUpcoming)).toEqual({
++            subscriptionExpiresSoon: true,
++            planName: 'Current plan',
++            renewDisabled: true,
++            renewEnabled: false,
++            expirationDate: subscriptionMock.PeriodEnd,
++        });
++    });
+ });
+ 
+ describe('notHigherThanAvailableOnBackend', () => {

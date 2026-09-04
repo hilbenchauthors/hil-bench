@@ -1,0 +1,299 @@
+diff --git a/utils/singleton/singleton_test.go b/utils/singleton/singleton_test.go
+index 9014e4ef..9f93b667 100644
+--- a/utils/singleton/singleton_test.go
++++ b/utils/singleton/singleton_test.go
+@@ -1,6 +1,7 @@
+ package singleton_test
+ 
+ import (
++	"errors"
+ 	"sync"
+ 	"sync/atomic"
+ 	"testing"
+@@ -17,59 +18,258 @@ func TestSingleton(t *testing.T) {
+ 	RunSpecs(t, "Singleton Suite")
+ }
+ 
+-var _ = Describe("Get", func() {
+-	type T struct{ id string }
+-	var numInstances int
+-	constructor := func() interface{} {
+-		numInstances++
+-		return &T{id: uuid.NewString()}
+-	}
++type singletonTypeCreate struct{ id string }
++type singletonTypeRepeat struct{ id string }
++type singletonTypeNamespaceA struct{ id string }
++type singletonTypeNamespaceAB struct{ id string }
++type singletonTypeNamespaceWS struct{ id string }
++type singletonTypeNilPtr struct{ id string }
++type singletonTypeNilMap struct{ id string }
++type singletonTypeNilSlice struct{ id string }
++type singletonTypeNilChan struct{ id string }
++type singletonTypeNilFunc struct{ id string }
++type singletonTypePanic struct{ id string }
++type singletonTypeConcurrency struct{ id string }
+ 
++var _ = Describe("GetInstance", func() {
+ 	It("calls the constructor to create a new instance", func() {
+-		instance := singleton.Get(T{}, constructor)
++		var numInstances int
++		constructor := func() *singletonTypeCreate {
++			numInstances++
++			return &singletonTypeCreate{id: uuid.NewString()}
++		}
++
++		instance := singleton.GetInstance(constructor)
+ 		Expect(numInstances).To(Equal(1))
+-		Expect(instance).To(BeAssignableToTypeOf(&T{}))
++		Expect(instance).To(BeAssignableToTypeOf(&singletonTypeCreate{}))
+ 	})
+ 
+-	It("does not call the constructor the next time", func() {
+-		instance := singleton.Get(T{}, constructor)
+-		newInstance := singleton.Get(T{}, constructor)
++	It("returns the same instance on repeated calls for the same type", func() {
++		var firstCalls int
++		first := singleton.GetInstance(func() *singletonTypeRepeat {
++			firstCalls++
++			return &singletonTypeRepeat{id: "first"}
++		})
+ 
+-		Expect(newInstance.(*T).id).To(Equal(instance.(*T).id))
+-		Expect(numInstances).To(Equal(1))
++		second := singleton.GetInstance(func() *singletonTypeRepeat {
++			firstCalls++
++			return &singletonTypeRepeat{id: "second"}
++		})
++
++		Expect(first.id).To(Equal("first"))
++		Expect(second.id).To(Equal("first"))
++		Expect(firstCalls).To(Equal(1))
+ 	})
+ 
+-	It("does not call the constructor even if a pointer is passed as the object", func() {
+-		instance := singleton.Get(T{}, constructor)
+-		newInstance := singleton.Get(&T{}, constructor)
++	It("keeps namespaced and non-namespaced instances isolated", func() {
++		base := singleton.GetInstance(func() *singletonTypeNamespaceA {
++			return &singletonTypeNamespaceA{id: "base"}
++		})
+ 
+-		Expect(newInstance.(*T).id).To(Equal(instance.(*T).id))
+-		Expect(numInstances).To(Equal(1))
++		namespaced := singleton.GetInstance(func() *singletonTypeNamespaceA {
++			return &singletonTypeNamespaceA{id: "namespaced"}
++		}, " metrics ")
++
++		sameNamespace := singleton.GetInstance(func() *singletonTypeNamespaceA {
++			return &singletonTypeNamespaceA{id: "should-not-run"}
++		}, "metrics")
++
++		Expect(base.id).To(Equal("base"))
++		Expect(namespaced.id).To(Equal("namespaced"))
++		Expect(sameNamespace.id).To(Equal("namespaced"))
++	})
++
++	It("treats whitespace-only namespace as no namespace", func() {
++		base := singleton.GetInstance(func() *singletonTypeNamespaceWS {
++			return &singletonTypeNamespaceWS{id: "ws-base"}
++		})
++
++		wsOnly := singleton.GetInstance(func() *singletonTypeNamespaceWS {
++			return &singletonTypeNamespaceWS{id: "ws-should-not-run"}
++		}, "   ")
++
++		Expect(base.id).To(Equal("ws-base"))
++		Expect(wsOnly.id).To(Equal("ws-base"))
++	})
++
++	It("uses a delimiter when building keys with namespace suffixes", func() {
++		ab := singleton.GetInstance(func() *singletonTypeNamespaceAB {
++			return &singletonTypeNamespaceAB{id: "ab"}
++		})
++
++		aWithSuffix := singleton.GetInstance(func() *singletonTypeNamespaceA {
++			return &singletonTypeNamespaceA{id: "a-with-suffix"}
++		}, "B")
++
++		Expect(ab.id).To(Equal("ab"))
++		Expect(aWithSuffix.id).To(Equal("a-with-suffix"))
++	})
++
++	It("panics when multiple namespace suffixes are provided", func() {
++		var calls int
++
++		Expect(func() {
++			singleton.GetInstance(func() *singletonTypePanic {
++				calls++
++				return &singletonTypePanic{id: "x"}
++			}, "first", "second")
++		}).To(Panic())
++
++		Expect(calls).To(Equal(0))
++	})
++
++	It("does not cache nil pointer results", func() {
++		var calls int
++
++		first := singleton.GetInstance(func() *singletonTypeNilPtr {
++			calls++
++			return nil
++		})
++
++		second := singleton.GetInstance(func() *singletonTypeNilPtr {
++			calls++
++			return &singletonTypeNilPtr{id: "recovered"}
++		})
++
++		third := singleton.GetInstance(func() *singletonTypeNilPtr {
++			calls++
++			return &singletonTypeNilPtr{id: "should-not-run"}
++		})
++
++		Expect(first).To(BeNil())
++		Expect(second).ToNot(BeNil())
++		Expect(second.id).To(Equal("recovered"))
++		Expect(third.id).To(Equal("recovered"))
++		Expect(calls).To(Equal(2))
++	})
++
++	It("does not cache nil interface results", func() {
++		var calls int
++
++		first := singleton.GetInstance(func() error {
++			calls++
++			return nil
++		})
++
++		second := singleton.GetInstance(func() error {
++			calls++
++			return errors.New("real-error")
++		})
++
++		third := singleton.GetInstance(func() error {
++			calls++
++			return errors.New("should-not-run")
++		})
++
++		Expect(first).To(BeNil())
++		Expect(second).ToNot(BeNil())
++		Expect(second.Error()).To(Equal("real-error"))
++		Expect(third.Error()).To(Equal("real-error"))
++		Expect(calls).To(Equal(2))
++	})
++
++	It("does not cache nil map results", func() {
++		var calls int
++
++		first := singleton.GetInstance(func() map[string]string {
++			calls++
++			return nil
++		})
++
++		second := singleton.GetInstance(func() map[string]string {
++			calls++
++			return map[string]string{"status": "ok"}
++		})
++
++		Expect(first).To(BeNil())
++		Expect(second).ToNot(BeNil())
++		Expect(second["status"]).To(Equal("ok"))
++		Expect(calls).To(Equal(2))
++	})
++
++	It("does not cache nil slice results", func() {
++		var calls int
++
++		first := singleton.GetInstance(func() []int {
++			calls++
++			return nil
++		})
++
++		second := singleton.GetInstance(func() []int {
++			calls++
++			return []int{42}
++		})
++
++		Expect(first).To(BeNil())
++		Expect(second).To(Equal([]int{42}))
++		Expect(calls).To(Equal(2))
++	})
++
++	It("does not cache nil chan results", func() {
++		var calls int
++
++		first := singleton.GetInstance(func() chan int {
++			calls++
++			return nil
++		})
++
++		second := singleton.GetInstance(func() chan int {
++			calls++
++			ch := make(chan int, 1)
++			return ch
++		})
++
++		Expect(first).To(BeNil())
++		Expect(second).ToNot(BeNil())
++		Expect(calls).To(Equal(2))
++	})
++
++	It("does not cache nil func results", func() {
++		var calls int
++
++		first := singleton.GetInstance(func() func() string {
++			calls++
++			return nil
++		})
++
++		second := singleton.GetInstance(func() func() string {
++			calls++
++			return func() string { return "hello" }
++		})
++
++		Expect(first).To(BeNil())
++		Expect(second).ToNot(BeNil())
++		Expect(second()).To(Equal("hello"))
++		Expect(calls).To(Equal(2))
+ 	})
+ 
+ 	It("only calls the constructor once when called concurrently", func() {
+ 		const maxCalls = 2000
+-		var numCalls int32
++		var constructorCalls int32
++
+ 		start := sync.WaitGroup{}
+ 		start.Add(1)
+-		prepare := sync.WaitGroup{}
+-		prepare.Add(maxCalls)
++		ready := sync.WaitGroup{}
++		ready.Add(maxCalls)
+ 		done := sync.WaitGroup{}
+ 		done.Add(maxCalls)
++
+ 		for i := 0; i < maxCalls; i++ {
+ 			go func() {
++				ready.Done()
+ 				start.Wait()
+-				singleton.Get(T{}, constructor)
+-				atomic.AddInt32(&numCalls, 1)
++				singleton.GetInstance(func() *singletonTypeConcurrency {
++					atomic.AddInt32(&constructorCalls, 1)
++					return &singletonTypeConcurrency{id: "only-one"}
++				})
+ 				done.Done()
+ 			}()
+-			prepare.Done()
+ 		}
+-		prepare.Wait()
++
++		ready.Wait()
+ 		start.Done()
+ 		done.Wait()
+ 
+-		Expect(numCalls).To(Equal(int32(maxCalls)))
+-		Expect(numInstances).To(Equal(1))
++		Expect(constructorCalls).To(Equal(int32(1)))
+ 	})
+ })

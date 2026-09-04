@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The term consolidation period defines the time window for the query but is not tied to specific dates.",
+      "example_questions": [
+        "What are the start and end dates for the consolidation period?",
+        "Which year or timeframe does the consolidation period cover?",
+        "Is the consolidation period the current year, the last year of data, or a custom range?"
+      ],
+      "id": "consolidation_period_dates",
+      "resolution": "The consolidation period corresponds to the calendar year 1997.",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The prompt requires filtering for western districts, implying a condition based on the Longitude column (e.g., Longitude < X). However, the specific numerical value (X) needed to define this cutoff is not provided, making it unclear which exact values to include.",
+      "example_questions": [
+        "What specific longitude value should I use as the cutoff to determine which districts are western?",
+        "To filter for western districts, what constitutes the maximum longitude value I should use?",
+        "Should I use a specific numerical threshold for the longitude to identify western districts, and if so, what is it?"
+      ],
+      "id": "unspecified_longitude_threshold",
+      "resolution": "Western districts are those with a longitude of over 12.9\n",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The business info states Transaction-based reporting cycle corresponds to specific account types, which is vague. It doesn't specify the value needed to filter the account records.",
+      "example_questions": [
+        "What specific value indicates a transaction-based reporting cycle?",
+        "Which frequency value corresponds to transaction-based reporting?",
+        "What string should I filter by to find accounts with transaction-based reporting?"
+      ],
+      "id": "statement_issuance_definition_confusing",
+      "resolution": "The value \"POPLATEK MESICNE\" in the frequency column of the account table identifies accounts with a transaction-based reporting cycle.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks for priority loans, but it is not specified which loan statuses qualify as Priority. This should be within the business information but is not defined.",
+      "example_questions": [
+        "What criteria determine if a loan has a priority status?",
+        "Which statuses in the loan table correspond to loans with a priority status?",
+        "How should priority loans be identified?"
+      ],
+      "id": "priority_loans_definition",
+      "resolution": "Priority Loans are loans with a status of C (Running OK).",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The loans table has different columns for loan amounts from more than 2 different providers, which makes it impossible to know how to obtain a loan's amount\n",
+      "example_questions": [
+        "How can I obtain a loan's amount?",
+        "How should I obtain a loan's amount?",
+        "Which column can I use to obtain a loan's amount?"
+      ],
+      "id": "amount_schema_ambiguity",
+      "resolution": "The loan's amount is given by the apprvd_amount_provider_T column from the loans table\n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

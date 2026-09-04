@@ -1,0 +1,5 @@
+[
+  "components/v2/phone/PhoneInput.test.tsx | PhoneInput should have no country selected when defaultCountry prop is omitted",
+  "components/v2/phone/PhoneInput.test.tsx | PhoneInput should adopt defaultCountry after mount once and ignore subsequent changes",
+  "components/v2/phone/PhoneInput.test.tsx | AccountRecoverySection should render recovery content and not show loader when useMyCountry returns undefined"
+]

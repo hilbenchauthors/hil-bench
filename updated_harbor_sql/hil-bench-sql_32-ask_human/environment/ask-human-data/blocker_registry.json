@@ -1,0 +1,67 @@
+{
+  "blockers": [
+    {
+      "description": "The question uses \u201cafter the release of R version 8.0\u201d as a time anchor, but no such R version exists, so the intended cutoff date is unclear.",
+      "example_questions": [
+        "R version 8.0 does not exist; which R version release should be used instead?",
+        "What is the exact release date that should be used for the phrase \"after the release of R version 8.0\"?",
+        "Which specific date should be used to interpret \u201cafter the release of R version 8.0\u201d?",
+        "Which real R release should be used as the reference point for the \u201cafter the release\u201d filter?"
+      ],
+      "id": "version_cutoff",
+      "resolution": "Treat the intended reference as R version 2.10.0, released on 2009-10-26. Thus, filter posts created after 2009-10-26.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The prompt requires to use the average earned by a professional blogger in a month (in USD), which cannot be known unless searched for.\n",
+      "example_questions": [
+        "What is the average amount earned by a professional blogger in a month (in USD)?",
+        "What value should I use as the average amount earned by a professional blogger in a month (in USD)?",
+        "Could you provide the average amount earned by a professional blogger in a month (in USD)?"
+      ],
+      "id": "earned_amount",
+      "resolution": "The average amount earned by a professional blogger in a month (in USD) is 500 USD.\n",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The request requires at least 3 years of membership tenure while also stating that the account was created in the last 12 months, which cannot both be true without clarifying which time requirement is intended.",
+      "example_questions": [
+        "The request includes \u201cat least 3 years of membership tenure\u201d and \u201ccreated in the last 12 months\u201d; what tenure duration should be used?",
+        "Should '3 years of membership tenure' be interpreted as years, months, or another time unit to make it consistent with 'created in the last 12 months'?",
+        "How should I reconcile the conflicting requirements of '3 years of membership tenure' and 'created in the last 12 months'?",
+        "The request states \u201c3 years of membership tenure\u201d while requiring creation within the last 12 months; which time interpretation makes the criteria consistent?"
+      ],
+      "id": "tenure_clash",
+      "resolution": "Reinterpret '3 years' as '3 months' for consistency. The only conditions to apply to the account's creation date and last access date are that the creation date must be on or before date('2014-09-14', '-3 months'), and the last access date must be on or after date('2014-09-14', '-12 months').",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The question refers to \"elite contributors,\" but neither the business information nor the schema defines what qualifies a user as an elite contributor, and multiple metrics could plausibly be used.",
+      "example_questions": [
+        "What metric should define an 'elite contributor': reputation, badges, or another measurable attribute?",
+        "What exact eligibility rule defines an \u2018elite contributor\u2019 for filtering users?",
+        "If \u2018elite contributor\u2019 is defined using reputation, what reputation threshold should be used?",
+        "Does \u2018elite contributor\u2019 mean users above a specific reputation value, and if so, what value?"
+      ],
+      "id": "elite_rule",
+      "resolution": "Define an elite contributor as a user with Reputation > 5000.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The \"Honor\" column in the \"users\" table contains values that are not numeric and cannot be interpreted. It is impossible to understand how to use this column to calculate the honor level of a user.\n",
+      "example_questions": [
+        "How should I interpret the values from the \"Honor\" column in the \"users\" table?",
+        "What do the values from the \"Honor\" column in the \"users\" table mean?",
+        "How do I interpret the values from the \"Honor\" column in the \"users\" table?"
+      ],
+      "id": "honor_column",
+      "resolution": "The users with a level 3 honor level are those for whom the \"Honor\" column in the \"users\" table contains the values \"Mx\" or \"Tr\", which correspond to Max and Three.\n",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

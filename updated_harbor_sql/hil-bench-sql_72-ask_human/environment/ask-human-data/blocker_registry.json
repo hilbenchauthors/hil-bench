@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question requests cards from the 29th Core Set, but only 24 Core Sets have been released.",
+      "example_questions": [
+        "There are only 24 Core Sets in the MTG history? Which specific Core Set should I use?",
+        "The 29th Core Set doesn't exist. Should I use a different Core Set?",
+        "Which Core Set should I use since the 29th doesn't exist?"
+      ],
+      "id": "twenty_ninth_core_set",
+      "resolution": "Use the cards from the Ninth Edition Core Set: setCode = '9ED'.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "It's unknown what \"competitive tournament designation\" means, as it is not specified anywhere in the schema or business information.",
+      "example_questions": [
+        "What does competitive tournament designation mean?",
+        "How is the competitive tournament designation determined for cards?",
+        "Which metric should I use for the competitive tournament designation?"
+      ],
+      "id": "competitive_tournament_designation",
+      "resolution": "Competitive tournament designation means cards with cards.edhrecRank <= 5000, and the card must also be legalities.format = 'commander' with legalities.status = 'Legal'.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "It's unclear which value in the certification_status column corresponds to the premier certification status for sets.",
+      "example_questions": [
+        "What value in certification_status indicates premier certification status?",
+        "Which certification code represents premier status?",
+        "How do I identify the premier certification status?"
+      ],
+      "id": "premier_certification_status",
+      "resolution": "Premier certification status refers to sets where certification_status = 'CS2'.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

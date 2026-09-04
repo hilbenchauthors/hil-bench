@@ -1,0 +1,26 @@
+diff --git a/packages/components/helpers/url.obstructed.test.ts b/packages/components/helpers/url.obstructed.test.ts
+new file mode 100644
+index 0000000000..6555727aaa
+--- /dev/null
++++ b/packages/components/helpers/url.obstructed.test.ts
+@@ -0,0 +1,20 @@
++import { getHostnameWithRegex, punycodeUrl } from '@proton/components/helpers/url';
++
++describe('url obstructed blockers', () => {
++    it('derives_a_stable_matching_key_from_nested_hosts', () => {
++        expect(getHostnameWithRegex('https://www.mail.proton.me')).toEqual('proton');
++        expect(getHostnameWithRegex('https://calendar.proton.me')).toEqual('proton');
++        expect(getHostnameWithRegex('https://secure.login.example.co.uk')).toEqual('example');
++    });
++
++    it('returns_inert_data_uri_for_unparseable_input', () => {
++        expect(punycodeUrl('not-a-valid-url')).toEqual('data:,not-a-valid-url');
++        expect(punycodeUrl(':::invalid')).toEqual('data:,:::invalid');
++    });
++
++    it('strips_root_separator_but_preserves_deep_path_separator', () => {
++        expect(punycodeUrl('https://www.äöü.com/')).toEqual('https://www.xn--4ca0bs.com');
++        expect(punycodeUrl('https://www.äöü.com/path/')).toEqual('https://www.xn--4ca0bs.com/path/');
++        expect(punycodeUrl('https://www.äöü.com/a/b/?k=v#end')).toEqual('https://www.xn--4ca0bs.com/a/b/?k=v#end');
++    });
++});

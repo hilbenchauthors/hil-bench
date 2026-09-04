@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \u201cover the last few weeks\u201d is ambiguous in both (a) the window length (how many weeks counts as \u201cfew\u201d) and (b) the anchor date (relative to today vs relative to the latest award date available in the dataset). This ambiguity changes how many schools are counted as having earned an award.",
+      "example_questions": [
+        "Which dates should I consider when looking for \"over the last few weeks\"?",
+        "How many weeks should I consider for the phrase 'over the last few weeks'?\"",
+        "Could you clarify how many weeks is \"a few\"?"
+      ],
+      "id": "last_weeks_ambiguity",
+      "resolution": "Interpret \u201clast few weeks\u201d as a 7-week (49-day) rolling window ending on the latest available schools.last_award_earning_date in the database (2026-01-31). Count a school as \u201cearned an award in the last few weeks\u201d if last_award_earning_date is between 2025-12-14 and 2026-01-31 (inclusive).",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The question filters for \u201cschools in the d1 region\u201d, but schools.Regions contains multiple inconsistent codes that could plausibly represent \u201cd1\u201d (e.g., D01, D001, d01, d-1, etc.). It\u2019s unclear which exact values should be treated as the \u201cd1 region\u201d, and different choices materially change the school set and all aggregates.\n",
+      "example_questions": [
+        "I see many plausible regions: \"d-1\", \"d01\", \"D001\", and \"D01\". Which one should I use?",
+        "Which region should I use: \"d-1\", \"d01\", \"D001\", or \"D01\"?",
+        "Could you clarify which of the following is the correct region: \"d-1\", \"d01\", \"D001\", and \"D01\"?"
+      ],
+      "id": "unclear_d_value",
+      "resolution": "Interpret \u201cd1 region\u201d as only schools.Regions IN ('d-1','d01') (exact match), excluding all other region variants.\n",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The business info says to multiply by an \u201cappropriate correction constant,\u201d but it does not define what \u201cappropriate\u201d means (e.g., it could depend on reporting standard, year, or grade-span convention). Multiple correction constants could plausibly be used, and choosing a different one changes which schools fall below the threshold.\n",
+      "example_questions": [
+        "What correction constant should I use when calculating the cleaned percent (%) of eligible free meals for grades 1 through 12?",
+        "How can I calculate the cleaned percent (%) of eligible free meals for grades 1 through 12 exactly?",
+        "Which correction constant should I use when calculating the cleaned percent (%) of eligible free meals for grades 1 through 12?"
+      ],
+      "id": "appropriate_correction_constant",
+      "resolution": "Use a correction constant of 2.4 when computing the cleaned percent:\ncleaned_free_pct = (free_meal_count / enrollment) * 2.4.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The satscores table stores section-level SAT averages in columns AvgScr1\u2013AvgScr5, but the table definition does not specify which AvgScr* corresponds to the Math section. Because multiple AvgScr* columns look like plausible SAT section scores, it\u2019s unclear which one should be used for \u201caverage SAT score in math.\u201d",
+      "example_questions": [
+        "How can I obtain a school's average SAT score in math?",
+        "How should I obtain a school's average SAT score in math?",
+        "Which column can I use to obtain a school's average SAT score in math?"
+      ],
+      "id": "avgscr_column",
+      "resolution": "Use satscores.AvgScr3 as the average SAT Math score.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

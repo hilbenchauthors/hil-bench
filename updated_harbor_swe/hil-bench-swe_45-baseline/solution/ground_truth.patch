@@ -1,0 +1,155 @@
+diff --git a/model/album.go b/model/album.go
+index 86de99d4..a8f74e2b 100644
+--- a/model/album.go
++++ b/model/album.go
+@@ -1,6 +1,10 @@
+ package model
+ 
+-import "time"
++import (
++	"time"
++
++	"golang.org/x/exp/slices"
++)
+ 
+ type Album struct {
+ 	Annotations `structs:"-"`
+@@ -42,13 +46,60 @@ func (a Album) CoverArtID() ArtworkID {
+ 	return artworkIDFromAlbum(a)
+ }
+ 
+-type (
+-	Albums []Album
+-	DiscID struct {
+-		AlbumID    string `json:"albumId"`
+-		DiscNumber int    `json:"discNumber"`
++type DiscID struct {
++	AlbumID    string `json:"albumId"`
++	DiscNumber int    `json:"discNumber"`
++}
++
++type Albums []Album
++
++func (als Albums) ToAlbumArtist() Artist {
++	a := Artist{AlbumCount: len(als)}
++	var mbzArtistIDs []string
++	for _, al := range als {
++		if a.ID == "" {
++			a.ID = al.AlbumArtistID
++			a.Name = al.AlbumArtist
++			a.SortArtistName = al.SortAlbumArtistName
++			a.OrderArtistName = al.OrderAlbumArtistName
++		}
++		a.SongCount += al.SongCount
++		a.Size += al.Size
++		a.Genres = append(a.Genres, al.Genres...)
++		if al.MbzAlbumArtistID != "" {
++			mbzArtistIDs = append(mbzArtistIDs, al.MbzAlbumArtistID)
++		}
+ 	}
+-)
++	slices.SortFunc(a.Genres, func(a, b Genre) bool { return a.ID > b.ID })
++	seenIDs := map[string]bool{}
++	unique := a.Genres[:0]
++	for _, g := range a.Genres {
++		if !seenIDs[g.ID] {
++			seenIDs[g.ID] = true
++			unique = append(unique, g)
++		}
++	}
++	a.Genres = unique
++	a.MbzArtistID = dominantMbzID(mbzArtistIDs)
++	return a
++}
++
++func dominantMbzID(ids []string) string {
++	if len(ids) == 0 {
++		return ""
++	}
++	freq := map[string]int{}
++	best := ids[0]
++	bestCount := 0
++	for _, id := range ids {
++		freq[id]++
++		if freq[id] >= bestCount {
++			best = id
++			bestCount = freq[id]
++		}
++	}
++	return best
++}
+ 
+ type AlbumRepository interface {
+ 	CountAll(...QueryOptions) (int64, error)
+diff --git a/scanner/refresher.go b/scanner/refresher.go
+index adcd077b..3ba27d50 100644
+--- a/scanner/refresher.go
++++ b/scanner/refresher.go
+@@ -51,18 +51,10 @@ func (f *refresher) flushMap(m map[string]struct{}, entity string, refresh refre
+ 		ids = append(ids, id)
+ 		delete(m, id)
+ 	}
+-	if err := refresh(ids...); err != nil {
+-		log.Error(f.ctx, fmt.Sprintf("Error writing %ss to the DB", entity), err)
+-		return err
+-	}
+-	return nil
+-}
+-
+-func (f *refresher) refreshAlbumsChunked(ids ...string) error {
+-	chunks := utils.BreakUpStringSlice(ids, 100)
++	chunks := utils.BreakUpStringSlice(ids, 73)
+ 	for _, chunk := range chunks {
+-		err := f.refreshAlbums(chunk...)
+-		if err != nil {
++		if err := refresh(chunk...); err != nil {
++			log.Error(f.ctx, fmt.Sprintf("Error writing %ss to the DB", entity), err)
+ 			return err
+ 		}
+ 	}
+@@ -102,12 +94,31 @@ func (f *refresher) getImageFiles(dirs []string) string {
+ 	return strings.Join(imageFiles, string(filepath.ListSeparator))
+ }
+ 
++func (f *refresher) refreshArtists(ids ...string) error {
++	mfs, err := f.ds.Album(f.ctx).GetAll(model.QueryOptions{Filters: squirrel.Eq{"album_artist_id": ids}})
++	if err != nil {
++		return err
++	}
++	if len(mfs) == 0 {
++		return nil
++	}
++	repo := f.ds.Artist(f.ctx)
++	grouped := slice.Group(mfs, func(al model.Album) string { return al.AlbumArtistID })
++	for _, group := range grouped {
++		artist := model.Albums(group).ToAlbumArtist()
++		if err := repo.Put(&artist); err != nil {
++			return err
++		}
++	}
++	return nil
++}
++
+ func (f *refresher) flush() error {
+-	err := f.flushMap(f.album, "album", f.refreshAlbumsChunked)
++	err := f.flushMap(f.album, "album", f.refreshAlbums)
+ 	if err != nil {
+ 		return err
+ 	}
+-	err = f.flushMap(f.artist, "artist", f.ds.Artist(f.ctx).Refresh) // TODO Move Artist Refresh out of persistence
++	err = f.flushMap(f.artist, "artist", f.refreshArtists)
+ 	if err != nil {
+ 		return err
+ 	}
+diff --git a/model/artist.go b/model/artist.go
+index 715c2ecf..f58450f4 100644
+--- a/model/artist.go
++++ b/model/artist.go
+@@ -49,7 +49,6 @@ type ArtistRepository interface {
+ 	Get(id string) (*Artist, error)
+ 	GetAll(options ...QueryOptions) (Artists, error)
+ 	Search(q string, offset int, size int) (Artists, error)
+-	Refresh(ids ...string) error
+ 	GetIndex() (ArtistIndexes, error)
+ 	AnnotatedRepository
+ }

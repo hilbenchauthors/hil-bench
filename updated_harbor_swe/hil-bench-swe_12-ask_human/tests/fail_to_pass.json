@@ -1,0 +1,6 @@
+[
+  "applications/drive/src/app/components/useSpotlight.test.tsx | should NOT show spotlight when cached children count is exactly 8",
+  "applications/drive/src/app/components/useSpotlight.test.tsx | should show spotlight when cached children count is greater than 8",
+  "applications/drive/src/app/components/useSpotlight.test.tsx | should use FeatureCode.DriveSearchFeatureDiscovery for spotlight visibility",
+  "applications/drive/src/app/components/useSpotlightArchitecture.test.tsx | should keep spotlight feature hooks centralized in useSpotlight provider only"
+]

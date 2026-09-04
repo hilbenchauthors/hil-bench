@@ -1,0 +1,114 @@
+diff --git a/utils/cache/cache_suite_test.go b/utils/cache/cache_suite_test.go
+index 8c0d2897..c80f86de 100644
+--- a/utils/cache/cache_suite_test.go
++++ b/utils/cache/cache_suite_test.go
+@@ -9,6 +9,7 @@ import (
+ 	. "github.com/onsi/gomega"
+ )
+ 
++// TestCache runs the Ginkgo test suite for the cache package.
+ func TestCache(t *testing.T) {
+ 	tests.Init(t, false)
+ 	log.SetLevel(log.LevelFatal)
+diff --git a/utils/cache/simple_cache_test.go b/utils/cache/simple_cache_test.go
+index 227e287e..dcdd1447 100644
+--- a/utils/cache/simple_cache_test.go
++++ b/utils/cache/simple_cache_test.go
+@@ -2,6 +2,7 @@ package cache
+ 
+ import (
+ 	"errors"
++	"fmt"
+ 	"time"
+ 
+ 	. "github.com/onsi/ginkgo/v2"
+@@ -82,4 +83,89 @@ var _ = Describe("SimpleCache", func() {
+ 			Expect(keys).To(ConsistOf("key1", "key2"))
+ 		})
+ 	})
++
++	Describe("Options", func() {
++		Context("when size limit is set", func() {
++			BeforeEach(func() {
++				cache = NewSimpleCache[string](Options{
++					SizeLimit: 2,
++				})
++			})
++
++			It("should not add more items than the size limit", func() {
++				for i := 1; i <= 3; i++ {
++					err := cache.Add(fmt.Sprintf("key%d", i), fmt.Sprintf("value%d", i))
++					Expect(err).NotTo(HaveOccurred())
++				}
++
++				Expect(cache.Keys()).To(ConsistOf("key2", "key3"))
++			})
++		})
++
++		Context("when default TTL is set", func() {
++			BeforeEach(func() {
++				cache = NewSimpleCache[string](Options{
++					DefaultTTL: 10 * time.Millisecond,
++				})
++			})
++
++			It("should expire items after the default TTL", func() {
++				_ = cache.Add("key", "value")
++
++				time.Sleep(50 * time.Millisecond)
++
++				_, err := cache.Get("key")
++				Expect(err).To(HaveOccurred())
++			})
++		})
++
++		Context("when size limit is set with mixed TTLs", func() {
++			It("should evict by insertion order regardless of TTL", func() {
++				cache = NewSimpleCache[string](Options{
++					SizeLimit: 2,
++				})
++				_ = cache.AddWithTTL("key1", "value1", 10*time.Second)
++				_ = cache.AddWithTTL("key2", "value2", 100*time.Millisecond)
++				_ = cache.AddWithTTL("key3", "value3", 10*time.Second)
++				Expect(cache.Keys()).To(ConsistOf("key2", "key3"))
++			})
++
++			It("should evict by insertion order regardless of access frequency", func() {
++				cache = NewSimpleCache[string](Options{
++					SizeLimit: 2,
++				})
++				_ = cache.AddWithTTL("key1", "value1", 10*time.Second)
++				_ = cache.AddWithTTL("key2", "value2", 10*time.Second)
++				_, err := cache.Get("key1")
++				Expect(err).NotTo(HaveOccurred())
++				_ = cache.AddWithTTL("key3", "value3", 10*time.Second)
++				Expect(cache.Keys()).To(ConsistOf("key2", "key3"))
++			})
++		})
++
++		Context("when eviction is triggered at capacity", func() {
++			It("should evict entries down to half the size limit", func() {
++				cache = NewSimpleCache[string](Options{
++					SizeLimit: 6,
++				})
++				for i := 1; i <= 6; i++ {
++					_ = cache.Add(fmt.Sprintf("key%d", i), fmt.Sprintf("value%d", i))
++				}
++				_ = cache.Add("key7", "value7")
++				Expect(cache.Keys()).To(ConsistOf("key4", "key5", "key6", "key7"))
++			})
++		})
++
++		Context("when default TTL is set with explicit TTL override", func() {
++			It("should cap entry TTL to default TTL", func() {
++				cache = NewSimpleCache[string](Options{
++					DefaultTTL: 50 * time.Millisecond,
++				})
++				_ = cache.AddWithTTL("key", "value", 500*time.Millisecond)
++				time.Sleep(100 * time.Millisecond)
++				_, err := cache.Get("key")
++				Expect(err).To(HaveOccurred())
++			})
++		})
++	})
+ })

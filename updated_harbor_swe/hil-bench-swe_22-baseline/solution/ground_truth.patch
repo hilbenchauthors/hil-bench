@@ -1,0 +1,230 @@
+diff --git a/lib/ansible/plugins/connection/winrm.py b/lib/ansible/plugins/connection/winrm.py
+index 66c22fa515..f8f12fae67 100644
+--- a/lib/ansible/plugins/connection/winrm.py
++++ b/lib/ansible/plugins/connection/winrm.py
+@@ -78,6 +78,32 @@ DOCUMENTATION = """
+         vars:
+           - name: ansible_winrm_kinit_cmd
+         type: str
++      kinit_args:
++        description:
++        - Extra arguments to pass to C(kinit) when getting the Kerberos authentication ticket.
++        - By default no extra arguments are passed into C(kinit) unless I(ansible_winrm_kerberos_delegation) is also
++          set. In that case C(-f) is added to the C(kinit) args so a forwardable ticket is retrieved.
++        - If set, the args will overwrite any existing defaults for C(kinit), including C(-f) for a delegated ticket.
++        type: str
++        vars:
++          - name: ansible_winrm_kinit_args
++        version_added: '2.11'
++      kinit_timeout:
++        description:
++        - Timeout in seconds for the kinit command execution.
++        default: 73
++        type: int
++        vars:
++          - name: ansible_winrm_kinit_timeout
++        version_added: '2.11'
++      kinit_retries:
++        description:
++        - Number of additional retry attempts for kinit after a timeout failure.
++        default: 7
++        type: int
++        vars:
++          - name: ansible_winrm_kinit_retries
++        version_added: '2.11'
+       kerberos_mode:
+         description:
+             - kerberos usage mode.
+@@ -112,7 +138,9 @@ import re
+ import traceback
+ import json
+ import tempfile
++import shlex
+ import subprocess
++import time
+ 
+ HAVE_KERBEROS = False
+ try:
+@@ -121,6 +149,8 @@ try:
+ except ImportError:
+     pass
+ 
++KINIT_ARGS_MAX_LENGTH = 892
++
+ from ansible import constants as C
+ from ansible.errors import AnsibleError, AnsibleConnectionFailure
+ from ansible.errors import AnsibleFileNotFound
+@@ -291,70 +321,114 @@ class Connection(ConnectionBase):
+         os.environ["KRB5CCNAME"] = krb5ccname
+         krb5env = dict(KRB5CCNAME=krb5ccname)
+ 
+-        # stores various flags to call with kinit, we currently only use this
+-        # to set -f so we can get a forward-able ticket (cred delegation)
+-        kinit_flags = []
+-        if boolean(self.get_option('_extras').get('ansible_winrm_kerberos_delegation', False)):
+-            kinit_flags.append('-f')
+-
+         kinit_cmdline = [self._kinit_cmd]
+-        kinit_cmdline.extend(kinit_flags)
++        kinit_timeout = self.get_option('kinit_timeout')
++        kinit_retries = self.get_option('kinit_retries')
++
++        kinit_args = self.get_option('kinit_args')
++        if kinit_args:
++            if len(kinit_args) > KINIT_ARGS_MAX_LENGTH:
++                raise AnsibleConnectionFailure(
++                    "kinit_args exceeds maximum allowed length of %d characters (got %d)"
++                    % (KINIT_ARGS_MAX_LENGTH, len(kinit_args))
++                )
++            kinit_cmdline.extend(
++                [to_text(arg) for arg in shlex.split(kinit_args) if arg.strip()]
++            )
++        elif boolean(self.get_option('_extras').get('ansible_winrm_kerberos_delegation', False)):
++            kinit_cmdline.append('-f')
++
+         kinit_cmdline.append(principal)
+ 
+-        # pexpect runs the process in its own pty so it can correctly send
+-        # the password as input even on MacOS which blocks subprocess from
+-        # doing so. Unfortunately it is not available on the built in Python
+-        # so we can only use it if someone has installed it
+-        if HAS_PEXPECT:
+-            proc_mechanism = "pexpect"
+-            command = kinit_cmdline.pop(0)
+-            password = to_text(password, encoding='utf-8',
+-                               errors='surrogate_or_strict')
+-
+-            display.vvvv("calling kinit with pexpect for principal %s"
+-                         % principal)
+-            try:
+-                child = pexpect.spawn(command, kinit_cmdline, timeout=60,
+-                                      env=krb5env, echo=False)
+-            except pexpect.ExceptionPexpect as err:
+-                err_msg = "Kerberos auth failure when calling kinit cmd " \
+-                          "'%s': %s" % (command, to_native(err))
+-                raise AnsibleConnectionFailure(err_msg)
++        last_timeout_error = None
++        max_attempts = kinit_retries + 1
++
++        fib_a, fib_b = 1, 1
++        for attempt in range(max_attempts):
++            if attempt:
++                time.sleep(fib_a)
++                fib_a, fib_b = fib_b, fib_a + fib_b
++
++            # pexpect runs the process in its own pty so it can correctly send
++            # the password as input even on MacOS which blocks subprocess from
++            # doing so. Unfortunately it is not available on the built in Python
++            # so we can only use it if someone has installed it
++            if HAS_PEXPECT:
++                proc_mechanism = "pexpect"
++                command = kinit_cmdline[0]
++                pexpect_args = kinit_cmdline[1:]
++                password_text = to_text(password, encoding='utf-8',
++                                        errors='surrogate_or_strict')
++
++                display.vvvv("calling kinit with pexpect for principal %s"
++                             % principal)
++                try:
++                    child = pexpect.spawn(command, pexpect_args, timeout=kinit_timeout,
++                                          env=krb5env, echo=False)
++                except pexpect.ExceptionPexpect as err:
++                    err_msg = "Kerberos auth failure when calling kinit cmd " \
++                              "'%s': %s" % (command, to_native(err))
++                    raise AnsibleConnectionFailure(err_msg)
+ 
+-            try:
+-                child.expect(".*:")
+-                child.sendline(password)
+-            except OSError as err:
+-                # child exited before the pass was sent, Ansible will raise
+-                # error based on the rc below, just display the error here
+-                display.vvvv("kinit with pexpect raised OSError: %s"
+-                             % to_native(err))
+-
+-            # technically this is the stdout + stderr but to match the
+-            # subprocess error checking behaviour, we will call it stderr
+-            stderr = child.read()
+-            child.wait()
+-            rc = child.exitstatus
+-        else:
+-            proc_mechanism = "subprocess"
+-            password = to_bytes(password, encoding='utf-8',
+-                                errors='surrogate_or_strict')
++                try:
++                    try:
++                        child.expect(".*:")
++                        child.sendline(password_text)
++                        stderr = child.read()
++                        child.wait()
++                    except pexpect.TIMEOUT:
++                        last_timeout_error = AnsibleConnectionFailure(
++                            "Kerberos auth failure: kinit command timed out after %d seconds"
++                            % kinit_timeout
++                        )
++                        try:
++                            child.close(force=True)
++                        except Exception:
++                            pass
++                        if attempt < max_attempts - 1:
++                            continue
++                        raise last_timeout_error
++                except OSError as err:
++                    display.vvvv("kinit with pexpect raised OSError: %s"
++                                 % to_native(err))
++                    stderr = child.read()
++                    child.wait()
++
++                rc = child.exitstatus
++            else:
++                proc_mechanism = "subprocess"
++                password_bytes = to_bytes(password, encoding='utf-8',
++                                          errors='surrogate_or_strict')
+ 
+-            display.vvvv("calling kinit with subprocess for principal %s"
+-                         % principal)
+-            try:
+-                p = subprocess.Popen(kinit_cmdline, stdin=subprocess.PIPE,
+-                                     stdout=subprocess.PIPE,
+-                                     stderr=subprocess.PIPE,
+-                                     env=krb5env)
+-
+-            except OSError as err:
+-                err_msg = "Kerberos auth failure when calling kinit cmd " \
+-                          "'%s': %s" % (self._kinit_cmd, to_native(err))
+-                raise AnsibleConnectionFailure(err_msg)
+-
+-            stdout, stderr = p.communicate(password + b'\n')
+-            rc = p.returncode != 0
++                display.vvvv("calling kinit with subprocess for principal %s"
++                             % principal)
++                try:
++                    p = subprocess.Popen(kinit_cmdline, stdin=subprocess.PIPE,
++                                         stdout=subprocess.PIPE,
++                                         stderr=subprocess.PIPE,
++                                         env=krb5env)
++
++                except OSError as err:
++                    err_msg = "Kerberos auth failure when calling kinit cmd " \
++                              "'%s': %s" % (self._kinit_cmd, to_native(err))
++                    raise AnsibleConnectionFailure(err_msg)
++
++                try:
++                    stdout, stderr = p.communicate(password_bytes + b'\n',
++                                                   timeout=kinit_timeout)
++                except subprocess.TimeoutExpired:
++                    p.kill()
++                    last_timeout_error = AnsibleConnectionFailure(
++                        "Kerberos auth failure: kinit command timed out after %d seconds"
++                        % kinit_timeout
++                    )
++                    if attempt < max_attempts - 1:
++                        continue
++                    raise last_timeout_error
++
++                rc = p.returncode != 0
++
++            break
+ 
+         if rc != 0:
+             # one last attempt at making sure the password does not exist

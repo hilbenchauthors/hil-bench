@@ -1,0 +1,9 @@
+[
+  "test/units/config/test_manager.py::TestConfigManager::test_ensure_type_unquoting[\"value\"-\"value\"-str-default-None]",
+  "test/units/config/test_manager.py::TestConfigManager::test_ensure_type_unquoting[\"value\"-\"value\"-str-/app/test/units/config/test.yml-yaml]",
+  "test/units/config/test_manager.py::TestConfigManager::test_ensure_type_unquoting[\"value\"-value-str-/app/test/units/config/test.cfg-ini]",
+  "test/units/config/test_manager.py::TestConfigManager::test_ensure_type_unquoting[''value''-'value'-str-/app/test/units/config/test.cfg-ini]",
+  "test/units/config/test_manager.py::TestConfigManager::test_ensure_type_unquoting[\"\"value\"\"-\"value\"-str-/app/test/units/config/test.cfg-ini]",
+  "test/units/config/test_manager.py::TestConfigManager::test_ensure_type_unquoting[\"value\"-\"value\"-str-ini-None]",
+  "test/units/config/test_manager.py::TestConfigManager::test_value_and_origin_from_ini_string_is_unquoted"
+]

@@ -1,0 +1,11 @@
+[
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_deprecation_version_class_attr",
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_deprecation_version_instance_attr",
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_iterating_states_is_intenum",
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_host_state_uses_unprefixed_enum_names",
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_module_public_api_all",
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_iterating_states_deprecation_class_attr",
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_iterating_states_deprecation_instance_attr",
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_failed_states_deprecation_class_attr",
+  "test/units/executor/test_play_iterator.py::TestPlayIterator::test_failed_states_deprecation_instance_attr"
+]

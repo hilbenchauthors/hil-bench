@@ -200,3 +200,10 @@ index e8987eb6db..17041ac596 100644
          planIDs: removeAddon(selectedPlan.planIDs, isScribeAddon),
          step: SUBSCRIPTION_STEPS.CHECKOUT,
          disablePlanSelection: true,
+diff --git a/packages/components/payments/core/subscription/index.ts b/packages/components/payments/core/subscription/index.ts
+new file mode 100644
+--- /dev/null
++++ b/packages/components/payments/core/subscription/index.ts
+@@ -0,0 +1,2 @@
++export { getScribeAddonNameByPlan } from './helpers';
++export * from './selected-plan';

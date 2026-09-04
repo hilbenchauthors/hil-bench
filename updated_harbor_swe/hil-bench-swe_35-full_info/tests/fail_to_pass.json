@@ -1,0 +1,5 @@
+[
+  "test/units/plugins/lookup/test_password.py::TestLookupModuleWithoutPasslib::test_parse_parameters_is_instance_method_only",
+  "test/units/plugins/lookup/test_password.py::TestLookupModuleWithoutPasslib::test_run_sets_options_and_uses_plugin_default_chars_list",
+  "test/units/plugins/lookup/test_password.py::TestLookupModuleWithoutPasslib::test_parse_parameters_hashes_term_seed"
+]

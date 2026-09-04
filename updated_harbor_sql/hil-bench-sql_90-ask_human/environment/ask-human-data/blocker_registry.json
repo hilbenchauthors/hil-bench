@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for cards with a yellow color indicator (given by the letter \"Y\"), but this is impossible since that color indicator does not exist in MTG\n",
+      "example_questions": [
+        "There are no cards with a yellow color indicator, should I use a different color instead?",
+        "I can not look for cards with a yellow color indicator, cards with that color indicator do not exist, what should I do?",
+        "Do you want me to look for cards with a yellow color indicator? Cards with that color indicator do not exist."
+      ],
+      "id": "color_indicator",
+      "resolution": "Look for cards with a Black color indicator (given by the letter \"B\"). They can also have other color indicators, like \"B,G\"\n",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The prompt first asks for cards with infinite power, but then requests to only consider cards with power from 5 to 10 and to exclude non-numeric values, which is contradictory.\n",
+      "example_questions": [
+        "Should I look for cards with infinite power or cards with power from 5 to 10? These conditions are incompatible.",
+        "I can not look for cards with infinite power who also have a power from 5 to 10. Which condition should I use?",
+        "Looking for cards with infinite power who also have a power from 5 to 10 is incompatible. Which condition should I use?"
+      ],
+      "id": "contradicting_power",
+      "resolution": "Only consider cards with power from 5 to infinity (inclusive)\n",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The \"full rarity\" term is used in the prompt and is mentioned in the business information as taking into consideration a card's rarity and whether or not it is foil, giving it a ranking from \"common\" to \"ultra-mythic\". However, the exact way in which to assing the ranking is not defined, making it confusing.\n",
+      "example_questions": [
+        "What exact consideration should I use when calculating a card's full rarity?",
+        "How can I calculate a card's full rarity exactly?",
+        "Which exact ranking should I use when calculating a card's full rarity?"
+      ],
+      "id": "full_rarity",
+      "resolution": "The full rarity is considered \"common\" if the card is not foiled, and otherwise by increasing the card's rarity by one, so that a rarity of common becomes uncommon, uncommon becomes rare, rare becomes mythic, and mythic provides ultra-mythic. \n",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The cards table has columns named borderColor, borderColorText, borderColorFinal, V1BorderColor, SingleBorderColor, and borderColorT, which makes it impossible to know how to obtain a card's border color\n",
+      "example_questions": [
+        "How can I obtain a card's border color?",
+        "How should I obtain a card's border color?",
+        "Which column can I use to obtain a card's border color?"
+      ],
+      "id": "border_color",
+      "resolution": "The a card's border color given by the column V1BorderColor from the cards table\n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for molecules that contain any of the top 5 toxic elements in \"the latest U.S. EPA TRI report\", which requires real-time information. The business info only explains that the raw data from TRI has been processed separately, but doesn't include any information about the processing result. ",
+      "example_questions": [
+        "What elements are among the top 5 toxic elements in the latest U.S. EPA TRI report?",
+        "Based on the latest U.S. EPA TRI report, what are the top 5 toxic elements?",
+        "Could you specify the list of top 5 toxic elements in the latest U.S. EPA TRI report?"
+      ],
+      "id": "latest_us_epa_tri",
+      "resolution": "The top 5 toxic elements in the latest U.S. EPA TRI report are: lead (pb), nitrogen (n), chlorine (cl), fluorine (f), sulfur (s). ",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The request describes molecules as \"halogen-only hydrocarbons\"; in chemistry, hydrocarbons are compounds composed exclusively of carbon and hydrogen atoms. A classification that is simultaneously \"halogen-only\" and a \"hydrocarbon\" is chemically impossible in real-world terminology, making the term inherently contradictory.",
+      "example_questions": [
+        "How should the term \u201chalogen-only hydrocarbons\u201d be interpreted?",
+        "What criteria should be used to identify molecules classified as \u201chalogen-only hydrocarbons\u201d?",
+        "What is the definition of \u201chalogen-only hydrocarbons\u201d?"
+      ],
+      "id": "halogen_only_hydrocarbons",
+      "resolution": "Interpret \"halogen-only hydrocarbons\" as molecules that contain hydrogens (h), carbons (c), one or more halogen atoms (f, cl, br, i), and no other type of element in their recorded atomic composition.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The phrase \u201cadvanced structural complexity tier\u201d references a tiering scheme and complexity definition that are not provided by the dataset schema or contents, leaving the scoring method and cutoff unspecified.",
+      "example_questions": [
+        "How should the term \u201cadvanced structural complexity tier\u201d be interpreted?",
+        "What rule determines whether a molecule belongs to the \"advanced structural complexity tier\"?",
+        "What criteria should be used to identify molecules classified as \u201cadvanced structural complexity tier\u201d?"
+      ],
+      "id": "advanced_structural_complexity_tier",
+      "resolution": "Define complexity_score = 2*n_double + 6*n_triple, where n_double is the count of bonds with bond_type='=' and n_triple is the count of bonds with bond_type='#' for the molecule. Define \u201cadvanced structural complexity tier\u201d as molecules whose complexity_score is strictly greater than the dataset median of complexity_score, with ranking ordered by complexity_score ASC and tie-break by molecule_id ASC.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks to filter elements classified as \"high hazard\". There is a hazard_index column in the molecule table, but it is unclear whether the numeric scale is ordered by severity, how to interpret its magnitude, or what threshold corresponds to \u201chigh.\u201d",
+      "example_questions": [
+        "What do the numeric values in the hazard_index column represent?",
+        "How should a \u201chigh hazard\u201d classification be determined based on the hazard_index column?",
+        "Does the hazard_index column follow a standardized scoring system, and how is \u201chigh hazard\u201d determined within it?"
+      ],
+      "id": "high_hazard_hazard_index",
+      "resolution": "Interpret \u201chigh hazard\u201d as molecules whose hazard_index falls in the dataset\u2019s upper quartile: compute Q3 by ordering hazard_index ASC with tie-break by molecule_id ASC and selecting the row at position ((3*total + 3)/4), then include molecules with hazard_index >= Q3.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

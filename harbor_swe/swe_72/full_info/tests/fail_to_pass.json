@@ -1,0 +1,7 @@
+[
+  "test/units/modules/test_iptables.py::TestIptables::test_match_set",
+  "test/units/modules/test_iptables.py::TestIptables::test_match_set_negation",
+  "test/units/modules/test_iptables.py::TestIptables::test_match_set_dst_src_flags",
+  "test/units/modules/test_iptables.py::TestIptables::test_match_set_with_explicit_match",
+  "test/units/modules/test_iptables.py::TestIptables::test_match_set_flags_invalid"
+]

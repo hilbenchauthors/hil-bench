@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for \"most popular posts\", but popularity can be measured in multiple ways, such as highest score, highest view count, highest comment count.",
+      "example_questions": [
+        "How should I measure the popularity of a post?",
+        "How do I determine if a post is popular?",
+        "What criteria defines that a post is popular?"
+      ],
+      "id": "most_popular_posts",
+      "resolution": "A post is considered popular if it has a FavoriteCount of 2 or more. ",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The term \"lengthy post\" is not precisely defined. It is unclear what character or word count qualifies a post as lengthy.",
+      "example_questions": [
+        "How long does a post need to be to be considered lengthy?",
+        "What is the minimum length for a post to be considered lengthy?",
+        "How do I identify that a post is considered lengthy?"
+      ],
+      "id": "lengthy_posts",
+      "resolution": "A lengthy post is defined as one where the character count of the body exceeds 2,500 characters.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The phrase \"first few years of the platform\" is ambiguous, it could mean the first year only, the first two years, or the first three years or more. ",
+      "example_questions": [
+        "What time period does the \"first few years of the platform\" refer to?",
+        "What is the exact date range for the first few years of the platform?",
+        "Can you tell me how I should filter for the first few years of the platform?"
+      ],
+      "id": "first_few_years",
+      "resolution": "The first few years of the platform refers strictly to posts with CreaionDate >= '2009-01-01' AND CreaionDate < '2011-01-01'",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"good badges\" as those considered to be relevant to the platform's content and community standards, but the definition is vague and could map to many badges.",
+      "example_questions": [
+        "Which specific badge qualifies as a \"good badge\"?",
+        "What badge name should I filter to identify users with good badges?",
+        "Can you clarify which badges are considered \"good\"?"
+      ],
+      "id": "good_badges",
+      "resolution": "Good badges are specifically those awarded for 'Custodian', 'Citizen Patrol', and 'Organizer', badges that recognize users who have maintained content quality on the platform.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The user_activity_stats table contains three columns that could all plausibly represent a user's activity percentage, with no clear indication of which one represents the activity percentage.",
+      "example_questions": [
+        "How do I identify which column represents a user's average activity percentage?",
+        "Which column represents the user's average activity percentage?",
+        "What does each column in user_activity_stats represent?"
+      ],
+      "id": "activity_percentage",
+      "resolution": "The activity percentage must be taken from the reply_level column in the user_activity_stats table.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

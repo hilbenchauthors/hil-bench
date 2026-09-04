@@ -1,0 +1,65 @@
+{
+  "blockers": [
+    {
+      "description": "The question requires determining whether constructors are \"competing in the current F1 season,\" but this depends on real-time information that is not stored in the historical database. The current competitive status changes year by year and cannot be determined from past race data alone.",
+      "example_questions": [
+        "Which constructors are competing in the current F1 season?",
+        "How should current season participation be determined from historical data?",
+        "What is the list of active constructors for the current F1 season?"
+      ],
+      "id": "current_constructors",
+      "resolution": "Constructors competing in the current F1 season are: Alpine, Aston Martin, Williams, Audi, Cadillac, Ferrari, Haas, McLaren, Mercedes, Red Bull, and Racing Bulls. Identify using: WHERE c.name IN ('Alpine', 'Aston Martin', 'Williams', 'Audi', 'Cadillac', 'Ferrari', 'Haas', 'McLaren', 'Mercedes', 'Red Bull', 'Racing Bulls')",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for \"races between 1995-2000 of the Singapore Grand Prix,\" which is factually impossible because the Singapore Grand Prix was first held in 2008, not in the 1990s. The requested timeframe contradicts the real-life history of this race, making the query unfulfillable as literally stated.",
+      "example_questions": [
+        "Since Singapore Grand Prix races from 1995-2000 do not exist, what timeframe should be used instead?",
+        "Could you clarify which race and years you are referring to?",
+        "The Singapore Grand Prix began in 2009, so races from 1995\u20132000 do not exist. Did you mean a different race or a different timeframe?"
+      ],
+      "id": "singapore_contradiction",
+      "resolution": "Interpret \"races between 1995-2000\" as the Singapore Grand Prix races held between 2009 and 2015 (the actual early years of this race). Filter using:WHERE ra.name = 'Singapore Grand Prix'\n  AND ra.year BETWEEN 2009 AND 2015",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question contains contradictory requirements about race completion. It first specifies constructors that \"competed...and were able to finish the races\" (which requires successful completion), but then states \"consider only constructors whose drivers experienced collisions or accidents, regardless of whether they finished the race\" (which explicitly includes non-finishers).",
+      "example_questions": [
+        "Should the query include only constructors that finished, only those with issues, or both?",
+        "Could you confirm whether I should include only constructors that finished?",
+        "Which status values should be included when considering collision/accident issues?"
+      ],
+      "id": "status_contradiction",
+      "resolution": "To resolve this contradiction, consider constructors that meet BOTH of the following conditions:\n\nThe constructor must have at least one result where the status was 'Collision', 'Accident', or 'Spun off' (this satisfies \"whose drivers experienced collisions or accidents\").\nWhen filtering results for analysis, include results where status = 'Finished' OR status IN ('Collision', 'Accident', 'Spun off') (this satisfies both \"able to finish\" and \"regardless of whether they finished\")",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"High-Velocity Execution\" as \"a performance metric that evaluates operational excellence through comparative service interval analytics,\" but this definition is vague and does not provide measurable criteria. It is unclear how to interpret \"operational excellence\" and \"comparative service interval analytics\".",
+      "example_questions": [
+        "What specific operational metrics define High-Velocity Execution?",
+        "Should High-Velocity Execution be measured by lap times, pit stops, or other performance indicators?",
+        "How should \"operational excellence\" and \"comparative service interval analytics\" be interpreted?",
+        "What is the definition of \"operational excellence\" and \"comparative service interval analytics\"?"
+      ],
+      "id": "ambiguous_velocity_execution",
+      "resolution": "Interpret \"operational excellence\" as pit stop duration and \"comparative service interval analytics\" as having an average lower than the global average. Putting them together, High-Velocity Execution means constructors whose average pit stop duration across ALL their pit stops in ALL Singapore Grand Prix races (regardless of year or race outcome) was lower than the overall average pit stop duration across all Singapore Grand Prix races in the database. Calculate using: SELECT r.constructorId, AVG(ps.milliseconds) as constructor_avg\nFROM pitStops ps\nINNER JOIN races ra ON ps.raceId = ra.raceId\nINNER JOIN results r ON ps.raceId = r.raceId AND ps.driverId = r.driverId\nWHERE ra.name = 'Singapore Grand Prix'\nGROUP BY r.constructorId\nHAVING AVG(ps.milliseconds) < (\n    SELECT AVG(ps2.milliseconds)\n    FROM pitStops ps2\n    INNER JOIN races ra2 ON ps2.raceId = ra2.raceId\n    WHERE ra2.name = 'Singapore Grand Prix'\n)",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks to \"list their identification,\" but the constructors table contains multiple identification fields: constructorId (integer ID), constructorRef (reference name), Acronym (3-letter code), F1_ID (F1 system identifier), DB_ID (database identifier), and Competition_ID (competition system identifier). It is unclear which field represents the canonical \"identification\" for reporting purposes.",
+      "example_questions": [
+        "Which column in the constructors table represents constructor identification?",
+        "Should identification use constructorId, constructorRef, Acronym, F1_ID, DB_ID, or Competition_ID?",
+        "What field should be returned when asked for constructor identification?"
+      ],
+      "id": "identifications",
+      "resolution": "Constructor identification refers to the DB_ID column. Return using: SELECT c.DB_ID",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+[
+  "test/units/modules/net_tools/nios/test_nios_fixed_address.py::TestNiosFixedAddressModule::test_nios_fixed_address_ipv4_create",
+  "test/units/modules/net_tools/nios/test_nios_fixed_address.py::TestNiosFixedAddressModule::test_nios_fixed_address_ipv4_dhcp_update",
+  "test/units/modules/net_tools/nios/test_nios_fixed_address.py::TestNiosFixedAddressModule::test_nios_fixed_address_ipv4_remove",
+  "test/units/modules/net_tools/nios/test_nios_fixed_address.py::TestNiosFixedAddressModule::test_nios_fixed_address_ipv6_create",
+  "test/units/modules/net_tools/nios/test_nios_fixed_address.py::TestNiosFixedAddressModule::test_nios_fixed_address_ipv6_remove",
+  "test/units/modules/net_tools/nios/test_nios_fixed_address.py::TestNiosFixedAddressModule::test_nios_fixed_address_ipv4_mac_lookup",
+  "test/units/modules/net_tools/nios/test_nios_fixed_address.py::TestNiosFixedAddressModule::test_nios_fixed_address_name_required",
+  "test/units/modules/net_tools/nios/test_nios_fixed_address.py::TestNiosFixedAddressModule::test_nios_fixed_address_lease_action_default",
+  "test/units/modules/net_tools/nios/test_nios_fixed_address.py::TestNiosFixedAddressModule::test_nios_fixed_address_match_client_default"
+]

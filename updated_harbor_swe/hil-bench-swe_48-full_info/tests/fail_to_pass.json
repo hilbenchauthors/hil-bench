@@ -1,0 +1,5 @@
+[
+  "test/units/executor/test_task_executor.py::TestTaskExecutor::test_task_executor_execute_calculates_delegate_to_before_post_validate",
+  "test/units/vars/test_variable_manager.py::TestVariableManager::test_get_delegated_vars_and_hostname_resolution_precedence",
+  "test/units/vars/test_variable_manager.py::TestVariableManager::test_get_delegated_vars_warns_with_scheduled_removal_version"
+]

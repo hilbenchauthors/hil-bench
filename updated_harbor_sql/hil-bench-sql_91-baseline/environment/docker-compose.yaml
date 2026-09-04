@@ -1,0 +1,51 @@
+services:
+  main:
+    image: public.ecr.aws/b2z8n5q1/hil-bench@sha256:8e8823283b237b1d528f56905d80204aaa2203afbd5c9cde3dd62772bf9bcc57
+    pull_policy: missing
+    command: ["main"]
+    depends_on:
+      sql-tools:
+        condition: service_healthy
+      business-info:
+        condition: service_healthy
+    volumes:
+      - harbor-shared:/harbor_shared
+    environment:
+      - EXECUTE_SQL_CLIENT_TIMEOUT_SECONDS=1230
+
+  sql-tools:
+    image: public.ecr.aws/b2z8n5q1/hil-bench@sha256:8e8823283b237b1d528f56905d80204aaa2203afbd5c9cde3dd62772bf9bcc57
+    pull_policy: missing
+    command: ["sql-tools"]
+    volumes:
+      - harbor-shared:/harbor_shared
+    environment:
+      - DATA_DIR=/data
+      - SUBMISSION_FILE=/harbor_shared/submitted_query.sql
+      - SQL_QUERY_TIMEOUT_SECONDS=1200
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('localhost',8000),timeout=2); s.close()"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 5s
+
+  business-info:
+    image: public.ecr.aws/b2z8n5q1/hil-bench@sha256:8e8823283b237b1d528f56905d80204aaa2203afbd5c9cde3dd62772bf9bcc57
+    pull_policy: missing
+    command: ["business-info"]
+    environment:
+      - DATA_DIR=/data
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.create_connection(('localhost',8000),timeout=2); s.close()"]
+      interval: 2s
+      timeout: 10s
+      retries: 30
+      start_period: 30s
+
+volumes:
+  harbor-shared:

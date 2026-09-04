@@ -1,0 +1,104 @@
+diff --git a/applications/drive/src/app/store/_api/usePublicSession.tsx b/applications/drive/src/app/store/_api/usePublicSession.tsx
+index 351079d934..c89b5faa22 100644
+--- a/applications/drive/src/app/store/_api/usePublicSession.tsx
++++ b/applications/drive/src/app/store/_api/usePublicSession.tsx
+@@ -52,17 +52,14 @@ function usePublicSessionProvider() {
+         if (persistedSession) {
+             try {
+                 metrics.setAuthHeaders(persistedSession?.UID);
+-                const localID = auth.getLocalID() ?? persistedSession.localID;
+-                const resumedSession = await resumeSession({ api, localID });
+-                if (resumedSession.keyPassword) {
++                const resumedSession = await resumeSession({ api, localID: persistedSession.localID });
++                if (resumedSession) {
+                     auth.setPassword(resumedSession.keyPassword);
+-                    auth.setUID(resumedSession.UID);
++                    auth.setUID(persistedSession.UID);
+                     auth.setLocalID(persistedSession.localID);
+                 }
+                 setUser(formatUser(resumedSession.User));
+             } catch (e) {
+-                // TODO: Probably getLastPersistedLocalID is the source of issue
+-                // Investigate why later
+                 console.warn('Cannot resume session');
+             }
+         }
+diff --git a/applications/drive/src/app/store/_user/useActivePing.ts b/applications/drive/src/app/store/_user/useActivePing.ts
+index ca2cf14bd9..0199017c01 100644
+--- a/applications/drive/src/app/store/_user/useActivePing.ts
++++ b/applications/drive/src/app/store/_user/useActivePing.ts
+@@ -26,14 +26,12 @@ import { ACTIVE_PING_INTERVAL } from '@proton/shared/lib/drive/constants';
+         - Customer leaves the tab open in the foreground (active) at T+6HOURS -> active ping is sent
+ */
+ 
+-// We have business logic relying on this constant, please change with caution!
+-export const LAST_ACTIVE_PING = 'drive-last-active';
++const ACTIVE_PING_STORAGE_PREFIX = 'drive-active-ping';
+ 
+ export const useActivePing = (interval: number = ACTIVE_PING_INTERVAL) => {
+     const api = useApi();
+     const [user] = useUser();
+-    // We have business logic relying on this key, please change with caution!
+-    const key = `${LAST_ACTIVE_PING}-${user.ID}`;
++    const key = `${ACTIVE_PING_STORAGE_PREFIX}-${user.ID}`;
+ 
+     const shouldSendActivePing = () => {
+         const lastActivePing = localStorageWithExpiry.getData(key);
+@@ -52,7 +50,7 @@ export const useActivePing = (interval: number = ACTIVE_PING_INTERVAL) => {
+ 
+     const cleanLocalStorage = () => {
+         Object.keys(localStorage).forEach((k) => {
+-            if (k.startsWith(LAST_ACTIVE_PING) && k !== key) {
++            if (k.startsWith(ACTIVE_PING_STORAGE_PREFIX) && k !== key) {
+                 localStorageWithExpiry.deleteDataIfExpired(k);
+             }
+         });
+diff --git a/applications/drive/src/app/store/_user/usePublicSessionUser.ts b/applications/drive/src/app/store/_user/usePublicSessionUser.ts
+index a9b0116c95..ab04173019 100644
+--- a/applications/drive/src/app/store/_user/usePublicSessionUser.ts
++++ b/applications/drive/src/app/store/_user/usePublicSessionUser.ts
+@@ -7,6 +7,7 @@ import { usePublicSession } from '../_api';
+ export const usePublicSessionUser = () => {
+     const auth = useAuthentication();
+     const { user } = usePublicSession();
++    // Resolve localID from auth state to keep public-session user shape consistent.
+     const localID: number | undefined = useMemo(() => auth.getLocalID(), []);
+ 
+     return { user, localID };
+diff --git a/applications/drive/src/app/utils/lastActivePersistedUserSession.ts b/applications/drive/src/app/utils/lastActivePersistedUserSession.ts
+index 2a0e40a4f2..06c070184d 100644
+--- a/applications/drive/src/app/utils/lastActivePersistedUserSession.ts
++++ b/applications/drive/src/app/utils/lastActivePersistedUserSession.ts
+@@ -4,12 +4,18 @@ import { getPersistedSessions } from '@proton/shared/lib/authentication/persiste
+ import { sendErrorReport } from './errorHandling';
+ import { EnrichedError } from './errorHandling/EnrichedError';
+ 
++const STALE_SESSION_TTL_MS = 1_036_800_000;
++
+ export const getLastActivePersistedUserSession = () => {
+     try {
+         // Last Active Persisted Session in any apps
+-        // TODO: Ignore stale sessions once freshness-policy threshold is clarified.
++        const now = Date.now();
+         let persistedSession: PersistedSessionWithLocalID | null = null;
+         for (const data of getPersistedSessions()) {
++            const isFresh = now - data.persistedAt <= STALE_SESSION_TTL_MS;
++            if (!isFresh) {
++                continue;
++            }
+             if (persistedSession === null || data.persistedAt > persistedSession.persistedAt) {
+                 persistedSession = data;
+             }
+diff --git a/applications/drive/src/app/utils/telemetry.ts b/applications/drive/src/app/utils/telemetry.ts
+index 56e45a09f0..2404fe6e7f 100644
+--- a/applications/drive/src/app/utils/telemetry.ts
++++ b/applications/drive/src/app/utils/telemetry.ts
+@@ -199,7 +199,7 @@ export const countActionWithTelemetry = (action: Actions, count: number = 1): vo
+     const persistedSession = getLastActivePersistedUserSession();
+ 
+     if (persistedSession?.UID) {
+-        // API calls will now be Authenticated with x-pm-uid header
++        // Reuse persisted-session UID when telemetry needs authenticated headers.
+         apiInstance.UID = persistedSession?.UID;
+     }
+ 

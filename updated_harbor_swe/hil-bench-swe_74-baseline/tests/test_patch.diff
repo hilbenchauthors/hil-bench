@@ -1,0 +1,65 @@
+diff --git a/test/units/plugins/filter/test_mathstuff.py b/test/units/plugins/filter/test_mathstuff.py
+index a0e78d338c..c496b6877e 100644
+--- a/test/units/plugins/filter/test_mathstuff.py
++++ b/test/units/plugins/filter/test_mathstuff.py
+@@ -4,6 +4,7 @@
+ # Make coding more python3-ish
+ from __future__ import (absolute_import, division, print_function)
+ __metaclass__ = type
++import math
+ import pytest
+ 
+ from jinja2 import Environment
+@@ -64,16 +65,46 @@ class TestSymmetricDifference:
+ 
+ class TestMin:
+     def test_min(self):
+-        assert ms.min((1, 2)) == 1
+-        assert ms.min((2, 1)) == 1
+-        assert ms.min(('p', 'a', 'w', 'b', 'p')) == 'a'
++        assert ms.min(env, (1, 2)) == 1
++        assert ms.min(env, (2, 1)) == 1
++        assert ms.min(env, ('p', 'a', 'w', 'b', 'p')) == 'a'
++        assert ms.min(env, ({'key': 'a'}, {'key': 'b'}, {'key': 'c'}), attribute='key') == {'key': 'a'}
++        assert ms.min(env, ({'key': 1}, {'key': 2}, {'key': 3}), attribute='key') == {'key': 1}
++        assert ms.min(env, ('a', 'A', 'b', 'B'), case_sensitive=True) == 'A'
++
++    def test_min_empty(self):
++        assert math.isnan(ms.min(env, []))
++        assert math.isnan(ms.min(env, ()))
++
++    def test_min_scalar_input(self):
++        assert ms.min(env, 42) == 42
++        assert ms.min(env, 7.5) == 7.5
++
++    def test_min_none_filtering(self):
++        assert ms.min(env, [3, None, 1, None, 2]) == 1
++        assert ms.min(env, (None, 5, None, 3)) == 3
+ 
+ 
+ class TestMax:
+     def test_max(self):
+-        assert ms.max((1, 2)) == 2
+-        assert ms.max((2, 1)) == 2
+-        assert ms.max(('p', 'a', 'w', 'b', 'p')) == 'w'
++        assert ms.max(env, (1, 2)) == 2
++        assert ms.max(env, (2, 1)) == 2
++        assert ms.max(env, ('p', 'a', 'w', 'b', 'p')) == 'w'
++        assert ms.max(env, ({'key': 'a'}, {'key': 'b'}, {'key': 'c'}), attribute='key') == {'key': 'c'}
++        assert ms.max(env, ({'key': 1}, {'key': 2}, {'key': 3}), attribute='key') == {'key': 3}
++        assert ms.max(env, ('a', 'A', 'b', 'B'), case_sensitive=True) == 'b'
++
++    def test_max_empty(self):
++        assert math.isnan(ms.max(env, []))
++        assert math.isnan(ms.max(env, ()))
++
++    def test_max_scalar_input(self):
++        assert ms.max(env, 42) == 42
++        assert ms.max(env, 7.5) == 7.5
++
++    def test_max_none_filtering(self):
++        assert ms.max(env, [3, None, 1, None, 2]) == 3
++        assert ms.max(env, (None, 5, None, 3)) == 5
+ 
+ 
+ class TestLogarithm:

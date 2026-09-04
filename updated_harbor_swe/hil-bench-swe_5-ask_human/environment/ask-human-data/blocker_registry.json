@@ -1,0 +1,48 @@
+{
+  "blockers": [
+    {
+      "id": "fixed_address_lookup_strategy",
+      "type": "ambiguous requirements",
+      "description": "The requirements mention building an `obj_filter` from fields marked with `ib_req=True` but do not specify whether the WAPI object lookup for Fixed Address types requires a dedicated code path in `get_object_ref()` or whether the default fallback is sufficient. The specification does not clarify which fields should ultimately be passed as the lookup filter for Fixed Address objects in the WAPI query.",
+      "resolution": "Add a top-level `elif` branch in `get_object_ref()` (at the same indentation level as `elif (ib_obj_type == NIOS_ZONE)`) that handles `NIOS_IPV4_FIXED_ADDRESS` and `NIOS_IPV6_FIXED_ADDRESS`. Inside this branch, check if a `'mac'` key is present in the received `obj_filter` parameter; if it is, construct a new filter containing only that MAC entry: `test_obj_filter = dict([('mac', obj_filter['mac'])])`. If `'mac'` is not present, fall back to the full `obj_filter`. Then call `self.get_object(ib_obj_type, test_obj_filter.copy(), return_fields=ib_spec.keys())`. The MAC address alone must be used as the WAPI lookup key for Fixed Address objects when available.",
+      "example_questions": [
+        "-  Does the WAPI object lookup method need any special handling for Fixed Address object types, or does the default fallback work?",
+        "-  When looking up an existing Fixed Address, should the filter use all `ib_req` fields or only the MAC address?",
+        "-  What fields should the WAPI lookup filter contain when retrieving a Fixed Address reference?"
+      ]
+    },
+    {
+      "id": "missing_lease_action_param",
+      "type": "missing parameters",
+      "description": "The requirements state that the module must configure how the DHCP server handles initial address provisioning, but do not specify the parameter name or the exact value to use. Without this information it is impossible to know what field to add to the `ib_spec` or what default to assign.",
+      "resolution": "Add `lease_action=dict(default='DIRECT_ASSIGN')` to the `ib_spec` dictionary in `nios_fixed_address.py`. The deployment uses direct assignment so that fixed addresses are immediately allocated to the matching client without a separate reservation step. The default value must be the exact string `'DIRECT_ASSIGN'` (uppercase, with underscore). The parameter must not have `ib_req=True`.",
+      "example_questions": [
+        "-  The requirements mention configuring address provisioning behavior \u2014 what is the parameter name and default value?",
+        "-  What is the correct field name and value for the DHCP address provisioning on a Fixed Address?",
+        "-  Should the provisioning behavior be a string parameter in `ib_spec`, and if so, what exact string value should it default to?"
+      ]
+    },
+    {
+      "id": "missing_match_client_param",
+      "type": "missing parameters",
+      "description": "The requirements state that the module must configure the DHCP client identification method for fixed address binding, but do not specify the parameter name or the exact value to use. Without this information it is impossible to know what field to add to the `ib_spec` or what default to assign.",
+      "resolution": "Add `match_client=dict(default='CLIENT_ID')` to the `ib_spec` dictionary in `nios_fixed_address.py`. The deployment uses DHCP Client Identifier (option 61) for client matching, which provides a stable client identifier that is preserved across NIC replacements and VM migrations. The `mac` parameter is still required as it is part of the Infoblox fixedaddress object, but it serves as a reference field while the matching key is the Client Identifier. The default value must be the exact string `'CLIENT_ID'` (uppercase, with underscore). The parameter must not have `ib_req=True`.",
+      "example_questions": [
+        "-  The requirements mention configuring the client identification method \u2014 what is the parameter name and default value?",
+        "-  What is the correct field name and value for the DHCP client matching on a Fixed Address?",
+        "-  What are the valid client matching types \u2014 is it 'MAC_ADDRESS', 'CLIENT_ID', 'CIRCUIT_ID', or something else?"
+      ]
+    },
+    {
+      "id": "name_required_vs_optional",
+      "type": "contradictory requirements",
+      "description": "The problem statement describes `name` as a \"descriptive hostname identifier\" that \"must be assigned\" to each fixed address entry, implying it is essential. However, the Requirements section lists `name` among the optional parameters alongside `network_view`, `options`, `extattrs`, and `comment`. These two sources directly contradict each other: one implies the parameter is mandatory, the other explicitly categorizes it as optional.",
+      "resolution": "The `name` parameter must be `required=True` in the `ib_spec`. The correct definition is `name=dict(required=True)`, meaning Ansible will reject module invocations that omit `name`.",
+      "example_questions": [
+        "-  The specification says each entry 'must be assigned a name' but the requirements list `name` as optional \u2014 which one is correct?",
+        "-  Should the module fail if `name` is not provided, or should it accept invocations without it?",
+        "-  Is `name` meant to be a required field enforced by Ansible's argument validation, or just a recommended best practice?"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+[
+  "applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts | SelectionState serializes and restores the canonical wire labels",
+  "applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts | SelectionState is defined in useSelectionControls.ts and not in useSelection.tsx",
+  "applications/drive/src/app/components/FileBrowser/hooks/useSelectionControls.test.ts | toggleAllSelected clears partial selection and selects all from empty"
+]

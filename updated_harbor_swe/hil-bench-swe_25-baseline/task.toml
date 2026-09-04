@@ -1,0 +1,34 @@
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-swe_25-baseline"
+description = ""
+authors = []
+keywords = []
+[metadata]
+task_id = "baseline"
+task_type = "swe"
+mode = "baseline"
+repo_name = "flipt-io/flipt"
+task_attempt_id = "69836ee4987091d7e86e449b__69c2e959963c47b37fc23a76"
+image_name = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:f4ad58b89ee5aa9844fec403fe4efd4baf01e5001d649c956797114ae843a2fe"
+tags = [ "swe", "baseline", "hil-bench",]
+[verifier]
+timeout_sec = 1800.0
+
+[verifier.env]
+[agent]
+timeout_sec = 7200.0
+[environment]
+build_timeout_sec = 1200.0
+docker_image = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:f4ad58b89ee5aa9844fec403fe4efd4baf01e5001d649c956797114ae843a2fe"
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true
+mcp_servers = []
+
+[environment.env]
+[solution.env]

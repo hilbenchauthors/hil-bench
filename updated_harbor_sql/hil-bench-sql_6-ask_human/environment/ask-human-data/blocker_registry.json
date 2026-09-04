@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The term \u201chighly engaged users\u201d is not defined and can reasonably refer to different measurable engagement metrics such as reputation, contribution volume, or post performance.",
+      "example_questions": [
+        "How is engagement defined?",
+        "Is there a numerical threshold that qualifies a user as highly engaged?",
+        "Should engagement be measured using reputation, post count, or post score?"
+      ],
+      "id": "mult_inter_engagement",
+      "resolution": "Highly engaged users are defined as users whose total post score within a given year exceeds 1200.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The phrase \u201cpercentage difference according to community guidelines\u201d is used without specifying the calculation method or normalization approach in the business information.",
+      "example_questions": [
+        "How is percentage difference calculated?",
+        "What population should be used as the denominator?",
+        "Is the comparison directional or absolute?"
+      ],
+      "id": "bi_missing_percent_diff",
+      "resolution": "Percentage difference equals the 2010 proportion of qualifying users minus the 2011 proportion, where each proportion is calculated as qualifying users divided by active users in that year, multiplied by 100.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question requires filtering for users in \"good standing\" without defining the specific thresholds required to satisfy these business criteria",
+      "example_questions": [
+        "What should be considered for a user in good standing?",
+        "Is there a specific criteria related to filtering users in good standing that should be implemented?",
+        "How should I differentiate users in good standing from users who are not in good standing?"
+      ],
+      "id": "undefined_standing_criteria",
+      "resolution": "Users in \"good standing\" are those with a Reputation score of 15 or higher.",
+      "subtype": "missing_information",
+      "type": "business info"
+    }
+  ]
+}

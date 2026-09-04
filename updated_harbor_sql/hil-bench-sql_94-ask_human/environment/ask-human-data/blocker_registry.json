@@ -1,0 +1,65 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for 'active users' but also specifies 'last accessed more than 15 years ago', which implies inactive users. These two requirements contradict each other.",
+      "example_questions": [
+        "Should I look for active or inactive users (users who accessed more than 15 years ago)?",
+        "How should I identify active users?",
+        "Which values should I use to filter for active users?"
+      ],
+      "id": "active_users",
+      "resolution": "An active user is one whose LastAccessDate is within 15 days of the most recent LastAccessDate in the users table (inclusive). Compute the reference date as MAX(users.LastAccessDate).",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The concept contributions could be interpreted in more than a valid way, as it could refer to comments, edits, votes, etc.",
+      "example_questions": [
+        "What kind of contributions should I consider?",
+        "Could you specify what do you mean by contributions?",
+        "Can you clarify what kind of activity you'd like to count as a contribution?"
+      ],
+      "id": "count_contributions",
+      "resolution": "Contributions are defined as total interactions by summing, for each user, the engagement counts across all posts they own (AnswerCount + CommentCount + FavoriteCount) and adding the user-level vote totals (UpVotes + DownVotes). Posts must be linked using posts.OwnerUserId = users.Id, and missing counts should be treated as 0.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The term young is not precisely defined and it could vary depending on the user or the context.",
+      "example_questions": [
+        "How should I identify young users?",
+        "Specifically, you're looking for users up to what age?",
+        "I'll filter young users for the analysis: could you provide a specific age threshold?"
+      ],
+      "id": "young_users",
+      "resolution": "Search for users who users.Age is BETWEEN 14 and 25.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "Business information explains that notoriety score is based on reputation and votes, but how to calculate the score based on those values remains unclear.",
+      "example_questions": [
+        "How should I calculate the notoriety score?",
+        "I will calculate the notoriety score based on accounts' reputation and votes. Should I use a specific formula?",
+        "What would be the correct way to calculate the notoriety score for each account?",
+        "How should I identify accounts with a high notoriety score?"
+      ],
+      "id": "notoriety_score",
+      "resolution": "A High Notoriety score is defined as users.Reputation + (users.UpVotes / users.DownVotes) >= 300 , computed using real-number division. Treat DownVotes that are NULL or 0 as 1 in the denominator (use CASE WHEN DownVotes IS NULL OR DownVotes = 0 THEN 1 ELSE DownVotes END).",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "There are several columns in multiple tables referring to some type of user name with unclear or contradictory descriptions.",
+      "example_questions": [
+        "How should I identify the username?",
+        "Which value represents the usernames?",
+        "To identify the username, should I use the table users, comments, posts, or which value represents the username?"
+      ],
+      "id": "user_name",
+      "resolution": "Use the users.User column as the source for the username.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

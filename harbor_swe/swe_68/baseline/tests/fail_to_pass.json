@@ -1,0 +1,13 @@
+[
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_dnf_variant_detection_via_realpath_to_dnf5",
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_dnf_variant_detection_via_realpath_to_non_dnf5",
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_amazon_dnf_variant_detection_via_realpath_to_dnf5",
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_microdnf_fallback_returns_dnf_when_dnf_missing",
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_returns_unknown_when_only_secondary_binaries_exist",
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_amazon_microdnf_fallback_returns_dnf_when_dnf_missing",
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_non_integer_major_version_detects_via_binary",
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_other_redhat_v8_without_dnf_returns_unknown",
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_other_redhat_v8_detects_dnf5_via_realpath",
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_fedora_lt23_yum_absent_detects_via_dnf_binary",
+  "test/units/module_utils/facts/system/test_pkg_mgr.py::test_amazon_lt2022_yum_absent_detects_via_dnf_binary"
+]

@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for Ibrahimovic\u2019s Premier League years between 2001 and 2004, which contradicts real-life facts (he did not play Premier League matches during that period).",
+      "example_questions": [
+        "The question says Zlatan played in the Premier League between 2001 and 2004. Should I treat that date range as literal, or should I use his actual Premier League playing years instead?",
+        "When you say \u2018years he played in the Premier League,\u2019 do you mean calendar years derived from match dates, or Premier League seasons (e.g., 2016/2017, 2017/2018) from the Match.season field?",
+        "How should I determine that Zlatan \u2018played\u2019 in the Premier League for a given year/season, does he need to appear in at least one Premier League match lineup, or is it enough that he has player attribute snapshots dated in that period?"
+      ],
+      "id": "premier_league_contradiction\n",
+      "resolution": "Use Ibrahimovic\u2019s actual Premier League stint only: 2016\u20132018 (seasons 2016/2017 and 2017/2018).",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The business information states that the Robust Agility Score (RAS) should reduce the impact of \u201clow-quality or atypical assessments\u201d and should include only \u201cadequate rating values,\u201d but it does not define an operational rule for identifying adequate vs. non-adequate assessments (e.g., trimming, winsorization, median, thresholds, completeness rules, etc.). This makes RAS non-computable without clarification.",
+      "example_questions": [
+        "How exactly should RAS reduce the influence of low-quality or atypical agility assessments\u2014should I use a trimmed mean, winsorization, median, or a rule based on thresholds/outliers?",
+        "How should I compute the RAS?",
+        "Could you clarify exactly how to calculate the RAS?"
+      ],
+      "id": "adequate_rating_values\n",
+      "resolution": "Compute RAS as a 10% two-sided trimmed mean of the player\u2019s agility rating values within each season/year present in the filtered dataset (after applying the league and time constraints defined elsewhere):\n- For each season/year group, collect all agility rating records for the player.\n- Sort the agility values and discard the lowest 10% and highest 10%.\n- If a season/year has fewer than 10 records, discard only the single minimum and single maximum.\n- Compute the arithmetic mean of the remaining values.\n- Return one RAS per season/year.\n",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The Player_Attributes table has all skill attribute columns renamed to numeric identifiers (attr_1, attr_2, attr_3, etc.) without clear explanations of what each number represents. The table definition does not specify which numeric column corresponds to which player skill (crossing, finishing, agility, dribbling, etc.), making it unclear which column to use for filtering by agility.",
+      "example_questions": [
+        "The Player_Attributes table has numeric attribute columns (attr_1, attr_2, attr_3, etc.) but their meanings are not defined. Which column number represents the agility skill attribute?",
+        "What do the numeric attribute columns (attr_1 through attr_33) represent in the Player_Attributes table? Specifically, which attr_number corresponds to agility?",
+        "The Player_Attributes table contains attr_1, attr_2, attr_3 up to attr_33, all described as \"player skill metric\" without specification. To calculate average agility rating, which attr column should I use?"
+      ],
+      "id": "overall_rating_columns",
+      "resolution": "In the Player_Attributes table, attr_16 represents the agility skill attribute. Use attr_16 to calculate the average agility rating for Zlatan Ibrahimovic.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

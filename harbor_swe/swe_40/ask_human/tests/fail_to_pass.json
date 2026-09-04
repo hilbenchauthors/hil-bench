@@ -1,0 +1,18 @@
+[
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasCustomPassword accepts legacy Flags representation when canonical flags is missing",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasCustomPassword normalizes non-integer flags values before bit checks",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasCustomPassword treats null/undefined as missing value",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasCustomPassword treats conflicting flags representations as no flags",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasCustomPassword treats conflicts after normalization as no flags",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasCustomPassword accepts equal representations after normalization",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasGeneratedPasswordIncluded accepts legacy Flags representation when canonical flags is missing",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasGeneratedPasswordIncluded normalizes non-integer flags values before bit checks",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasGeneratedPasswordIncluded treats null/undefined as missing value",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasGeneratedPasswordIncluded treats conflicting flags representations as no flags",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasGeneratedPasswordIncluded treats conflicts after normalization as no flags",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | hasGeneratedPasswordIncluded accepts equal representations after normalization",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | splitGeneratedAndCustomPassword new custom password returns both generated and custom password",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | splitGeneratedAndCustomPassword accepts legacy Flags representation for splitting",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | splitGeneratedAndCustomPassword conflicting flags representations disable password splitting",
+  "applications/drive/src/app/store/_shares/test/shareUrl.obstructed.test.ts | splitGeneratedAndCustomPassword conflicting representations disable password splitting after normalization"
+]

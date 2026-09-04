@@ -1,0 +1,41 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt asks for the \"best\" drivers, which can be interpreted either by their overall position, how many races they won, or their average lap time\n",
+      "example_questions": [
+        "What do you mean by the \"best\" drivers?",
+        "When filtering for \"best\" drivers, should I use their overall position, how many races they won, their average lap time?",
+        "What should I use to filter for the \"best\" drivers?"
+      ],
+      "id": "best_meaning",
+      "resolution": "When looking for the \"best\" drivers, use the lowest lap time they've ever made.\n",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The term \"driver efficiency index\" is not defined in the business information or anywhere in the schema. It is unclear how this metric is calculated.\n",
+      "example_questions": [
+        "What is the \"driver efficiency index\" and how is it calculated?",
+        "What's the formula for the \"driver efficiency index\" ?",
+        "How is the driver efficiency index defined?"
+      ],
+      "id": "driver_efficiency_index",
+      "resolution": "The \"driver efficiency index\" can be obtained as the average of each race's average lap time in milliseconds, this is, AVG(AVG(milliseconds) per race).",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The prompt requests drivers who are not married yet. The \"married\" column in the \"driver\" table contains values that are a mix of text and numbers and can't be easily interpreted.\n",
+      "example_questions": [
+        "How should I interpret the values from the \"married\" column in the \"driver\" table?",
+        "What do the values from the \"married\" column in the \"driver\" table mean?",
+        "How do I interpret the values from the \"married\" column in the \"driver\" table?",
+        "How should I determine if a driver is married?"
+      ],
+      "id": "married_column_meaining",
+      "resolution": "Drivers who are not married are indicated by the \"married\" column in the \"driver\" table having values \"L\", \"C\", or 0\n",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

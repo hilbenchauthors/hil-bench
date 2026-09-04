@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for patients \u201cunder 30 years old\u201d who are also \u201colder patients,\u201d which is contradictory.",
+      "example_questions": [
+        "What does \"older patient\" mean when patients are also specified to be under 30?",
+        "How should I interprete old patients under 30 years old?",
+        "What criteria should be used to classify a patient as older?"
+      ],
+      "id": "older_under_thirty",
+      "resolution": "Use an \u201colder patient\u201d as a patient whose time in the system is \u2265 180 days, measured as the difference between Laboratory.Date and Patient.[First Date].",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The term \"core monitoring program\" is referenced in the question but is not defined in the provided business information or database descriptions.",
+      "example_questions": [
+        "What qualifies a patient as being enrolled in the core monitoring program?",
+        "What conditions indicate that a patient is participating in the core monitoring program?",
+        "How can enrollment in the core monitoring program be identified?"
+      ],
+      "id": "core_monitoring_program",
+      "resolution": "Patients enrolled in the core monitoring program are defined as those who have more than one laboratory record. ",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The definition of \"standard evaluation period\" is provided but does not specify an exact timeframe that can be directly applied to the data.",
+      "example_questions": [
+        "What exact date range defines the standard evaluation period?",
+        "Which laboratory record dates should be considered part of the standard evaluation period?",
+        "Is the standard evaluation period tied to a specific year or a set of dates?"
+      ],
+      "id": "standard_evaluation_period",
+      "resolution": "The standard evaluation period is defined as laboratory records dated within the calendar year 1994.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    }
+  ]
+}

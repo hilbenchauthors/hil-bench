@@ -1,0 +1,6 @@
+[
+  "TestHasher",
+  "TestAmbiguousSeedInputFraming",
+  "TestMissingHasherDigestAndAutoSeedRules",
+  "TestContradictoryAutoSeedSerializationAndDigestScope"
+]

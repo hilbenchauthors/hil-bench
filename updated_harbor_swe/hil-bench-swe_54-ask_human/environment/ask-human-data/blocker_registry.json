@@ -1,0 +1,49 @@
+{
+  "blockers": [
+    {
+      "id": "missing_deprecation_target_version",
+      "type": "missing parameters",
+      "description": "Legacy compatibility redirects emit deprecation notices, but the starting `version` for these notices is unspecified. Multiple values are plausible from the input, and strict deprecation gating can treat an incorrect target version as a hard runtime failure rather than a harmless warning.",
+      "resolution": "Use version=2.14 as a numeric literal (integer or float), NOT the string '2.14'. Example: display.deprecated('message', version=2.14). Counter-example: version='2.14' is incorrect and will fail validation.",
+      "example_questions": [
+        "-  What exact deprecation version should be passed to display.deprecated()?",
+        "-  Should the deprecation target version be 2.14, 2.15, or another value?",
+        "-  What value goes into the `version` keyword for legacy state alias notices?"
+      ]
+    },
+    {
+      "id": "ambiguous_iterating_states_base_class",
+      "type": "ambiguous requirements",
+      "description": "The input defines the `IteratingStates` member names but not the required inheritance model. Plain `Enum`, integer-backed enum types, flag-style enums, or custom comparable wrappers are all plausible from the provided text, so the exact base type is ambiguous without an explicit directive.",
+      "resolution": "`IteratingStates` must inherit from `IntEnum` (not `Enum`, not `IntFlag`). The resulting members must remain directly comparable with integers used by external strategy code.",
+      "example_questions": [
+        "-  What base class should IteratingStates use?",
+        "-  Is IteratingStates expected to be IntEnum or plain Enum?",
+        "-  Can IteratingStates be IntFlag?",
+        "-  Must IteratingStates be integer-comparable as a normal enum?"
+      ]
+    },
+    {
+      "id": "hoststate_str_state_label_prefix_convention",
+      "type": "contradictory requirements",
+      "description": "The problem statement explicitly requires `HostState.__str__()` to render direct enum member labels without prefixes (for example `TASKS`, `RESCUE|ALWAYS`), while the requirements explicitly require preserving legacy prefixed labels (`ITERATING_*`, `FAILED_*`) for parser compatibility. These directives are mutually incompatible, creating a direct contradiction in required output format.",
+      "resolution": "HostState.__str__() must output only the enum member names, not the type prefix. Use run_state.name for run_state. For fail_state, join the names of set flags with '|' (e.g. 'RESCUE|ALWAYS'). Example: run_state=TASKS, fail_state=RESCUE|ALWAYS. Counter-example: run_state=IteratingStates.TASKS or fail_state=FailedStates.RESCUE|ALWAYS is wrong \u2014 the output must NOT contain 'IteratingStates.' or 'FailedStates.'.",
+      "example_questions": [
+        "-  Should `HostState.__str__()` output run_state as `TASKS` or `ITERATING_TASKS`?",
+        "-  For combined failure flags, should fail_state be formatted as `RESCUE|ALWAYS` or `FAILED_RESCUE|FAILED_ALWAYS`?",
+        "-  What exact label format is expected for state names in `HostState.__str__()` output?"
+      ]
+    },
+    {
+      "id": "module_public_api_exposure",
+      "type": "contradictory requirements",
+      "description": "The problem statement explicitly says the module-level public API should expose only the enum types (`IteratingStates`, `FailedStates`), while the requirements explicitly demand preserving backward import compatibility for `PlayIterator` from the same module. Those directives cannot both hold for `__all__` at the same time, creating a direct contradiction in export surface requirements.",
+      "resolution": "Set `__all__` exactly to `['PlayIterator', 'IteratingStates', 'FailedStates']` in `play_iterator.py` so both backward compatibility and direct enum imports are preserved.",
+      "example_questions": [
+        "-  What names should `play_iterator.py` export in `__all__`?",
+        "-  Should `PlayIterator` remain listed in `__all__` together with the new enum types?",
+        "-  Is `__all__` expected to include exactly three exports?"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+[
+  "applications/drive/src/app/store/_shares/useDefaultShare.test.tsx | useDefaultShare says share is available by default",
+  "applications/drive/src/app/store/_shares/useDefaultShare.test.tsx | useDefaultShare says share is not available if locked",
+  "applications/drive/src/app/store/_shares/useDefaultShare.test.tsx | useDefaultShare says share is not available if soft deleted",
+  "applications/drive/src/app/store/_shares/useDefaultShare.test.tsx | useDefaultShare uses isShareAvailable dedup key with shareId",
+  "applications/drive/src/app/store/_shares/useDefaultShare.test.tsx | useDefaultShare caches availability result for exactly 17 seconds",
+  "applications/drive/src/app/store/_shares/useSharesState.fallback.test.tsx | useSharesState fallback selection prefers most recent personal share over shared",
+  "applications/drive/src/app/store/_shares/useSharesState.fallback.test.tsx | useSharesState fallback selection treats ShareType.default as the only personal space",
+  "applications/drive/src/app/store/_shares/useSharesState.fallback.test.tsx | useSharesState fallback selection breaks ties by shareId ascending within personal spaces",
+  "applications/drive/src/app/store/_shares/useSharesState.fallback.test.tsx | useSharesState fallback selection treats missing lastAccessedAt as 0 for sorting",
+  "applications/drive/src/app/store/_shares/useSharesState.fallback.test.tsx | useSharesState fallback selection when no personal spaces exist, picks most recent non-personal with shareId tie-break"
+]

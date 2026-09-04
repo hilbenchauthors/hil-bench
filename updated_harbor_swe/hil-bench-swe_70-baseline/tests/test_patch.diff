@@ -1,0 +1,239 @@
+diff --git a/packages/components/containers/calendar/settings/CalendarMemberAndInvitationList.test.tsx b/packages/components/containers/calendar/settings/CalendarMemberAndInvitationList.test.tsx
+index 5442d2e246..a3939ed5dd 100644
+--- a/packages/components/containers/calendar/settings/CalendarMemberAndInvitationList.test.tsx
++++ b/packages/components/containers/calendar/settings/CalendarMemberAndInvitationList.test.tsx
+@@ -1,4 +1,4 @@
+-import { render, screen } from '@testing-library/react';
++import { fireEvent, render, screen } from '@testing-library/react';
+ import { mocked } from 'jest-mock';
+ 
+ import { useApi, useNotifications } from '@proton/components/hooks';
+@@ -9,7 +9,7 @@ import {
+ } from '@proton/shared/lib/interfaces/calendar';
+ import { mockApi, mockNotifications } from '@proton/testing';
+ 
+-import CalendarMemberAndInvitationList from './CalendarMemberAndInvitationList';
++import CalendarMemberAndInvitationList, { canDeleteInvitationInRestrictedMode } from './CalendarMemberAndInvitationList';
+ 
+ jest.mock('@proton/components/hooks/useGetEncryptionPreferences');
+ jest.mock('@proton/components/hooks/useNotifications');
+@@ -133,4 +133,86 @@ describe('CalendarMemberAndInvitationList', () => {
+         expect(screen.getAllByText(/Revoke this invitation/).length).toBe(1);
+         expect(screen.getAllByText(/Delete/).length).toBe(1);
+     });
++
++    it('keeps delete action available while all permission controls stay blocked in restricted mode', () => {
++        const onDeleteMember = jest.fn(() => Promise.resolve());
++        const onDeleteInvitation = jest.fn(() => Promise.resolve());
++        const members = [
++            {
++                ID: 'member1',
++                Email: 'member1+oops@pm.gg',
++                Permissions: 96,
++            },
++        ] as CalendarMember[];
++        const invitations = [
++            {
++                CalendarInvitationID: 'invitation1',
++                Email: 'invitation1@pm.gg',
++                Permissions: 96,
++                Status: MEMBER_INVITATION_STATUS.PENDING,
++            },
++        ] as CalendarMemberInvitation[];
++
++        render(
++            <CalendarMemberAndInvitationList
++                members={members}
++                invitations={invitations}
++                canEdit={false}
++                onDeleteInvitation={onDeleteInvitation}
++                onDeleteMember={onDeleteMember}
++                calendarID="1"
++            />
++        );
++
++        const permissionControls = screen.getAllByRole('button', { name: /See all event details/i });
++        expect(permissionControls).toHaveLength(4);
++        permissionControls.forEach((permissionControl) => {
++            expect(permissionControl).toBeDisabled();
++            fireEvent.click(permissionControl);
++        });
++
++        fireEvent.click(screen.getByRole('button', { name: /Remove this member/i }));
++        fireEvent.click(screen.getByRole('button', { name: /Revoke this invitation/i }));
++        expect(onDeleteMember).toHaveBeenCalledWith('member1');
++        expect(onDeleteInvitation).toHaveBeenCalledWith('invitation1', false);
++    });
++
++    it('applies invitation deletion matrix in restricted mode by invitation status', () => {
++        expect(
++            canDeleteInvitationInRestrictedMode({
++                canEdit: false,
++                status: MEMBER_INVITATION_STATUS.PENDING,
++            })
++        ).toBe(true);
++        expect(
++            canDeleteInvitationInRestrictedMode({
++                canEdit: false,
++                status: MEMBER_INVITATION_STATUS.REJECTED,
++            })
++        ).toBe(true);
++        expect(
++            canDeleteInvitationInRestrictedMode({
++                canEdit: false,
++                status: MEMBER_INVITATION_STATUS.ACCEPTED,
++            })
++        ).toBe(false);
++        expect(
++            canDeleteInvitationInRestrictedMode({
++                canEdit: true,
++                status: MEMBER_INVITATION_STATUS.PENDING,
++            })
++        ).toBe(true);
++        expect(
++            canDeleteInvitationInRestrictedMode({
++                canEdit: true,
++                status: MEMBER_INVITATION_STATUS.REJECTED,
++            })
++        ).toBe(true);
++        expect(
++            canDeleteInvitationInRestrictedMode({
++                canEdit: true,
++                status: MEMBER_INVITATION_STATUS.ACCEPTED,
++            })
++        ).toBe(false);
++    });
+ });
+diff --git a/packages/components/containers/calendar/settings/CalendarMemberRow.test.tsx b/packages/components/containers/calendar/settings/CalendarMemberRow.test.tsx
+new file mode 100644
+index 0000000000..7dae6fef67
+--- /dev/null
++++ b/packages/components/containers/calendar/settings/CalendarMemberRow.test.tsx
+@@ -0,0 +1,71 @@
++import { canRunPermissionUpdate, runPermissionUpdateIfAllowed } from './CalendarMemberRow';
++
++describe('canRunPermissionUpdate', () => {
++    it('enforces restricted permission guards before mutation callbacks', async () => {
++        expect(
++            canRunPermissionUpdate({
++                canEdit: false,
++                newPermissions: 96,
++                currentPermissions: 64,
++            })
++        ).toBe(false);
++        expect(
++            canRunPermissionUpdate({
++                canEdit: true,
++                newPermissions: 96,
++                currentPermissions: 96,
++            })
++        ).toBe(false);
++        expect(
++            canRunPermissionUpdate({
++                canEdit: true,
++                newPermissions: 112,
++                currentPermissions: 96,
++            })
++        ).toBe(false);
++        expect(
++            canRunPermissionUpdate({
++                canEdit: true,
++                newPermissions: 96,
++                currentPermissions: 64,
++            })
++        ).toBe(true);
++
++        const onPermissionsUpdate = jest.fn(() => Promise.resolve());
++        const withLoadingPermissionsUpdate = jest.fn(async (promise: Promise<void>) => promise);
++        const setPerms = jest.fn();
++
++        await runPermissionUpdateIfAllowed({
++            canEdit: false,
++            newPermissions: 96,
++            currentPermissions: 64,
++            onPermissionsUpdate,
++            withLoadingPermissionsUpdate,
++            setPerms,
++        });
++
++        await runPermissionUpdateIfAllowed({
++            canEdit: true,
++            newPermissions: 96,
++            currentPermissions: 64,
++            onPermissionsUpdate,
++            withLoadingPermissionsUpdate,
++            setPerms,
++        });
++
++        await runPermissionUpdateIfAllowed({
++            canEdit: true,
++            newPermissions: 96,
++            currentPermissions: 96,
++            onPermissionsUpdate,
++            withLoadingPermissionsUpdate,
++            setPerms,
++        });
++
++        expect(onPermissionsUpdate).toHaveBeenCalledTimes(1);
++        expect(onPermissionsUpdate).toHaveBeenCalledWith(96);
++        expect(withLoadingPermissionsUpdate).toHaveBeenCalledTimes(1);
++        expect(setPerms).toHaveBeenCalledWith(96);
++    });
++
++});
+diff --git a/packages/components/containers/calendar/settings/CalendarSubpage.test.tsx b/packages/components/containers/calendar/settings/CalendarSubpage.test.tsx
+new file mode 100644
+index 0000000000..5b53b5266e
+--- /dev/null
++++ b/packages/components/containers/calendar/settings/CalendarSubpage.test.tsx
+@@ -0,0 +1,28 @@
++import { resolveRestrictedCalendarAccess } from './CalendarSubpage';
++
++describe('resolveRestrictedCalendarAccess', () => {
++    it('applies restricted access policy matrix for canEdit and canShare', () => {
++        const cases = [
++            {
++                input: { hasNonDelinquentScope: false, calendarPermissions: 96, isOwnedCalendar: true },
++                expected: { canEdit: false, canShare: false },
++            },
++            {
++                input: { hasNonDelinquentScope: true, calendarPermissions: 0, isOwnedCalendar: true },
++                expected: { canEdit: false, canShare: false },
++            },
++            {
++                input: { hasNonDelinquentScope: true, calendarPermissions: 96, isOwnedCalendar: false },
++                expected: { canEdit: true, canShare: false },
++            },
++            {
++                input: { hasNonDelinquentScope: true, calendarPermissions: 96, isOwnedCalendar: true },
++                expected: { canEdit: true, canShare: true },
++            },
++        ] as const;
++
++        cases.forEach(({ input, expected }) => {
++            expect(resolveRestrictedCalendarAccess(input)).toEqual(expected);
++        });
++    });
++});
+diff --git a/packages/components/containers/calendar/shareURL/CalendarShareUrlSection.test.tsx b/packages/components/containers/calendar/shareURL/CalendarShareUrlSection.test.tsx
+new file mode 100644
+index 0000000000..f086384535
+--- /dev/null
++++ b/packages/components/containers/calendar/shareURL/CalendarShareUrlSection.test.tsx
+@@ -0,0 +1,16 @@
++import { canCreatePublicLink } from './CalendarShareUrlSection';
++
++describe('canCreatePublicLink', () => {
++    it('applies share-link creation policy matrix', () => {
++        const cases = [
++            { input: { canShare: false, maxLinksReached: false, isLoadingLinks: false }, expected: false },
++            { input: { canShare: true, maxLinksReached: true, isLoadingLinks: false }, expected: false },
++            { input: { canShare: true, maxLinksReached: false, isLoadingLinks: true }, expected: false },
++            { input: { canShare: true, maxLinksReached: false, isLoadingLinks: false }, expected: true },
++        ] as const;
++
++        cases.forEach(({ input, expected }) => {
++            expect(canCreatePublicLink(input)).toBe(expected);
++        });
++    });
++});

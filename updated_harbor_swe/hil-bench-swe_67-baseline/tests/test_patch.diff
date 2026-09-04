@@ -1,0 +1,105 @@
+diff --git a/packages/components/components/modalTwo/ModalTwo.test.tsx b/packages/components/components/modalTwo/ModalTwo.test.tsx
+index 026b8b39f7..29f4975ed9 100644
+--- a/packages/components/components/modalTwo/ModalTwo.test.tsx
++++ b/packages/components/components/modalTwo/ModalTwo.test.tsx
+@@ -1,6 +1,6 @@
+ import { ReactNode, useEffect, useState } from 'react';
+ 
+-import { fireEvent, render } from '@testing-library/react';
++import { fireEvent, render, screen } from '@testing-library/react';
+ 
+ import { Button } from '../button';
+ import ModalTwo from './Modal';
+@@ -199,3 +199,92 @@ describe('ModalTwo Hotkeys', () => {
+         expect(queryByTestId('inner')).toHaveTextContent('Rendered');
+     });
+ });
++
++describe('Dialog substitute module contract', () => {
++    it('exposes an ES-module-shaped default export', () => {
++        const mockedModule = jest.requireMock('../dialog/Dialog');
++        const Dialog = require('../dialog/Dialog').default as typeof import('../dialog/Dialog').default;
++
++        expect(mockedModule.__esModule).toBe(true);
++        expect(mockedModule.default).toBe(Dialog);
++        expect(mockedModule.Dialog).toBeUndefined();
++    });
++});
++
++describe('Dialog substitute behavior', () => {
++    it('does not declare explicit dialog role on the substitute host', () => {
++        const Dialog = require('../dialog/Dialog').default as typeof import('../dialog/Dialog').default;
++
++        render(
++            <Dialog data-testid="dialog-host">
++                <span>Content</span>
++            </Dialog>
++        );
++
++        const host = screen.getByTestId('dialog-host');
++
++        expect(host).not.toHaveAttribute('role');
++        expect(host).not.toHaveAttribute('aria-modal');
++    });
++
++    it('intercepts the open prop and translates it to aria-hidden on the substitute host', () => {
++        const Dialog = require('../dialog/Dialog').default as typeof import('../dialog/Dialog').default;
++
++        const { rerender } = render(
++            <Dialog data-testid="dialog-host" open={false} aria-labelledby="modal-1">
++                <span>Content</span>
++            </Dialog>
++        );
++
++        const host = screen.getByTestId('dialog-host');
++
++        expect(host).toHaveAttribute('aria-hidden', 'true');
++        expect(host).toHaveAttribute('aria-labelledby', 'modal-1');
++        expect(host).not.toHaveAttribute('open');
++        expect(host).not.toHaveAttribute('hidden');
++        expect(host).not.toHaveAttribute('data-state');
++
++        rerender(
++            <Dialog data-testid="dialog-host" open aria-labelledby="modal-1">
++                <span>Content</span>
++            </Dialog>
++        );
++
++        expect(screen.getByTestId('dialog-host')).not.toHaveAttribute('aria-hidden');
++        expect(screen.getByTestId('dialog-host')).not.toHaveAttribute('open');
++    });
++});
++
++describe('Dialog production abstraction', () => {
++    it('wraps a native dialog element in the actual module', () => {
++        const actualDialogModule = jest.requireActual('../dialog/Dialog') as typeof import('../dialog/Dialog');
++        const ActualDialog = actualDialogModule.default;
++
++        render(
++            <ActualDialog data-testid="dialog-host">
++                <span>Content</span>
++            </ActualDialog>
++        );
++
++        expect(ActualDialog.displayName).toBe('Dialog');
++        expect(screen.getByTestId('dialog-host').tagName).toBe('DIALOG');
++    });
++});
++
++describe('ModalTwo constrained DOM compatibility', () => {
++    it('exposes open content via role queries without per-test rewrites', () => {
++        render(
++            <ModalTwo open>
++                <Button>Hello</Button>
++            </ModalTwo>
++        );
++
++        const host = document.querySelector('.modal-two-dialog');
++
++        expect(host).not.toBeNull();
++        expect(host).not.toHaveAttribute('role');
++        expect(host).not.toHaveAttribute('aria-modal');
++        expect(screen.queryByRole('dialog')).toBeNull();
++        expect(screen.getByRole('button', { name: 'Hello' })).toBeVisible();
++    });
++});

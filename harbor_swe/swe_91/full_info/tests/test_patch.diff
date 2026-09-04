@@ -1,0 +1,117 @@
+diff --git a/test/units/module_utils/common/text/formatters/test_human_to_bytes.py b/test/units/module_utils/common/text/formatters/test_human_to_bytes.py
+index c0d7b005c4..c6ace6248f 100644
+--- a/test/units/module_utils/common/text/formatters/test_human_to_bytes.py
++++ b/test/units/module_utils/common/text/formatters/test_human_to_bytes.py
+@@ -154,11 +154,8 @@
+ @pytest.mark.parametrize(
+     'test_input,isbits',
+     [
+-        ('1024Kb', False),
+-        ('10Mb', False),
+-        ('1Gb', False),
+         ('10MB', True),
+         ('2KB', True),
+         ('4GB', True),
+     ]
+ )
+@@ -171,10 +168,8 @@
+ @pytest.mark.parametrize(
+     'test_input,unit,isbits',
+     [
+-        (1024, 'Kb', False),
+-        ('10', 'Mb', False),
+         ('10', 'MB', True),
+         (2, 'KB', True),
+         ('4', 'GB', True),
+     ]
+ )
+@@ -182,3 +177,89 @@ def test_human_to_bytes_isbits_wrong_default_unit(test_input, unit, isbits):
+     """Test of human_to_bytes function, default_unit is in an invalid format for isbits value."""
+     with pytest.raises(ValueError, match="Value is not a valid string"):
+         human_to_bytes(test_input, default_unit=unit, isbits=isbits)
++
++@pytest.mark.parametrize(
++    'test_input',
++    [
++        '3 eBulletins',
++        '.1 Geggabytes',
++        '3 prettybytes',
++        '13youcanhaveabyteofmysandwich',
++        '.1 Geggabytes',
++        '10 texasburgerbytes',
++        '12 muppetbytes',
++    ]
++)
++def test_human_to_bytes_nonsensical(test_input):
++    """Test of human_to_bytes function to ensure it raises ValueError for nonsensical input with first letter matches
++    [BEGKMPTYZ] and word contains byte"""
++    expected = "Value is not a valid string"
++    with pytest.raises(ValueError, match=expected):
++        human_to_bytes(test_input)
++
++
++@pytest.mark.parametrize(
++    'test_input',
++    [
++        '8𖭙B',
++        '၀k',
++        '1.၀k?',
++        '᭔ MB'
++    ]
++)
++def test_human_to_bytes_non_ascii_number(test_input):
++    """Test of human_to_bytes function,correctly filtering out non ASCII characters"""
++    expected = "can't interpret following string"
++    with pytest.raises(ValueError, match=expected):
++        human_to_bytes(test_input)
++
++
++# Blocker verification tests: one test per blocker; wrong resolution fails.
++
++MAX_INPUT_LEN = 255  # Must match formatters.MAX_INPUT_LEN (registry)
++
++
++def test_human_to_bytes_blocker_max_input_length_raw_len():
++    """Blocker: max input length. Uses raw len(str(number)), no strip. N=255."""
++    # (1) Raw length N+1 must raise
++    long_invalid = "x" * (MAX_INPUT_LEN + 1)
++    with pytest.raises(ValueError):
++        human_to_bytes(long_invalid)
++    # (2) Padded so raw length > N; strip-first would wrongly accept
++    padded_over = " " * 300 + "10 MB" + " " * 300  # 605 > 255
++    with pytest.raises(ValueError):
++        human_to_bytes(padded_over)
++    # (3) Raw length exactly N, valid core "10 MB" + trailing spaces
++    exact_len = "10 MB" + " " * (MAX_INPUT_LEN - 5)
++    assert len(exact_len) == MAX_INPUT_LEN
++    assert human_to_bytes(exact_len) == 10 * (2 ** 20)
++
++
++def test_human_to_bytes_blocker_natural_language_exact_singular_only():
++    """Blocker: natural-language units. Exact singular only; no plural normalization."""
++    assert human_to_bytes("2 gigabyte") == 2 * (2 ** 30)
++    with pytest.raises(ValueError, match="Value is not a valid string"):
++        human_to_bytes("2 gigabytes")
++
++
++def test_human_to_bytes_blocker_unit_mode_truth_table():
++    """Blocker: unit_mode resolution applies to all ambiguous '*b' tokens, not only mb."""
++    for mode in ('strict', 'compat', 'legacy', 'si', 'iec'):
++        assert human_to_bytes("1 MB", unit_mode=mode) == 1048576
++        assert human_to_bytes("1 GB", unit_mode=mode) == 1073741824
++
++    # Explicit bit abbreviations are valid and interpreted as bit quantities.
++    assert human_to_bytes("1 Kb", unit_mode='compat') == 128
++    assert human_to_bytes("1 Mb", unit_mode='compat') == 131072
++    assert human_to_bytes("1 Gb", unit_mode='compat') == 134217728
++
++    # Ambiguous lowercase/mixed-case forms resolve per mode for all prefixes.
++    for mode in ('legacy', 'si'):
++        assert human_to_bytes("1 kb", unit_mode=mode) == 1024
++        assert human_to_bytes("1 mb", unit_mode=mode) == 1048576
++        assert human_to_bytes("1 gb", unit_mode=mode) == 1073741824
++
++    for mode in ('strict', 'compat', 'iec'):
++        assert human_to_bytes("1 kb", unit_mode=mode) == 128
++        assert human_to_bytes("1 mb", unit_mode=mode) == 131072
++        assert human_to_bytes("1 gb", unit_mode=mode) == 134217728

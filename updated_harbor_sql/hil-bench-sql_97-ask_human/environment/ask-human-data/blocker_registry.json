@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for drivers who scored more than 30 points in a single race, but the maximum points awarded for a race win in Formula 1 is 25 points (since 2010). Scoring more than 30 points in a single race is impossible.",
+      "example_questions": [
+        "What value should I use for the single race points filter?",
+        "What points threshold should be used to filter drivers who scored more than 30 points in a single race?",
+        "How many points must a driver earn in one race to meet the \"more than 30 points\" requirement?"
+      ],
+      "id": "single_race_points_threshold",
+      "resolution": "Interpret \"more than 30 points\" as scoring the maximum possible points (25 points) in a single race, which corresponds to a race victory.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for \"veteran drivers\" but there is no definition provided in the business information specifying what criteria determines whether a driver is considered a veteran.",
+      "example_questions": [
+        "How many races must a driver have competed in to be classified as a veteran driver?",
+        "What is the minimum number of Formula 1 races required to consider a driver a veteran?",
+        "Is the veteran driver classification based on number of races, seasons, or age?"
+      ],
+      "id": "veteran_driver_definition",
+      "resolution": "A veteran driver is one who has competed in 5 seasons or more (which means 5 different years or more).",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The drivers table has many columns named wikiUrl, principalUrl, introductionUrl, and fanUrl, which makes it impossible to know which one references the main page from these many options\n",
+      "example_questions": [
+        "How can I obtain a driver's main page?",
+        "How should I obtain a driver's main page?",
+        "Which column can I use to obtain a driver's main page?"
+      ],
+      "id": "main_webpage",
+      "resolution": "A driver's main page is given by the wikiUrl column in the drivers table\n",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "blockers": [
+    {
+      "id": "missing_persisted_session_staleness_ttl_ms",
+      "type": "missing parameters",
+      "description": "The requirements say stale persisted sessions must be ignored, but the exact freshness threshold is not specified. What precise TTL in milliseconds determines if a session is eligible?",
+      "resolution": "Use `1036800000` milliseconds (12 days) and keep only sessions where `Date.now() - persistedAt <= 1036800000`. Example: age `1036800000` is eligible; counter-example: age `1036800001` must be excluded as stale.",
+      "example_questions": [
+        "-  What exact staleness TTL should I use for persisted sessions?",
+        "-  How many milliseconds old can a persisted session be before exclusion?",
+        "-  What fixed freshness threshold value is required for persisted sessions?",
+        "-  Which numeric policy defines stale vs eligible persisted sessions?",
+        "-  What cutoff should be used in the `Date.now() - persistedAt` check?"
+      ]
+    },
+    {
+      "id": "ambiguous_resume_success_predicate_for_auth_updates",
+      "type": "ambiguous requirements",
+      "description": "The requirements say auth state should be updated only if the session resumes successfully, but they do not define the exact success predicate. Which condition must gate `auth.setPassword`, `auth.setUID`, and `auth.setLocalID`?",
+      "resolution": "Use `if (resumedSession)` as the success predicate and place all three auth setters under that guard. Example: `if (resumedSession) { auth.setPassword(...); auth.setUID(...); auth.setLocalID(...); }`; counter-example: using only `if (resumedSession?.keyPassword)` is incorrect.",
+      "example_questions": [
+        "-  What exact condition defines successful `resumeSession` for auth updates?",
+        "-  Should I gate auth setters on `resumedSession` itself or on `keyPassword`?",
+        "-  How should I decide when to call `auth.setPassword`, `auth.setUID`, and `auth.setLocalID`?",
+        "-  Is the intended guard a truthy `resumedSession` check?",
+        "-  Do partial resumed payloads count as successful for auth state updates?"
+      ]
+    },
+    {
+      "id": "contradictory_uid_authority_after_resume",
+      "type": "contradictory requirements",
+      "description": "The requirements include conflicting guidance about which UID should be written into auth state after resume. Should `auth.setUID` use resumed payload UID or persisted session UID?",
+      "resolution": "Use persisted session UID only: `auth.setUID(persistedSession.UID)`. Example: if persisted UID is `p-123` and resumed UID is `r-456`, set `p-123`; counter-example: setting `r-456` is incorrect.",
+      "example_questions": [
+        "-  After resume, should `auth.setUID` use persisted UID or resumed payload UID?",
+        "-  Which UID source has precedence for auth state updates?",
+        "-  Which UID must be written by `auth.setUID` after resume?",
+        "-  If persisted and resumed UIDs differ, which value must be written?",
+        "-  What is the canonical UID source for `auth.setUID`?"
+      ]
+    },
+    {
+      "id": "contradictory_localid_source_for_resume_call",
+      "type": "contradictory requirements",
+      "description": "The requirements conflict on where `localID` should come from when calling `resumeSession({ api, localID })`. Should it come from persisted session storage or from `auth.getLocalID()`?",
+      "resolution": "Use persisted-session local ID: `resumeSession({ api, localID: persistedSession.localID })`. Example: if persisted localID is `42` and auth localID is `7`, pass `42`; counter-example: passing `7` is incorrect.",
+      "example_questions": [
+        "-  Should `resumeSession` use `persistedSession.localID` or `auth.getLocalID()`?",
+        "-  Which localID source is authoritative for the resume call?",
+        "-  Which localID must be passed to `resumeSession({ api, localID })`?",
+        "-  If the two localIDs differ, which one must be passed?",
+        "-  Is storage-derived localID mandatory for `resumeSession`?"
+      ]
+    }
+  ]
+}

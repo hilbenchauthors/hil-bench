@@ -1,0 +1,42 @@
+{
+  "blockers": [
+    {
+      "id": "share_generated_password_length",
+      "type": "missing parameters",
+      "description": "The Drive sharing flow relies on a fixed generated-password length for generating and splitting ShareURL passwords, but the current policy value is not specified. The wrong length will cause incorrect generated/custom segmentation and inconsistent behavior across helpers.",
+      "resolution": "Set `SHARE_GENERATED_PASSWORD_LENGTH` to exactly 18. When both CustomPassword and GeneratedPasswordIncluded flags are set, split as: generated = password.substring(0, SHARE_GENERATED_PASSWORD_LENGTH) and custom = password.substring(SHARE_GENERATED_PASSWORD_LENGTH). Example: password '1234567890abcdefghXYZ' to generated '1234567890abcdefgh', custom 'XYZ'. Counter-example: do NOT use 12 or 16.",
+      "example_questions": [
+        "-  What is the exact required value for the generated ShareURL password length under the current security policy?",
+        "-  How many characters long is the generated password segment that should be used for splitting and recombining passwords?",
+        "-  What should `SHARE_GENERATED_PASSWORD_LENGTH` be set to?",
+        "-  When both password segments exist, what exact split index should be used to separate generated and custom portions?",
+        "-  Can you provide an example password and the expected generated/custom outputs using the current required length?"
+      ]
+    },
+    {
+      "id": "flags_value_normalization",
+      "type": "contradictory requirements",
+      "description": "There is conflicting guidance about whether the incoming flags value should be normalized/coerced prior to bit evaluation or treated as an already-valid integer without any coercion. These instructions conflict and lead to incompatible implementations.",
+      "resolution": "Normalize any present flags value to an unsigned 32-bit integer before evaluating bits. Specifically: treat undefined/null as missing (ignore that representation). For any present value, compute normalizedFlags = (Number(flagsValue) >>> 0). Use normalizedFlags for all bit checks. Examples: NaN to 0; 3.9 to 3; '5' to 5; -1 to 4294967295 (all bits set). Counter-example: do NOT throw on numeric strings like '5' and do NOT leave floats untruncated.",
+      "example_questions": [
+        "-  How should the helpers handle flags values that are missing or not a strict integer (undefined, null, NaN, floats, or strings)?",
+        "-  What exact coercion/normalization rule should be applied to flags values before bit checks?",
+        "-  How should a float or string flags value (e.g., '5' or 3.9) be converted before bit evaluation?",
+        "-  What is the expected behavior for negative flags values when evaluating bitmasks?",
+        "-  Do we treat an absent flags value as 0, or should it be considered an error?"
+      ]
+    },
+    {
+      "id": "legacy_flags_property_compatibility",
+      "type": "ambiguous requirements",
+      "description": "Inputs may provide flags metadata via more than one representation at the same time. It is unclear how the helpers should behave when multiple representations coexist and disagree, since multiple deterministic policies are plausible and lead to different results.",
+      "resolution": "Maintain write standardization while defining deterministic conflict handling: the helpers must accept input objects that may contain canonical flags and may also contain legacy Flags. Treat undefined/null as missing for each representation, but treat 0 as a present value. If both representations are present and their flag values differ, treat the effective flags value as 0 for bit evaluation and password splitting. If only one representation is present, use that value; if both are present and equal, use that value. Examples: { flags: 1, Flags: 4 } to effective flags 0; { Flags: 1 } to effective 1; { flags: 2 } to effective 2; { flags: 1, Flags: 1 } to effective 1. Counter-example: do NOT merge/OR values and do NOT pick one representation over the other when they disagree.",
+      "example_questions": [
+        "-  If both `flags` and a legacy representation exist on the same input, what is the expected behavior when they disagree?",
+        "-  When multiple flags representations are present, what exact deterministic rule should be used to derive an effective flags value?",
+        "-  If conflicting representations are detected, should flag evaluation proceed as if flags are unset, or should it error?",
+        "-  How should password splitting behave when conflicting flags representations are present?"
+      ]
+    }
+  ]
+}

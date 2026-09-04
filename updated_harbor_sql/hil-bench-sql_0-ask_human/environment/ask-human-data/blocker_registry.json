@@ -1,0 +1,67 @@
+{
+  "blockers": [
+    {
+      "description": "The question refers to \"senior account owners\" without providing any definition or criteria for determining which clients qualify as senior, making it unclear how to identify the relevant group.",
+      "example_questions": [
+        "What rule should be used to determine whether a client qualifies as a senior account owner",
+        "What exact birth date should be used as the cutoff to identify senior account holders?",
+        "How is it determined who is a senior account holder?"
+      ],
+      "id": "undefined_senior_account_owner",
+      "resolution": "Senior account owners are defined as clients with a birth date earlier than January 1, 1950.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The term \"crisis period\" is used without specifying any concrete start or end dates, making it unclear which time range should be applied to transaction activity.",
+      "example_questions": [
+        "What exact date range defines the crisis period?",
+        "Which start and end dates should be used to represent the crisis period?",
+        "What calendar period should be considered the crisis period for transactions?",
+        "What specific year or date range corresponds to the crisis period?"
+      ],
+      "id": "undefined_crisis_period",
+      "resolution": "The crisis period is defined as the calendar year from January 1, 1996, to December 31, 1996.",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "Transaction records store internal classification codes that group financial activities by accounting purpose, but the data does not specify whether loan servicing corresponds to a single classification code or to multiple related categories, making it unclear which transactions qualify",
+      "example_questions": [
+        "What types of payments are considered loan servicing transactions?",
+        "Which payments qualify as loan servicing transactions?",
+        "Should loan servicing transactions include only one coded purpose, or multiple coded purposes?"
+      ],
+      "id": "ambiguous_loan_servicing_transactions",
+      "resolution": "Loan servicing transactions are defined as transactions where\ntrans.k_symbol = 'CAT7' AND trans.service_flag = 'S1'.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The question refers to \"economically distressed districts\", but the business information does not provide any definition, metric, or threshold for determining economic distress, making it impossible to identify which districts qualify.",
+      "example_questions": [
+        "What criteria should be used to determine whether a district is economically distressed?",
+        "Which economic indicator should define economic distress at the district level?",
+        "What specific metric and threshold determine if a district qualifies as economically distressed?",
+        "How is economic distress defined for districts?"
+      ],
+      "id": "undefined_economic_distress",
+      "resolution": "Economically distressed districts are defined as districts with an unemployment rate in 1995 greater than 5.0 percent, using the district.A12 column.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "Loan records include an internal classification code assigned during portfolio review, but the schema does not indicate whether the codes represent outcomes, stages, or review categories, nor whether any single code uniquely represents loans settled without issues.",
+      "example_questions": [
+        "Which loan status code represents loans that were settled without issues?",
+        "How should the internal loan outcome classification codes be interpreted to identify settled loans?",
+        "Is any loan status code defined as representing loans settled without issues, and if so which one?",
+        "What specific loan.status value indicates a loan was settled without issues?"
+      ],
+      "id": "ambiguous_loan_outcome_codes",
+      "resolution": "Loans settled without issues are identified by loans where\nloan.status = 'R3' AND loan.outcome_group = 'G2'.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

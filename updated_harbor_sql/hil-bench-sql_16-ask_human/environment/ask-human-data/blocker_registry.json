@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \u201ccurrently classified as championship front-runners\u201d depends on a classification that can change outside the dataset and is not encoded in the database.",
+      "example_questions": [
+        "Which constructors should be treated as \u2018championship front-runners\u2019?",
+        "Is \u2018currently classified as front-runners\u2019 determined by an external roster, and if so what are the exact constructorRef values to include?",
+        "What is the authoritative roster snapshot for \u2018front-runners\u2019 to apply?"
+      ],
+      "id": "championship_front_runners",
+      "resolution": "Interpret \u201ccurrently classified as championship front-runners\u201d using an externally provided roster snapshot expressed as an explicit allowlist of constructors.constructorRef. Include only constructors whose constructorRef is in: {'mclaren', 'williams', 'renault', 'ferrari', 'red_bull', 'jordan', 'footwork'}.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "\u201cattrition finish pattern\u201d is vague: \u201cattrition\u201d is not precisely defined, and there are several plausible options as to which race results should be treated as attrition versus non-attrition.",
+      "example_questions": [
+        "How should \u2018attrition\u2019 be determined from race results; what specific completion outcomes count as attrition versus non-attrition?",
+        "Which result statuses should be excluded from attrition because they still represent classified finishes?",
+        "Should attrition be evaluated for all constructors or only for those with a minimum number of results, and what is that minimum?"
+      ],
+      "id": "attrition_finish_pattern",
+      "resolution": "Measure attrition using status.status: a result counts as attrition if status.status is not 'Finished' and is not a classified finish of the form '+N Lap' or '+N Laps'; compute attrition_rate = attrition_events / total_results per constructor, considering only constructors with at least 100 rows in results. Interpret the requirement as belonging to the lower-attrition tier, defined by attrition_rate <= median(attrition_rate) (lower median via ROW_NUMBER() ordering by attrition_rate ASC, constructorId ASC).",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The term \u201cpremier circuit set\u201d is not defined, and there is no built-in field that labels circuits as premier.",
+      "example_questions": [
+        "How should the \u2018premier circuit set\u2019 be determined from the database; what concrete rule defines which circuits are in the set?",
+        "What makes a circuit \u2018premier\u2019; should it be based on a specific property or a derived criterion?",
+        "What eligibility rule should a constructor meet with respect to the \u2018premier circuit set\u2019 (e.g., minimum distinct circuits, appearances, or another measure)?"
+      ],
+      "id": "premier_circuit_set",
+      "resolution": "Define the \u201cpremier circuit set\u201d as the set of races.circuitId values that served as a season opener (i.e., races.round = 1) at least 5 times in the dataset. A constructor satisfies the requirement if it has results on at least 3 distinct circuits from that set (counted via COUNT(DISTINCT races.circuitId) after joining results --> races).",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "\u201cqualifying dominance score\u201d is undefined; it is unclear which qualifying fields to use, how to compute the score, and what cutoff qualifies as \u201cdominant.\u201d",
+      "example_questions": [
+        "How should the \u2018qualifying dominance score\u2019 be calculated from the qualifying table; what exact formula and fields should be used?",
+        "What cutoff determines that a constructor \u2018satisfies\u2019 the dominance score requirement: top quartile, a fixed threshold, or another rule?",
+        "Should constructors with sparse qualifying records be excluded from scoring, and if so, what minimum qualifying sample size should apply?"
+      ],
+      "id": "qualifying_dominance_score",
+      "resolution": "Compute dominance_score per constructor from qualifying as the proportion of qualifying rows where qualifying.position is non-NULL and <= 3, divided by the constructor\u2019s total qualifying rows. Consider only constructors with at least 40 qualifying rows. Interpret the criterion as membership in the top quartile, defined by dominance_score >= Q3(dominance_score) where Q3 is selected via ROW_NUMBER() ordering by dominance_score ASC, constructorId ASC and taking row ((3*n + 3)/4).",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The column constructors.visibility_code exists but its meaning is unclear; the schema only states it is an internal reporting code without specifying interpretation or ordering.",
+      "example_questions": [
+        "How should the internal visibility classification be interpreted from constructors.visibility_code when the schema does not define what each code means?",
+        "If multiple visibility_code values exist, what rule determines which ones qualify for the requested visibility classification requirement?",
+        "How should ties be handled when selecting qualifying visibility_code values?"
+      ],
+      "id": "visibility_classification",
+      "resolution": "Interpret the \u201cinternal visibility classification requirement\u201d as belonging to the most frequent visibility_code value(s) in constructors: compute code counts over non-empty visibility_code, select the maximum count, and include all codes tied for that maximum frequency. A constructor satisfies the requirement if its visibility_code is in that set.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

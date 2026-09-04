@@ -901,6 +901,13 @@ class LiteLLMModel(AbstractModel):
             completion_kwargs["temperature"] = effective_temperature
         if self.config.top_p is not None:
             completion_kwargs["top_p"] = self.config.top_p
+        if "user" not in completion_kwargs and "user" not in extra_args:
+            litellm_user = os.getenv("LITELLM_USER", "").strip()
+            if not litellm_user:
+                raise RuntimeError(
+                    "LITELLM_USER is required so every LiteLLM call is attributed"
+                )
+            completion_kwargs["user"] = litellm_user
         if "claude-sonnet-4-5" in model_name:
             # can't use both temperature and top_p for claude-sonnet-4-5
             if (

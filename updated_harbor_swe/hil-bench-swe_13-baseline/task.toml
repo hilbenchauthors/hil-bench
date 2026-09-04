@@ -1,0 +1,34 @@
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-swe_13-baseline"
+description = ""
+authors = []
+keywords = []
+[metadata]
+task_id = "baseline"
+task_type = "swe"
+mode = "baseline"
+repo_name = "ansible/ansible"
+task_attempt_id = "698648c3283d42a76056753c__69c6079bcb74caaa66c49c87"
+image_name = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:659f9d293d61f58ff7a2293ae1e8eb00aa92278c472905df3f49cfd0599d6340"
+tags = [ "swe", "baseline", "hil-bench",]
+[verifier]
+timeout_sec = 1800.0
+
+[verifier.env]
+[agent]
+timeout_sec = 7200.0
+[environment]
+build_timeout_sec = 1200.0
+docker_image = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:659f9d293d61f58ff7a2293ae1e8eb00aa92278c472905df3f49cfd0599d6340"
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true
+mcp_servers = []
+
+[environment.env]
+[solution.env]

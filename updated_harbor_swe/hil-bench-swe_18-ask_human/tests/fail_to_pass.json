@@ -1,0 +1,9 @@
+[
+  "TestBundleCommand_Build_DefaultManifestVersion",
+  "TestBundleCommand_Build_ExplicitManifestVersion10",
+  "TestBundleCommand_Build_ExplicitManifestVersion11",
+  "TestBundleCommand_Build_UnsupportedManifestVersion",
+  "TestBundleCommand_Build_UnsupportedCanonicalLookingManifestVersion",
+  "TestLoad_UnsupportedManifestVersionIsDeferred",
+  "TestJSONSchema_ManifestVersionType"
+]

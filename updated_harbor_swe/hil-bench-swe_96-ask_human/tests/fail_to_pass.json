@@ -1,0 +1,5 @@
+[
+  "packages/components/helpers/url.obstructed.test.ts | derives_a_stable_matching_key_from_nested_hosts",
+  "packages/components/helpers/url.obstructed.test.ts | returns_inert_data_uri_for_unparseable_input",
+  "packages/components/helpers/url.obstructed.test.ts | strips_root_separator_but_preserves_deep_path_separator"
+]

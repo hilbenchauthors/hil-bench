@@ -1,0 +1,5 @@
+[
+  "test/units/galaxy/test_collection_install.py::test_upgrade_deps_depth_limit",
+  "test/units/galaxy/test_collection_install.py::test_upgrade_candidate_version_limit",
+  "test/units/galaxy/test_collection_install.py::test_upgrade_source_fallback_depth"
+]

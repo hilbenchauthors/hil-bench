@@ -1,0 +1,294 @@
+diff --git a/cmd/flipt/bundle_test.go b/cmd/flipt/bundle_test.go
+new file mode 100644
+index 00000000..8d2911f3
+--- /dev/null
++++ b/cmd/flipt/bundle_test.go
+@@ -0,0 +1,179 @@
++package main
++
++import (
++	"context"
++	"encoding/json"
++	"fmt"
++	"os"
++	"path/filepath"
++	"testing"
++
++	v1 "github.com/opencontainers/image-spec/specs-go/v1"
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/require"
++	"go.flipt.io/flipt/internal/config"
++	"go.flipt.io/flipt/internal/oci"
++)
++
++func TestBundleCommand_Build_DefaultManifestVersion(t *testing.T) {
++	manifest, err := buildBundleManifest(t, "")
++	require.NoError(t, err)
++
++	assert.NotContains(t, manifest, "artifactType")
++
++	config, ok := manifest["config"].(map[string]any)
++	require.True(t, ok)
++	assert.Equal(t, oci.MediaTypeFliptFeatures, config["mediaType"])
++}
++
++func TestBundleCommand_Build_ExplicitManifestVersion10(t *testing.T) {
++	manifest, err := buildBundleManifest(t, `manifest_version: "oci-1.0"`)
++	require.NoError(t, err)
++
++	assert.NotContains(t, manifest, "artifactType")
++
++	config, ok := manifest["config"].(map[string]any)
++	require.True(t, ok)
++	assert.Equal(t, oci.MediaTypeFliptFeatures, config["mediaType"])
++}
++
++func TestBundleCommand_Build_ExplicitManifestVersion11(t *testing.T) {
++	defaultManifest, err := buildBundleManifest(t, "")
++	require.NoError(t, err)
++	manifest, err := buildBundleManifest(t, `manifest_version: "oci-1.1"`)
++	require.NoError(t, err)
++
++	_, defaultHasArtifactType := defaultManifest["artifactType"]
++	assert.False(t, defaultHasArtifactType)
++	assert.Equal(t, oci.MediaTypeFliptFeatures, manifest["artifactType"])
++}
++
++func TestBundleCommand_Build_UnsupportedManifestVersion(t *testing.T) {
++	_, configPath, restore := prepareBundleBuild(t, `manifest_version: "1.2"`)
++	defer restore()
++
++	result, err := config.Load(configPath)
++	require.NoError(t, err)
++	require.NotNil(t, result)
++	require.NotNil(t, result.Config)
++	require.NotNil(t, result.Config.Storage.OCI)
++	assert.Equal(t, "1.2", result.Config.Storage.OCI.ManifestVersion)
++
++	command := newBundleCommand()
++	command.SetContext(context.Background())
++
++	err = (&bundleCommand{}).build(command, []string{"bundle-test:latest"})
++	require.Error(t, err)
++	assert.Contains(t, err.Error(), "manifest version")
++}
++
++func TestBundleCommand_Build_UnsupportedCanonicalLookingManifestVersion(t *testing.T) {
++	for _, manifestVersion := range []string{"1.0", "1.1", "v1.0", "v1.1"} {
++		t.Run(manifestVersion, func(t *testing.T) {
++			manifest, err := buildBundleManifest(t, fmt.Sprintf(`manifest_version: %q`, manifestVersion))
++
++			require.Error(t, err)
++			assert.Nil(t, manifest)
++			assert.Contains(t, err.Error(), "manifest version")
++		})
++	}
++}
++
++func buildBundleManifest(t *testing.T, manifestVersion string) (map[string]any, error) {
++	t.Helper()
++
++	bundlesDir, _, restore := prepareBundleBuild(t, manifestVersion)
++	defer restore()
++
++	command := newBundleCommand()
++	command.SetContext(context.Background())
++
++	if err := (&bundleCommand{}).build(command, []string{"bundle-test:latest"}); err != nil {
++		return nil, err
++	}
++
++	return readBundleManifestJSON(t, bundlesDir, "bundle-test", "latest"), nil
++}
++
++func prepareBundleBuild(t *testing.T, manifestVersion string) (string, string, func()) {
++	t.Helper()
++
++	previousConfigFile := providedConfigFile
++	previousWorkingDirectory, err := os.Getwd()
++	require.NoError(t, err)
++
++	workdir := t.TempDir()
++	bundlesDir := filepath.Join(t.TempDir(), "bundles")
++
++	require.NoError(t, os.WriteFile(filepath.Join(workdir, ".flipt.yml"), []byte(`version: 1.0
++include:
++  - default.yml
++  - production.yml
++`), 0600))
++	require.NoError(t, os.WriteFile(filepath.Join(workdir, "default.yml"), []byte(`flags:
++- key: flag_boolean
++  name: FLAG_BOOLEAN
++  type: BOOLEAN_FLAG_TYPE
++  description: Boolean Flag Description
++  enabled: false
++`), 0600))
++	require.NoError(t, os.WriteFile(filepath.Join(workdir, "production.yml"), []byte(`namespace: production
++flags:
++- key: flag_boolean
++  name: FLAG_BOOLEAN
++  type: BOOLEAN_FLAG_TYPE
++  description: Boolean Flag Description
++  enabled: false
++`), 0600))
++
++	configContents := `storage:
++  type: oci
++  oci:
++    repository: remote/example:latest
++    bundles_directory: ` + bundlesDir + "\n"
++	if manifestVersion != "" {
++		configContents += "    " + manifestVersion + "\n"
++	}
++
++	configPath := filepath.Join(workdir, "config.yml")
++	require.NoError(t, os.WriteFile(configPath, []byte(configContents), 0600))
++
++	providedConfigFile = configPath
++	require.NoError(t, os.Chdir(workdir))
++
++	restore := func() {
++		providedConfigFile = previousConfigFile
++		require.NoError(t, os.Chdir(previousWorkingDirectory))
++	}
++
++	return bundlesDir, configPath, restore
++}
++
++func readBundleManifestJSON(t *testing.T, bundlesDir, repository, tag string) map[string]any {
++	t.Helper()
++
++	indexPath := filepath.Join(bundlesDir, repository, v1.ImageIndexFile)
++	indexBytes, err := os.ReadFile(indexPath)
++	require.NoError(t, err)
++
++	var index v1.Index
++	require.NoError(t, json.Unmarshal(indexBytes, &index))
++
++	var digest string
++	for _, descriptor := range index.Manifests {
++		if descriptor.Annotations[v1.AnnotationRefName] == tag {
++			digest = descriptor.Digest.String()
++			break
++		}
++	}
++
++	require.NotEmpty(t, digest)
++
++	manifestPath := filepath.Join(bundlesDir, repository, "blobs", "sha256", digest[len("sha256:"):])
++	manifestBytes, err := os.ReadFile(manifestPath)
++	require.NoError(t, err)
++
++	var manifest map[string]any
++	require.NoError(t, json.Unmarshal(manifestBytes, &manifest))
++	return manifest
++}
+diff --git a/internal/config/manifest_version_load_test.go b/internal/config/manifest_version_load_test.go
+new file mode 100644
+index 00000000..7e4e52aa
+--- /dev/null
++++ b/internal/config/manifest_version_load_test.go
+@@ -0,0 +1,32 @@
++package config
++
++import (
++	"os"
++	"path/filepath"
++	"testing"
++
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/require"
++)
++
++func TestLoad_UnsupportedManifestVersionIsDeferred(t *testing.T) {
++	configPath := filepath.Join(t.TempDir(), "oci_invalid_manifest_version.yml")
++	require.NoError(t, os.WriteFile(configPath, []byte(`storage:
++  type: oci
++  oci:
++    repository: some.target/repository/abundle:latest
++    bundles_directory: /tmp/bundles
++    authentication:
++      username: foo
++      password: bar
++    poll_interval: 5m
++    manifest_version: "1.2"
++`), 0o600))
++	result, err := Load(configPath)
++
++	require.NoError(t, err)
++	require.NotNil(t, result)
++	require.NotNil(t, result.Config)
++	require.NotNil(t, result.Config.Storage.OCI)
++	assert.Equal(t, "1.2", result.Config.Storage.OCI.ManifestVersion)
++}
+
+diff --git a/internal/config/manifest_version_test.go b/internal/config/manifest_version_test.go
+new file mode 100644
+index 00000000..45d3ea0f
+--- /dev/null
++++ b/internal/config/manifest_version_test.go
+@@ -0,0 +1,64 @@
++package config
++
++import (
++	"encoding/json"
++	"fmt"
++	"testing"
++
++	"github.com/santhosh-tekuri/jsonschema/v5"
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/require"
++)
++
++func TestJSONSchema_ManifestVersionType(t *testing.T) {
++	schema, err := jsonschema.Compile("../../config/flipt.schema.json")
++	require.NoError(t, err)
++
++	for _, manifestVersion := range []string{"oci-1.0", "oci-1.1", "1.2"} {
++		t.Run("string_"+manifestVersion, func(t *testing.T) {
++			var document any
++			require.NoError(t, json.Unmarshal([]byte(fmt.Sprintf(`{
++				"storage": {
++					"type": "oci",
++					"oci": {
++						"repository": "some.target/repository/abundle:latest",
++						"manifest_version": %q
++					}
++				}
++			}`, manifestVersion)), &document))
++
++			err = schema.Validate(document)
++			require.NoError(t, err)
++		})
++	}
++
++	for idx, documentBytes := range [][]byte{
++		[]byte(`{
++			"storage": {
++				"type": "oci",
++				"oci": {
++					"repository": "some.target/repository/abundle:latest",
++					"manifest_version": 10
++				}
++			}
++		}`),
++		[]byte(`{
++			"storage": {
++				"type": "oci",
++				"oci": {
++					"repository": "some.target/repository/abundle:latest",
++					"manifest_version": true
++				}
++			}
++		}`),
++	} {
++		t.Run(fmt.Sprintf("non_string_%d", idx), func(t *testing.T) {
++			var document any
++			require.NoError(t, json.Unmarshal(documentBytes, &document))
++
++			err = schema.Validate(document)
++			require.Error(t, err)
++			assert.Contains(t, err.Error(), "manifest_version")
++		})
++	}
++}

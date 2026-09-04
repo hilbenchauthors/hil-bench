@@ -1,0 +1,5 @@
+[
+  "packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx | should limit compose recipients to maximum allowed count",
+  "packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx | should display contacts in simplified mode with copy actions",
+  "packages/components/containers/contacts/group/ContactGroupDetailsModal.test.tsx | should keep modal open after compose action"
+]

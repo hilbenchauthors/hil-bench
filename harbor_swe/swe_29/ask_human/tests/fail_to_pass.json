@@ -1,0 +1,15 @@
+[
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_ignore_proxy_input_normalization[true-True]",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_ignore_proxy_input_normalization[TRUE-True]",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_ignore_proxy_input_normalization[True-True]",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_ignore_proxy_input_normalization[y-True]",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_ignore_proxy_input_normalization[Y-True]",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_ignore_proxy_input_normalization[yes-False]",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_ignore_proxy_input_normalization[True-False]",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_ignore_proxy_input_normalization[false-False]",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_ignore_proxy_input_normalization[no-False]",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_cert_validation_ignore",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_cert_validation_trust_path",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_cert_validation_default_true",
+  "test/units/plugins/connection/test_psrp.py::TestConnectionPSRP::test_set_invalid_extras_options"
+]

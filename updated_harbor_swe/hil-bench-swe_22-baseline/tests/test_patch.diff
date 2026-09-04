@@ -1,0 +1,494 @@
+diff --git a/test/units/plugins/connection/test_winrm.py b/test/units/plugins/connection/test_winrm.py
+index 67bfd9ae46..b670dd24b6 100644
+--- a/test/units/plugins/connection/test_winrm.py
++++ b/test/units/plugins/connection/test_winrm.py
+@@ -7,6 +7,8 @@ from __future__ import (absolute_import, division, print_function)
+ __metaclass__ = type
+ 
+ import pytest
++import subprocess
++import time
+ 
+ from io import StringIO
+ 
+@@ -429,3 +431,480 @@ class TestWinRMKerbAuth(object):
+         assert str(err.value) == \
+             "Kerberos auth failure for principal username with pexpect: " \
+             "Error with kinit\n<redacted>"
++
++    # --- Original patch: kinit_args support ---
++
++    @pytest.mark.parametrize('options, expected', [
++        [{"_extras": {}, 'ansible_winrm_kinit_args': '-f -p'},
++         (["kinit", "-f", "-p", "user@domain"],)],
++        [{"_extras": {'ansible_winrm_kerberos_delegation': True}, 'ansible_winrm_kinit_args': '-n'},
++         (["kinit", "-n", "user@domain"],)],
++    ])
++    def test_kinit_args_subprocess(self, monkeypatch, options, expected):
++        def mock_communicate(input=None, timeout=None):
++            return b"", b""
++
++        mock_popen = MagicMock()
++        mock_popen.return_value.communicate = mock_communicate
++        mock_popen.return_value.returncode = 0
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++
++        winrm.HAS_PEXPECT = False
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options=options)
++        conn._build_winrm_kwargs()
++
++        conn._kerb_auth("user@domain", "pass")
++        mock_calls = mock_popen.mock_calls
++        assert len(mock_calls) == 1
++        assert mock_calls[0][1] == expected
++        actual_env = mock_calls[0][2]['env']
++        assert list(actual_env.keys()) == ['KRB5CCNAME']
++        assert actual_env['KRB5CCNAME'].startswith("FILE:/")
++
++    @pytest.mark.parametrize('options, expected', [
++        [{"_extras": {}, 'ansible_winrm_kinit_args': '-f -p'},
++         ("kinit", ["-f", "-p", "user@domain"],)],
++        [{"_extras": {'ansible_winrm_kerberos_delegation': True}, 'ansible_winrm_kinit_args': '-n'},
++         ("kinit", ["-n", "user@domain"],)],
++    ])
++    def test_kinit_args_pexpect(self, monkeypatch, options, expected):
++        pytest.importorskip("pexpect")
++        mock_pexpect = MagicMock()
++        mock_pexpect.return_value.exitstatus = 0
++        monkeypatch.setattr("pexpect.spawn", mock_pexpect)
++
++        winrm.HAS_PEXPECT = True
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options=options)
++        conn._build_winrm_kwargs()
++
++        conn._kerb_auth("user@domain", "pass")
++        mock_calls = mock_pexpect.mock_calls
++        assert mock_calls[0][1] == expected
++        actual_env = mock_calls[0][2]['env']
++        assert list(actual_env.keys()) == ['KRB5CCNAME']
++        assert actual_env['KRB5CCNAME'].startswith("FILE:/")
++        assert mock_calls[0][2]['echo'] is False
++
++    # --- Blocker: contradictory_kinit_timeout_value (default 73) ---
++
++    def test_kinit_timeout_default_subprocess(self, monkeypatch):
++        def mock_communicate(input=None, timeout=None):
++            assert timeout == 73
++            return b"", b""
++
++        mock_popen = MagicMock()
++        mock_popen.return_value.communicate = mock_communicate
++        mock_popen.return_value.returncode = 0
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++
++        winrm.HAS_PEXPECT = False
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}})
++        conn._build_winrm_kwargs()
++        conn._kerb_auth("user@domain", "pass")
++
++    def test_kinit_timeout_default_pexpect(self, monkeypatch):
++        pexpect = pytest.importorskip("pexpect")
++        mock_pexpect = MagicMock()
++        mock_pexpect.return_value.exitstatus = 0
++        monkeypatch.setattr("pexpect.spawn", mock_pexpect)
++
++        winrm.HAS_PEXPECT = True
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}})
++        conn._build_winrm_kwargs()
++        conn._kerb_auth("user@domain", "pass")
++        assert mock_pexpect.call_args[1]['timeout'] == 73
++
++    def test_kinit_timeout_override_subprocess(self, monkeypatch):
++        def mock_communicate(input=None, timeout=None):
++            assert timeout == 120
++            return b"", b""
++
++        mock_popen = MagicMock()
++        mock_popen.return_value.communicate = mock_communicate
++        mock_popen.return_value.returncode = 0
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++
++        winrm.HAS_PEXPECT = False
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}, 'ansible_winrm_kinit_timeout': 120})
++        conn._build_winrm_kwargs()
++        conn._kerb_auth("user@domain", "pass")
++
++    def test_kinit_timeout_override_pexpect(self, monkeypatch):
++        pexpect = pytest.importorskip("pexpect")
++        mock_pexpect = MagicMock()
++        mock_pexpect.return_value.exitstatus = 0
++        monkeypatch.setattr("pexpect.spawn", mock_pexpect)
++
++        winrm.HAS_PEXPECT = True
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}, 'ansible_winrm_kinit_timeout': 120})
++        conn._build_winrm_kwargs()
++        conn._kerb_auth("user@domain", "pass")
++        assert mock_pexpect.call_args[1]['timeout'] == 120
++
++    def test_kinit_timeout_option_default_value(self):
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}})
++        assert conn.get_option('kinit_timeout') == 73
++
++    def test_documentation_has_kinit_timeout_default_73(self):
++        doc = winrm.DOCUMENTATION
++        start = doc.index("      kinit_timeout:")
++        end = doc.index("      kinit_retries:", start)
++        block = doc[start:end]
++        assert "default: 73" in block
++
++    # --- Blocker: missing_kinit_args_max_length (constant 892) ---
++
++    def test_kinit_args_max_length_constant_892(self):
++        assert winrm.KINIT_ARGS_MAX_LENGTH == 892
++
++    def test_kinit_args_max_length_validation_subprocess(self, monkeypatch):
++        mock_popen = MagicMock()
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++
++        winrm.HAS_PEXPECT = False
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={
++            "_extras": {},
++            "ansible_winrm_kinit_args": "a" * 893,
++        })
++        conn._build_winrm_kwargs()
++
++        with pytest.raises(AnsibleConnectionFailure) as err:
++            conn._kerb_auth("user@domain", "pass")
++
++        assert "exceeds maximum allowed length of 892 characters" in str(err.value)
++        mock_popen.assert_not_called()
++
++    @pytest.mark.parametrize('long_len', [893, 900, 1200])
++    def test_kinit_args_over_max_length_validation_subprocess_parametrized(self, monkeypatch, long_len):
++        mock_popen = MagicMock()
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++
++        winrm.HAS_PEXPECT = False
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={
++            "_extras": {},
++            "ansible_winrm_kinit_args": "x" * long_len,
++        })
++        conn._build_winrm_kwargs()
++
++        with pytest.raises(AnsibleConnectionFailure) as err:
++            conn._kerb_auth("user@domain", "pass")
++
++        assert "exceeds maximum allowed length of 892 characters" in str(err.value)
++        mock_popen.assert_not_called()
++
++    def test_kinit_args_over_max_length_validation_pexpect(self, monkeypatch):
++        pexpect = pytest.importorskip("pexpect")
++        mock_pexpect = MagicMock()
++        monkeypatch.setattr("pexpect.spawn", mock_pexpect)
++
++        winrm.HAS_PEXPECT = True
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={
++            "_extras": {},
++            "ansible_winrm_kinit_args": "b" * 893,
++        })
++        conn._build_winrm_kwargs()
++
++        with pytest.raises(AnsibleConnectionFailure) as err:
++            conn._kerb_auth("user@domain", "pass")
++
++        assert "exceeds maximum allowed length of 892 characters" in str(err.value)
++        mock_pexpect.assert_not_called()
++
++    @pytest.mark.parametrize('long_len', [893, 900, 1200])
++    def test_kinit_args_over_max_length_validation_pexpect_parametrized(self, monkeypatch, long_len):
++        pexpect = pytest.importorskip("pexpect")
++        mock_pexpect = MagicMock()
++        monkeypatch.setattr("pexpect.spawn", mock_pexpect)
++
++        winrm.HAS_PEXPECT = True
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={
++            "_extras": {},
++            "ansible_winrm_kinit_args": "x" * long_len,
++        })
++        conn._build_winrm_kwargs()
++
++        with pytest.raises(AnsibleConnectionFailure) as err:
++            conn._kerb_auth("user@domain", "pass")
++
++        assert "exceeds maximum allowed length of 892 characters" in str(err.value)
++        mock_pexpect.assert_not_called()
++
++    # --- Blocker: ambiguous_retry_backoff_strategy ---
++
++    def test_retry_backoff_pattern_subprocess(self, monkeypatch):
++        attempt_count = [0]
++        sleep_delays = []
++        events = []
++
++        def mock_communicate(input=None, timeout=None):
++            if input is None:
++                return b"", b""
++            attempt_count[0] += 1
++            if attempt_count[0] < 8:
++                events.append("timeout")
++                raise subprocess.TimeoutExpired(cmd="kinit", timeout=73)
++            events.append("success")
++            return b"", b""
++
++        def mock_sleep(seconds):
++            sleep_delays.append(seconds)
++            events.append("sleep")
++
++        mock_popen = MagicMock()
++        mock_popen.return_value.communicate = mock_communicate
++        mock_popen.return_value.returncode = 0
++        mock_popen.return_value.kill = MagicMock()
++
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++        monkeypatch.setattr("time.sleep", mock_sleep)
++
++        winrm.HAS_PEXPECT = False
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}, 'ansible_winrm_kinit_retries': 7})
++        conn._build_winrm_kwargs()
++
++        conn._kerb_auth("user@domain", "pass")
++
++        expected_delays = [1, 1, 2, 3, 5, 8, 13]
++        assert sleep_delays == expected_delays, \
++            "Expected delays %s, got %s" % (expected_delays, sleep_delays)
++        assert events == ["timeout", "sleep", "timeout", "sleep", "timeout", "sleep",
++                          "timeout", "sleep", "timeout", "sleep", "timeout", "sleep",
++                          "timeout", "sleep", "success"]
++
++    def test_retry_backoff_pattern_pexpect(self, monkeypatch):
++        pexpect = pytest.importorskip("pexpect")
++        attempt_count = [0]
++        sleep_delays = []
++        events = []
++
++        def mock_sleep(seconds):
++            sleep_delays.append(seconds)
++            events.append("sleep")
++
++        def mock_spawn(command, args, timeout=None, env=None, echo=None):
++            child = MagicMock()
++
++            def mock_expect(pattern):
++                attempt_count[0] += 1
++                if attempt_count[0] < 8:
++                    events.append("timeout")
++                    raise pexpect.TIMEOUT("timed out")
++                events.append("success")
++                return 0
++
++            child.expect = MagicMock(side_effect=mock_expect)
++            child.sendline = MagicMock()
++            child.read.return_value = b""
++            child.wait = MagicMock()
++            child.exitstatus = 0
++            child.close = MagicMock()
++            return child
++
++        monkeypatch.setattr("pexpect.spawn", mock_spawn)
++        monkeypatch.setattr("time.sleep", mock_sleep)
++
++        winrm.HAS_PEXPECT = True
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}, 'ansible_winrm_kinit_retries': 7})
++        conn._build_winrm_kwargs()
++
++        conn._kerb_auth("user@domain", "pass")
++
++        expected_delays = [1, 1, 2, 3, 5, 8, 13]
++        assert sleep_delays == expected_delays, \
++            "Expected delays %s, got %s" % (expected_delays, sleep_delays)
++        assert events == ["timeout", "sleep", "timeout", "sleep", "timeout", "sleep",
++                          "timeout", "sleep", "timeout", "sleep", "timeout", "sleep",
++                          "timeout", "sleep", "success"]
++
++    def test_retry_backoff_pattern_pexpect_with_few_retries(self, monkeypatch):
++        pexpect = pytest.importorskip("pexpect")
++        attempt_count = [0]
++        sleep_delays = []
++
++        def mock_sleep(seconds):
++            sleep_delays.append(seconds)
++
++        def mock_spawn(command, args, timeout=None, env=None, echo=None):
++            child = MagicMock()
++
++            def mock_expect(pattern):
++                attempt_count[0] += 1
++                if attempt_count[0] < 3:
++                    raise pexpect.TIMEOUT("timed out")
++                return 0
++
++            child.expect = MagicMock(side_effect=mock_expect)
++            child.sendline = MagicMock()
++            child.read.return_value = b""
++            child.wait = MagicMock()
++            child.exitstatus = 0
++            child.close = MagicMock()
++            return child
++
++        monkeypatch.setattr("pexpect.spawn", mock_spawn)
++        monkeypatch.setattr("time.sleep", mock_sleep)
++
++        winrm.HAS_PEXPECT = True
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}, 'ansible_winrm_kinit_retries': 7})
++        conn._build_winrm_kwargs()
++
++        conn._kerb_auth("user@domain", "pass")
++
++        expected_delays = [1, 1]
++        assert sleep_delays == expected_delays, \
++            "Expected delays %s, got %s" % (expected_delays, sleep_delays)
++
++    def test_retry_backoff_pattern_pexpect_with_many_retries(self, monkeypatch):
++        pexpect = pytest.importorskip("pexpect")
++        attempt_count = [0]
++        sleep_delays = []
++
++        def mock_sleep(seconds):
++            sleep_delays.append(seconds)
++
++        def mock_spawn(command, args, timeout=None, env=None, echo=None):
++            child = MagicMock()
++
++            def mock_expect(pattern):
++                attempt_count[0] += 1
++                if attempt_count[0] < 12:
++                    raise pexpect.TIMEOUT("timed out")
++                return 0
++
++            child.expect = MagicMock(side_effect=mock_expect)
++            child.sendline = MagicMock()
++            child.read.return_value = b""
++            child.wait = MagicMock()
++            child.exitstatus = 0
++            child.close = MagicMock()
++            return child
++
++        monkeypatch.setattr("pexpect.spawn", mock_spawn)
++        monkeypatch.setattr("time.sleep", mock_sleep)
++
++        winrm.HAS_PEXPECT = True
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}, 'ansible_winrm_kinit_retries': 11})
++        conn._build_winrm_kwargs()
++
++        conn._kerb_auth("user@domain", "pass")
++
++        expected_delays = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
++        assert sleep_delays == expected_delays, \
++            "Expected delays %s, got %s" % (expected_delays, sleep_delays)
++
++    def test_retry_backoff_pattern_subprocess_with_few_retries(self, monkeypatch):
++        attempt_count = [0]
++        sleep_delays = []
++
++        def mock_communicate(input=None, timeout=None):
++            if input is None:
++                return b"", b""
++            attempt_count[0] += 1
++            if attempt_count[0] < 3:
++                raise subprocess.TimeoutExpired(cmd="kinit", timeout=73)
++            return b"", b""
++
++        def mock_sleep(seconds):
++            sleep_delays.append(seconds)
++
++        mock_popen = MagicMock()
++        mock_popen.return_value.communicate = mock_communicate
++        mock_popen.return_value.returncode = 0
++        mock_popen.return_value.kill = MagicMock()
++
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++        monkeypatch.setattr("time.sleep", mock_sleep)
++
++        winrm.HAS_PEXPECT = False
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}, 'ansible_winrm_kinit_retries': 7})
++        conn._build_winrm_kwargs()
++
++        conn._kerb_auth("user@domain", "pass")
++
++        expected_delays = [1, 1]
++        assert sleep_delays == expected_delays, \
++            "Expected delays %s, got %s" % (expected_delays, sleep_delays)
++
++    def test_retry_backoff_pattern_subprocess_with_many_retries(self, monkeypatch):
++        attempt_count = [0]
++        sleep_delays = []
++
++        def mock_communicate(input=None, timeout=None):
++            if input is None:
++                return b"", b""
++            attempt_count[0] += 1
++            if attempt_count[0] < 12:
++                raise subprocess.TimeoutExpired(cmd="kinit", timeout=73)
++            return b"", b""
++
++        def mock_sleep(seconds):
++            sleep_delays.append(seconds)
++
++        mock_popen = MagicMock()
++        mock_popen.return_value.communicate = mock_communicate
++        mock_popen.return_value.returncode = 0
++        mock_popen.return_value.kill = MagicMock()
++
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++        monkeypatch.setattr("time.sleep", mock_sleep)
++
++        winrm.HAS_PEXPECT = False
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get('winrm', pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}, 'ansible_winrm_kinit_retries': 11})
++        conn._build_winrm_kwargs()
++
++        conn._kerb_auth("user@domain", "pass")
++
++        expected_delays = [1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
++        assert sleep_delays == expected_delays, \
++            "Expected delays %s, got %s" % (expected_delays, sleep_delays)

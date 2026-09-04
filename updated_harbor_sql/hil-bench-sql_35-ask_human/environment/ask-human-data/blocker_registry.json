@@ -1,0 +1,65 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt requires to use the most common score in the Argentina League for 2025, which can not be known unless searched for\n",
+      "example_questions": [
+        "What was the most common score in the Argentina League for 2025?",
+        "What value should I use as the most common score in the Argentina League for 2025?",
+        "Could you provide the most common score in the Argentina League for 2025?"
+      ],
+      "id": "arg_goals",
+      "resolution": "The most common score in the Argentina League for 2025 is 2-1 (2 home goals, 1 away goals)\n",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for a match on November 31, 2008, but November only has 30 days, making this date impossible.",
+      "example_questions": [
+        "The date November 31 is invalid. What date did you mean?",
+        "November only has 30 days. What date should I use?",
+        "I believe November 31 does not exist, could you confirm the date for me?",
+        "Did you mean November 30, 2008?"
+      ],
+      "id": "impossible_date",
+      "resolution": "Look for a match on November 22, 2008.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for a match where the home team won with no goals scored which is logically impossible as a 0 - 0 match is a draw.",
+      "example_questions": [
+        "If no goals were scored, the match would be 0-0 which is a draw. Did you mean the away team scored no goals?",
+        "A home team cannot win with no goals scored. Can you please clarify what you meant?",
+        "Did you mean a clean sheet (away team scored 0)? I believe a home team cannot win without goals scored."
+      ],
+      "id": "win_logic",
+      "resolution": "The user meant that the away team scored fewer goals and at least 1 goal.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The business info states \"A standout match refers to games with exceptional circumstances\" but does not define what \"exceptional circumstances\" means.",
+      "example_questions": [
+        "What defines a standout match?",
+        "How do I identify a standout match?",
+        "What specific criteria determine if a match has exceptional circumstances?"
+      ],
+      "id": "standout_definition",
+      "resolution": "A standout match is the match where the home team was the strongest favorite, indicated by the lowest B365H odds value.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The database has many columns with scores. The Match table with home_team_goal_results_1/away_team_goal_results_1, 2, and 3 columns from an external provider, and the League_Results table with home_goals/away_goals columns, recorded by the league. Some matches show different scores between tables. It is unclear which table contains the verified final scores.",
+      "example_questions": [
+        "Which column has the official scores?",
+        "Should I use Match or League_Results for the final score? And which column?",
+        "The scores in Match and League_Results are different - which is correct? I also see many score columns."
+      ],
+      "id": "conflicting_scores_tables",
+      "resolution": "Use the columns home_team_goal_results_2 and away_team_goal_results_2 from the Match table for official match scores.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

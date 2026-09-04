@@ -1,0 +1,5 @@
+[
+  "test/units/utils/test_encrypt.py::test_encrypt_with_ident",
+  "test/units/plugins/lookup/test_password.py::TestBcryptIdentPersistenceResolution::test_persisted_line_format_writes_ident_after_salt",
+  "test/units/utils/test_encrypt.py::test_crypt_hash_bcrypt_ident_resolves_saltstring_prefix"
+]

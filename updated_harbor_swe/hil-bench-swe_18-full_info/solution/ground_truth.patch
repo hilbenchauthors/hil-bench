@@ -1,0 +1,106 @@
+diff --git a/cmd/flipt/bundle.go b/cmd/flipt/bundle.go
+index 594fbcfc..a38dbe8c 100644
+--- a/cmd/flipt/bundle.go
++++ b/cmd/flipt/bundle.go
+@@ -165,6 +165,10 @@ func (c *bundleCommand) getStore() (*oci.Store, error) {
+ 				cfg.Authentication.Password,
+ 			))
+ 		}
++
++		if cfg.ManifestVersion != "" {
++			opts = append(opts, oci.WithManifestVersion(cfg.ManifestVersion))
++		}
+ 
+ 		if cfg.BundlesDirectory != "" {
+ 			dir = cfg.BundlesDirectory
+diff --git a/config/flipt.schema.cue b/config/flipt.schema.cue
+index 9df007f4..e40683f1 100644
+--- a/config/flipt.schema.cue
++++ b/config/flipt.schema.cue
+@@ -205,5 +205,6 @@ import "strings"
+ 		oci?: {
+ 			repository:         string
++			manifest_version?:  string
+ 			bundles_directory?: string
+ 			authentication?: {
+ 				username: string
+diff --git a/config/flipt.schema.json b/config/flipt.schema.json
+index 3173388d..859130b5 100644
+--- a/config/flipt.schema.json
++++ b/config/flipt.schema.json
+@@ -746,5 +746,8 @@
+             "repository": {
+               "type": "string"
+             },
++            "manifest_version": {
++              "type": "string"
++            },
+             "bundles_directory": {
+               "type": "string"
+             },
+diff --git a/internal/config/storage.go b/internal/config/storage.go
+index e8dacc13..439fd35f 100644
+--- a/internal/config/storage.go
++++ b/internal/config/storage.go
+@@ -302,4 +302,5 @@ type OCI struct {
+ 	// Authentication configures authentication credentials for accessing the target registry
+ 	Authentication *OCIAuthentication `json:"-,omitempty" mapstructure:"authentication" yaml:"-,omitempty"`
+ 	PollInterval   time.Duration      `json:"pollInterval,omitempty" mapstructure:"poll_interval" yaml:"poll_interval,omitempty"`
++	ManifestVersion string            `json:"manifestVersion,omitempty" mapstructure:"manifest_version" yaml:"manifest_version,omitempty"`
+ }
+ 
+ // OCIAuthentication configures the credentials for authenticating against a target OCI regitstry
+diff --git a/internal/oci/file.go b/internal/oci/file.go
+index 4c368cd3..dd229864 100644
+--- a/internal/oci/file.go
++++ b/internal/oci/file.go
+@@ -48,8 +48,9 @@ type Store struct {
+ // This shouldn't be handled directory, instead use one of the function options
+ // e.g. WithBundleDir or WithCredentials
+ type StoreOptions struct {
+-	bundleDir string
+-	auth      *struct {
++	bundleDir       string
++	manifestVersion string
++	auth            *struct {
+ 		username string
+ 		password string
+ 	}
+@@ -69,6 +70,23 @@ func WithCredentials(user, pass string) containers.Option[StoreOptions] {
+ 	}
+ }
+ 
++func WithManifestVersion(version string) containers.Option[StoreOptions] {
++	return func(so *StoreOptions) {
++		so.manifestVersion = version
++	}
++}
++
++func parseManifestVersion(version string) (oras.PackManifestVersion, error) {
++	switch version {
++	case "", "oci-1.0":
++		return oras.PackManifestVersion1_0, nil
++	case "oci-1.1":
++		return oras.PackManifestVersion1_1_RC4, nil
++	default:
++		return 0, fmt.Errorf("invalid manifest version setting")
++	}
++}
++
+ // NewStore constructs and configures an instance of *Store for the provided config
+ func NewStore(logger *zap.Logger, dir string, opts ...containers.Option[StoreOptions]) (*Store, error) {
+ 	store := &Store{
+@@ -365,7 +379,12 @@ func (s *Store) Build(ctx context.Context, src fs.FS, ref Reference) (Bundle, er
+ 		return Bundle{}, err
+ 	}
+ 
+-	desc, err := oras.PackManifest(ctx, store, oras.PackManifestVersion1_1_RC4, MediaTypeFliptFeatures, oras.PackManifestOptions{
++	manifestVersion, err := parseManifestVersion(s.opts.manifestVersion)
++	if err != nil {
++		return Bundle{}, err
++	}
++
++	desc, err := oras.PackManifest(ctx, store, manifestVersion, MediaTypeFliptFeatures, oras.PackManifestOptions{
+ 		ManifestAnnotations: map[string]string{},
+ 		Layers:              layers,
+ 	})

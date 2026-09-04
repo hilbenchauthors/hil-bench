@@ -1,0 +1,4 @@
+[
+  "packages/components/containers/contacts/import/ContactImportModal.test.tsx | should succeed to import a simple CSV file",
+  "packages/components/containers/contacts/import/ContactImportModal.test.tsx | should return epoch for unparseable vCard date text"
+]

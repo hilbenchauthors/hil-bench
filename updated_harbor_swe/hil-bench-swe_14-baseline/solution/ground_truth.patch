@@ -1,0 +1,97 @@
+diff --git a/config/config.go b/config/config.go
+index 9813e196..94db23ff 100644
+--- a/config/config.go
++++ b/config/config.go
+@@ -6,6 +6,7 @@ import (
+ 	"fmt"
+ 	"net/http"
+ 	"os"
++	"path/filepath"
+ 	"strings"
+ 	"time"
+ 
+@@ -19,6 +20,7 @@ type Config struct {
+ 	Cache    cacheConfig    `json:"cache,omitempty"`
+ 	Server   serverConfig   `json:"server,omitempty"`
+ 	Database databaseConfig `json:"database,omitempty"`
++	Meta     metaConfig     `json:"meta,omitempty"`
+ }
+ 
+ type logConfig struct {
+@@ -83,6 +85,12 @@ type databaseConfig struct {
+ 	URL            string `json:"url,omitempty"`
+ }
+ 
++type metaConfig struct {
++	CheckForUpdates     bool          `json:"checkForUpdates"`
++	DataPath            string        `json:"dataPath"`
++	UpdateCheckInterval time.Duration `json:"updateCheckInterval"`
++}
++
+ func Default() *Config {
+ 	return &Config{
+ 		Log: logConfig{
+@@ -118,6 +126,11 @@ func Default() *Config {
+ 			URL:            "file:/var/opt/flipt/flipt.db",
+ 			MigrationsPath: "/etc/flipt/config/migrations",
+ 		},
++		Meta: metaConfig{
++			CheckForUpdates:     true,
++			DataPath:            "/var/opt/flipt/meta",
++			UpdateCheckInterval: 6 * time.Hour,
++		},
+ 	}
+ }
+ 
+@@ -150,6 +163,10 @@ const (
+ 	// DB
+ 	cfgDBURL            = "db.url"
+ 	cfgDBMigrationsPath = "db.migrations.path"
++
++	cfgMetaCheckForUpdates     = "meta.check_for_updates"
++	cfgMetaDataPath            = "meta.data_path"
++	cfgMetaUpdateCheckInterval = "meta.update_check_interval"
+ )
+ 
+ func Load(path string) (*Config, error) {
+@@ -238,6 +255,26 @@ func Load(path string) (*Config, error) {
+ 		cfg.Database.MigrationsPath = viper.GetString(cfgDBMigrationsPath)
+ 	}
+ 
++	if viper.IsSet(cfgMetaCheckForUpdates) {
++		cfg.Meta.CheckForUpdates = viper.GetBool(cfgMetaCheckForUpdates)
++	}
++	if viper.IsSet(cfgMetaDataPath) {
++		val := viper.GetString(cfgMetaDataPath)
++		if val == "" {
++			cfg.Meta.DataPath = "/var/opt/flipt/meta"
++		} else {
++			cfg.Meta.DataPath = val
++		}
++	}
++	if viper.IsSet(cfgMetaUpdateCheckInterval) {
++		val := viper.GetDuration(cfgMetaUpdateCheckInterval)
++		if val == 0 {
++			cfg.Meta.UpdateCheckInterval = 6 * time.Hour
++		} else {
++			cfg.Meta.UpdateCheckInterval = val
++		}
++	}
++
+ 	if err := cfg.validate(); err != nil {
+ 		return &Config{}, err
+ 	}
+@@ -290,6 +327,13 @@ func (c *Config) validate() error {
+ 		}
+ 	}
+ 
++	if c.Meta.DataPath != "" && !filepath.IsAbs(c.Meta.DataPath) {
++		return errors.New("meta.data_path must be an absolute path")
++	}
++	if c.Meta.CheckForUpdates && c.Meta.UpdateCheckInterval <= 0 {
++		return errors.New("meta.update_check_interval must be a positive duration when check_for_updates is enabled")
++	}
++
+ 	return nil
+ }
+ 

@@ -1,0 +1,43 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \"initial assessment period\" does not specify a concrete date range, and the registration dates in the molecule table span over a decade, making it unclear which portion of the timeline constitutes the initial assessment phase.\n\n",
+      "example_questions": [
+        "What date range does the initial assessment period correspond to in the registration_date field?",
+        "Which years of registration are considered part of the initial assessment period?",
+        "How many years from the start of the program does the initial assessment period cover?",
+        "What are the start and end dates that define the initial assessment period for molecule registration?"
+      ],
+      "id": "initial_assessment_period_dates",
+      "resolution": "The initial assessment period covers molecules registered between January 1, 2016, and December 31, 2018",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The term \"markers of environmental hazard potential\" does not specify which chemical elements qualify, and the atom table contains 18 different element types including halogens, heavy metals, metalloids, and alkali metals that could all plausibly be considered environmental hazard markers.\n\n",
+      "example_questions": [
+        "Which specific chemical elements in the database are considered markers of environmental hazard potential?",
+        "Does \"environmental hazard potential\" refer to halogens only, or does it also include heavy metals like lead and tin?",
+        "What element codes in the atom table should be used to identify markers of environmental hazard potential?",
+        "Are sulfur, phosphorus, or sodium-containing molecules included as environmental hazard markers, or only halogenated compounds?"
+      ],
+      "id": "environmental_hazard_elements",
+      "resolution": "Markers of environmental hazard potential refer to molecules containing atoms with element values cl (chlorine), br (bromine), or f (fluorine) in the atom table.\n\n",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "\"Priority compounds\" is not a standard scientific term with a universal definition, and the molecule table uses opaque classification codes (SC_071, SC_034, SC_019) that provide no indication of which identifies priority status.",
+      "example_questions": [
+        "Which label code in the molecule table identifies a molecule as a priority compound?",
+        "What does \"priority compound\" mean in terms of the classification codes stored in the label column?",
+        "Is there a specific SC code that corresponds to priority compound status?",
+        "How do the label codes SC_071, SC_034, and SC_019 map to compound priority classifications?"
+      ],
+      "id": "priority_compounds_definition",
+      "resolution": "Priority compounds are molecules assigned the label code SC_071 in the molecule table.",
+      "subtype": "missing_information",
+      "type": "business info"
+    }
+  ]
+}

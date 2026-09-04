@@ -306,9 +306,16 @@ Your response:"""
     def _evaluate_prompt(self, prompt: str) -> str:
         """Dispatch prompt evaluation to selected backend."""
         if self.provider == "litellm":
+            user = (os.getenv("LITELLM_USER") or "").strip()
+            if not user:
+                raise RuntimeError(
+                    "LITELLM_USER is required so every ask-human LiteLLM call "
+                    "is attributed"
+                )
             result = litellm.completion(
                 model=self.model,
                 messages=[{"role": "user", "content": prompt}],
+                user=user,
                 temperature=0.05,
                 timeout=self.EVAL_TIMEOUT_S,
                 num_retries=0,

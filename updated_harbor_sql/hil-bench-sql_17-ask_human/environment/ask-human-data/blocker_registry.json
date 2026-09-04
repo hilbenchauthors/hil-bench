@@ -1,0 +1,58 @@
+{
+  "blockers": [
+    {
+      "description": "The question requests \"premium clients\" who are \"minors for financial services,\" which creates a logical contradiction since premium services require legal age of majority.",
+      "example_questions": [
+        "How can clients be both premium and minors at the same time?",
+        "What age is considered a \"minor for financial services\"?",
+        "Do premium clients include minors, or are these mutually exclusive categories?",
+        "What is the age criterion for premium clients versus regular financial services?",
+        "Should I filter for clients who are premium OR minors instead of AND?"
+      ],
+      "id": "premium_minor_contradiction",
+      "resolution": "For this analysis, consider \"premium clients\" as those with card type 'gold', and \"minors for financial services\" as clients born after January 1, 1983.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The term \"superior operational activity\" can be interpreted in multiple ways: number of transactions, total balance, account frequency, or a combination of operational factors.",
+      "example_questions": [
+        "What metric defines \"superior operational activity\"?",
+        "Is superior operational activity measured by number of transactions or by amounts?",
+        "What is the threshold for considering operational activity as \"superior\"?",
+        "Does operational activity include all transaction types or only certain types?",
+        "Should I compare operational activity against an average or use an absolute value?"
+      ],
+      "id": "superior_operational_activity",
+      "resolution": "\"Superior operational activity\" is defined as accounts that have more than 50 transactions recorded in the trans table.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"stable contracts\" as those with \"good credit performance,\" but this definition is vague and does not specify which status values qualify as good performance.",
+      "example_questions": [
+        "What status codes represent \"good credit performance\"?",
+        "Are finished contracts (status A or B) considered stable contracts?",
+        "What is the specific definition of \"stable contracts\" in terms of the status column values?"
+      ],
+      "id": "stable_contracts_definition",
+      "resolution": "Stable contracts are accounts that have at least one loan with loan.status = 'C'.\u201d",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks for \"urban regions\" but the district table description states it tracks \"various district-level socio-economic and demographic metrics distributed across multiple coded attributes,\" making it unclear whether this table contains the appropriate urbanization classification needed or if the data structure supports identifying urban regions.",
+      "example_questions": [
+        "Does the district table contain information about urban versus rural regions?",
+        "Is the district table the correct table to identify urban regions, or should I look elsewhere?",
+        "How is urbanization data structured in the district table?",
+        "What does \"distributed across multiple coded attributes\" mean for identifying urban regions?",
+        "Are the demographic metrics in the district table suitable for classifying regions as urban?"
+      ],
+      "id": "urban_regions_table_scope",
+      "resolution": "The district table does contain urbanization data; use column A10 (ratio of urban inhabitants) with the threshold A10 >= 70 to identify urban regions (at least 70% urban inhabitants).",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

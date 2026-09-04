@@ -1,0 +1,12 @@
+[
+  "applications/mail/src/app/helpers/message/messageSignature.referral.test.ts | collapses consecutive line breaks in templateBuilder output to a single br",
+  "applications/mail/src/app/helpers/message/messageSignature.referral.test.ts | renders exactly one sanitized referral anchor without extra attributes for html signatures",
+  "applications/mail/src/app/helpers/message/messageSignature.referral.test.ts | renders plain-text signature format referral content as a raw sanitized url line",
+  "applications/mail/src/app/helpers/message/messageSignature.referral.test.ts | renders html signature format referral content as an anchor even when the signature body has no html tags",
+  "applications/mail/src/app/helpers/message/messageSignature.referral.test.ts | preserves user-authored referral content while replacing only the trailing pipeline fragment",
+  "applications/mail/src/app/helpers/message/messageSignature.referral.test.ts | removes only the trailing referral fragment from the current html signature when sender referral support turns off",
+  "applications/mail/src/app/helpers/message/messageSignature.referral.test.ts | removes only the trailing referral fragment from the current plain-text signature when sender referral support turns off",
+  "applications/mail/src/app/helpers/message/messageSignature.referral.test.ts | uses sender-specific referral gating in build paths so only the primary sender gets referral output",
+  "applications/mail/src/app/helpers/message/messageSignature.referral.test.ts | passes the exact safe empty fallback shape into shared signature helpers for intentionally disabled non-primary sender paths",
+  "applications/mail/src/app/helpers/message/messageSignature.referral.test.ts | passes the exact safe empty fallback shape into shared signature helpers when primary sender referral settings are unavailable"
+]

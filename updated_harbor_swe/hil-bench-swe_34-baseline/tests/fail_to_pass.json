@@ -1,0 +1,7 @@
+[
+  "test/units/parsing/yaml/test_dumper.py::TestAnsibleDumper::test_undefined",
+  "test/units/parsing/yaml/test_dumper.py::TestAnsibleDumper::test_to_yaml_default_emit_width_missing_parameter_resolution",
+  "test/units/parsing/yaml/test_dumper.py::TestAnsibleDumper::test_to_yaml_preserves_original_exception",
+  "test/units/parsing/yaml/test_dumper.py::TestAnsibleDumper::test_to_nice_yaml_default_width_prevents_line_wrapping",
+  "test/units/parsing/yaml/test_dumper.py::TestAnsibleDumper::test_to_yaml_filter_error_message_prefix"
+]

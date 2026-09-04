@@ -1,0 +1,50 @@
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-swe_5-ask_human"
+description = ""
+authors = []
+keywords = []
+[metadata]
+task_id = "ask_human"
+task_type = "swe"
+mode = "ask_human"
+repo_name = "ansible/ansible"
+task_attempt_id = "69b37d1c972ca8745b4e8f69__69bcc6360c872b9773cce01d"
+image_name = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:a6db4142509cc232506482626cb941166ed2e93e8fefe9950e53a099dae7b894"
+tags = [ "swe", "ask_human", "hil-bench",]
+[verifier]
+timeout_sec = 1800.0
+
+[verifier.env]
+[agent]
+timeout_sec = 7200.0
+[environment]
+build_timeout_sec = 1200.0
+docker_image = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:a6db4142509cc232506482626cb941166ed2e93e8fefe9950e53a099dae7b894"
+os = "linux"
+cpus = 4
+memory_mb = 8192
+storage_mb = 16384
+gpus = 0
+allow_internet = true
+[[environment.mcp_servers]]
+name = "ask-human"
+transport = "streamable-http"
+url = "http://ask-human:8000/mcp"
+args = []
+
+[environment.env]
+ASK_HUMAN_BACKEND = "${ASK_HUMAN_BACKEND:-litellm_proxy}"
+ASK_HUMAN_MODEL = "${ASK_HUMAN_MODEL:-openai/gpt-5.6}"
+LITELLM_API_KEY = "${LITELLM_API_KEY:-}"
+LITELLM_BASE_URL = "${LITELLM_BASE_URL:-}"
+LITELLM_USER = "${LITELLM_USER:-}"
+OPENAI_API_KEY = "${OPENAI_API_KEY:-}"
+OPENAI_BASE_URL = "${OPENAI_BASE_URL:-}"
+ANTHROPIC_API_KEY = "${ANTHROPIC_API_KEY:-}"
+GOOGLE_API_KEY = "${GOOGLE_API_KEY:-}"
+VLLM_BASE_URL = "${VLLM_BASE_URL:-}"
+VLLM_MODEL = "${VLLM_MODEL:-}"
+VLLM_API_KEY = "${VLLM_API_KEY:-}"
+[solution.env]

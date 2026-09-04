@@ -1,0 +1,9 @@
+[
+  "test/units/module_utils/facts/network/test_locally_reachable_ips_obstructed.py::TestLocallyReachableIpsLinux::test_missing_param_exact_argv_list_table_255_only",
+  "test/units/module_utils/facts/network/test_locally_reachable_ips_obstructed.py::TestLocallyReachableIpsLinux::test_populate_registers_only_snr_scope_host_addrs_key",
+  "test/units/module_utils/facts/network/test_locally_reachable_ips_obstructed.py::TestLocallyReachableIpsLinux::test_accepts_only_local_lines_and_src_field",
+  "test/units/module_utils/facts/network/test_locally_reachable_ips_obstructed.py::TestLocallyReachableIpsLinux::test_src_field_wins_when_destination_differs",
+  "test/units/module_utils/facts/network/test_locally_reachable_ips_obstructed.py::TestLocallyReachableIpsLinux::test_contradictory_canonicalizes_deduplicates_sorts_lexicographically",
+  "test/units/module_utils/facts/network/test_locally_reachable_ips_obstructed.py::TestLocallyReachableIpsLinux::test_sort_order_is_lexicographic_not_input_order",
+  "test/units/module_utils/facts/network/test_locally_reachable_ips_obstructed.py::TestLocallyReachableIpsLinux::test_host_address_not_forced_to_slash32"
+]

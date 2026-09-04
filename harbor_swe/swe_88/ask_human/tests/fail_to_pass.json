@@ -1,0 +1,5 @@
+[
+  "packages/components/containers/offers/operations/summer2023/test/eligibility.test.ts | should restrict eligibility to the single phased-launch target app",
+  "packages/components/containers/offers/operations/summer2023/test/eligibility.test.ts | should enforce the campaign-mandated cooling-off threshold",
+  "packages/components/containers/offers/operations/summer2023/test/eligibility.test.ts | should not deny eligibility when no prior subscription timestamp is recorded"
+]

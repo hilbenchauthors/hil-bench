@@ -1,0 +1,6 @@
+[
+  "TestPlaybackServerUsesInjectedDatastoreBeforeRun",
+  "TestGetScannerAppliesSingletonInitializationPolicy",
+  "TestSubsonicApiAllowsUnrelatedRoutesWithoutPlayback",
+  "TestJukeboxControlUsesInjectedPlaybackDependency"
+]

@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for posts with \"better acceptance,\" which is a vague term that can be interpreted as higher view count, higher score, more favorites, or having an accepted answer.",
+      "example_questions": [
+        "What is the definition of \"better acceptance\"?",
+        "How should \"better acceptance\" be measured?",
+        "Should \"better acceptance\" be interpreted as higher view count, higher score, more favorites, or having an accepted answer?"
+      ],
+      "id": "vague_concept",
+      "resolution": "The posts with \"better acceptance\" are the ones with a higher view count.",
+      "subtype": "underspecified_concepts",
+      "type": "question"
+    },
+    {
+      "description": "The question refers to \"the last few months\" without specifying which calendar period this corresponds to.",
+      "example_questions": [
+        "What specific date range does \"the last few months\" refer to?",
+        "What are the start and end dates for \u201cthe last few months\u201d?",
+        "Which exact start and end dates correspond to \u201cthe last few months\u201d?"
+      ],
+      "id": "imprecise_periodic_definition",
+      "resolution": "The last few months refer to the period between 2014-04-01 and 2014-08-31 (inclusive).",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The question asks to filter posts that are about \"clustering,\" but the keywords used to match that concept are undefined.",
+      "example_questions": [
+        "What exact keywords should be used to identify posts about \"clustering\"?",
+        "How should posts about \"clustering\" be identified?",
+        "Which specific term in a post's body indicates that the post discusses about \"clustering\"?"
+      ],
+      "id": "unclear_technical_phrasing",
+      "resolution": "Posts that discuss \"clustering\" are those containing the keyword \"clustering\", \"cluster analysis\", \"unsupervised learning\", or \"grouping\" in their body.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"eligible for success\" as posts with \"low correspondence,\" but the meaning of \"low correspondence\" remains unclear and could map to many different columns or conditions.",
+      "example_questions": [
+        "What is the definition of \"low correspondence\"?",
+        "What criteria determine whether a post has \"low correspondence\"?",
+        "How should \"low correspondence\" be interpreted?"
+      ],
+      "id": "confusing_eligibility_concept",
+      "resolution": "Low correspondence = 0 links in postLinks where the post appears as PostId or RelatedPostId (any LinkTypeId).",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question asks to filter only posts from the last few months, but it is unclear which column should be used to determine the date of each post. ",
+      "example_questions": [
+        "Which column should be used to filter posts by date?",
+        "Among the following columns\u2014CreaionDate, CreationDate, PostedDate, CreatedDate, and SubmitDate\u2014which is the most appropriate for filtering posts by date?",
+        "Could you clarify which column should be used to apply a date filter to posts?"
+      ],
+      "id": "post_date",
+      "resolution": "Use the \"CreatedDate\" column in the posts table to filter posts by date.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

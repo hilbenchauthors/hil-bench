@@ -1,0 +1,19 @@
+[
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns spam move text and appends not-authorized text when needed",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns spam to non-trash text and appends not-authorized text when needed",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns default folder move text and appends not-authorized text when needed",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns conversation spam move text",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns default move text when moving from spam to trash without not-spam language",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns blocked text for sent to inbox",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns blocked text for sent to spam",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns blocked text for drafts to inbox",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns blocked text for drafts to spam",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns default text for unsupported blocked move",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | disables undo and handles focus lifecycle when only scheduled messages are moved to trash",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | enables undo and skips modal when scheduled selection still permits undo",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | does not modify undo state when moving scheduled messages to non-trash destinations",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns saved spam action when mail settings already define it",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | prompts when spam action is unset and persists remembered choice asynchronously",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns undefined without prompting when no element can be unsubscribed",
+  "applications/mail/src/app/helpers/moveToFolder.test.ts | returns undefined without prompting for non-spam destinations"
+]

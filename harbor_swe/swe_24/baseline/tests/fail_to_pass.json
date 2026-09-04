@@ -1,0 +1,8 @@
+[
+  "test/units/modules/test_pip_blockers.py::TestPipModuleLauncher::test_pip_launcher_module_target",
+  "test/units/modules/test_pip_blockers.py::TestPipModuleLauncher::test_module_priority_over_path",
+  "test/units/modules/test_pip_blockers.py::TestPipDetection::test_detection_uses_find_spec",
+  "test/units/modules/test_pip_blockers.py::TestPipDetection::test_detection_no_fallback_after_primary_api_exception",
+  "test/units/modules/test_pip_blockers.py::TestPipDetection::test_detection_imp_fallback",
+  "test/units/modules/test_pip_blockers.py::TestGetPackagesReturn::test_packages_returns_string_command"
+]

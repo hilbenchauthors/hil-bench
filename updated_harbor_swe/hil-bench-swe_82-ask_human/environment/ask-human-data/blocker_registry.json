@@ -1,0 +1,37 @@
+{
+  "blockers": [
+    {
+      "id": "no_match_doc_return_value",
+      "type": "missing parameters",
+      "description": "The requirements omit a mandatory special return parameter for the no-match case: the exact value that `doc` must take when `entry_point` filtering yields zero entries. This is a missing-parameter gap in the method contract, because callers and tests require one precise sentinel value to represent \u201cno documentation produced.\u201d Without that explicit value, the contract is incomplete and cannot be implemented deterministically.",
+      "resolution": "Set `doc = None` when no entry points are included. Do not return an empty dict `{}` or a doc with empty entry_points.",
+      "example_questions": [
+        "-  What value should the doc element take when the documentation contains no entry points?",
+        "-  How should the method handle the case where the entry_points mapping has no entries?",
+        "-  What should the method return when the resulting entry_points dictionary is empty?"
+      ]
+    },
+    {
+      "id": "method_return_structure",
+      "type": "ambiguous requirements",
+      "description": "The requirements state that _build_doc's interface should be minimal and focused on documentation construction, while also stating that entry_point filtering should be part of the workflow. It is unclear whether _build_doc should accept entry_point as a parameter and filter internally, or whether the caller should pre-filter the argspec.",
+      "resolution": "The entry_point must be an explicit parameter of _build_doc. The full method signature is `_build_doc(self, role, path, collection, argspec, entry_point)` with entry_point as the last positional parameter.",
+      "example_questions": [
+        "-  Should _build_doc accept the entry_point filter as one of its parameters?",
+        "-  How many parameters should _build_doc accept besides self?",
+        "-  Should entry_point filtering be handled inside the extracted method?"
+      ]
+    },
+    {
+      "id": "entry_point_content_format_conflict",
+      "type": "contradictory requirements",
+      "description": "The problem statement says to fix a formatting inconsistency by using _build_summary's format, while one requirement says to preserve the full specification data from the argspec.",
+      "resolution": "Store the full argspec dict per entry point, `doc['entry_points'][ep] = entry_spec`. Do NOT use `entry_spec.get('short_description', '')` like _build_summary does.",
+      "example_questions": [
+        "-  What level of detail should each entry point contain in the documentation dictionary?",
+        "-  Which documentation pattern should _build_doc follow for representing entry points?",
+        "-  How should the entry point data be structured inside the doc dictionary?"
+      ]
+    }
+  ]
+}

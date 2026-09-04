@@ -7,6 +7,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _require_litellm_user(kwargs):
+    if "user" not in kwargs:
+        user = os.getenv("LITELLM_USER", "").strip()
+        if not user:
+            raise RuntimeError(
+                "LITELLM_USER is required so every LiteLLM call is attributed"
+            )
+        kwargs["user"] = user
+
+
 @wraps(litellm.acompletion)
 async def litellm_acompletion(*args, **kwargs):
     """
@@ -21,6 +31,7 @@ async def litellm_acompletion(*args, **kwargs):
         kwargs["api_key"] = os.environ["LITELLM_API_KEY"]
     if "base_url" not in kwargs:
         kwargs["base_url"] = os.environ["LITELLM_BASE_URL"]
+    _require_litellm_user(kwargs)
 
     return await litellm.acompletion(*args, **kwargs)
 
@@ -38,5 +49,6 @@ def litellm_completion(*args, **kwargs):
         kwargs["api_key"] = os.environ["LITELLM_API_KEY"]
     if "base_url" not in kwargs:
         kwargs["base_url"] = os.environ["LITELLM_BASE_URL"]
+    _require_litellm_user(kwargs)
 
     return litellm.completion(*args, **kwargs)

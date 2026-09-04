@@ -1,0 +1,6 @@
+[
+  "packages/components/containers/payments/subscription/SubscriptionModalProvider.test.tsx | should render warning surface for externally managed subscriptions",
+  "packages/components/containers/payments/subscription/InAppPurchaseModal.test.tsx | should render Android external warning content",
+  "packages/components/containers/payments/subscription/InAppPurchaseModal.test.tsx | should render iOS external warning content",
+  "packages/components/containers/payments/subscription/InAppPurchaseModal.test.tsx | should render delegated warning content when admin context is provided"
+]

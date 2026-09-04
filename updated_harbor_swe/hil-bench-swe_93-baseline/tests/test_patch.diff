@@ -1,0 +1,100 @@
+diff --git a/test/units/utils/test_vars.py b/test/units/utils/test_vars.py
+index 9be33de429..12fd60dad9 100644
+--- a/test/units/utils/test_vars.py
++++ b/test/units/utils/test_vars.py
+@@ -21,12 +21,32 @@ from __future__ import (absolute_import, division, print_function)
+ __metaclass__ = type
+ 
+ from collections import defaultdict
++import operator
+ 
+ from unittest import mock
+ 
+ from units.compat import unittest
++from units.mock.vars_helper import KeyedBag, build_source_layers
+ from ansible.errors import AnsibleError
+ from ansible.utils.vars import combine_vars, merge_hash
++from ansible.vars.manager import VarsWithSources
++
++
++class ReadOnlyBag(object):
++    def __init__(self, data):
++        self._data = dict(data)
++
++    def keys(self):
++        return self._data.keys()
++
++    def __getitem__(self, key):
++        return self._data[key]
++
++    def __iter__(self):
++        return iter(self._data)
++
++    def __len__(self):
++        return len(self._data)
+ 
+ 
+ class TestVariableUtils(unittest.TestCase):
+@@ -89,11 +109,62 @@ class TestVariableUtils(unittest.TestCase):
+             for test in self.combine_vars_replace_data:
+                 self.assertEqual(combine_vars(test['a'], test['b']), test['result'])
+ 
++    def test_combine_vars_replace_mixed_mapping_result_type(self):
++        with mock.patch('ansible.constants.DEFAULT_HASH_BEHAVIOUR', 'replace'):
++            result = combine_vars(
++                dict(a=1),
++                VarsWithSources.new_vars_with_sources(dict(b=2), dict(b='task vars')),
++            )
++
++        self.assertIs(type(result), dict)
++        self.assertEqual(result, dict(a=1, b=2))
++
+     def test_combine_vars_merge(self):
+         with mock.patch('ansible.constants.DEFAULT_HASH_BEHAVIOUR', 'merge'):
+             for test in self.combine_vars_merge_data:
+                 self.assertEqual(combine_vars(test['a'], test['b']), test['result'])
+ 
++    def test_varswithsources_union_with_supported_mapping_operands(self):
++        vars_with_sources = VarsWithSources.new_vars_with_sources(dict(a=1), dict(a='role vars'))
++        accepted = ReadOnlyBag(dict(b=2))
++
++        self.assertEqual(vars_with_sources | accepted, dict(a=1, b=2))
++        self.assertEqual(dict(z=0) | vars_with_sources, dict(z=0, a=1))
++
++        in_place = VarsWithSources.new_vars_with_sources(dict(a=1), dict(a='role vars'))
++        returned = operator.ior(in_place, accepted)
++        self.assertIs(returned, in_place)
++        self.assertEqual(in_place, dict(a=1, b=2))
++
++        with self.assertRaises(TypeError):
++            operator.or_(vars_with_sources, KeyedBag(dict(b=2)))
++        with self.assertRaises(TypeError):
++            operator.ior(VarsWithSources.new_vars_with_sources(dict(a=1), dict(a='role vars')), KeyedBag(dict(b=2)))
++
++    def test_varswithsources_inplace_union_source_metadata_behavior(self):
++        current, incoming, plain_update = build_source_layers()
++
++        operator.ior(current, incoming)
++        self.assertEqual(current, dict(a=1, b=2, c=3))
++        self.assertEqual(current.get_source('a'), 'role vars')
++        self.assertEqual(current.get_source('b'), 'task vars')
++        self.assertEqual(current.get_source('c'), 'task vars')
++
++        operator.ior(current, plain_update)
++        self.assertEqual(current, dict(a=1, b=4, c=3, d=5))
++        self.assertEqual(current.get_source('b'), 'task vars')
++        self.assertIsNone(current.get_source('d'))
++
++    def test_varswithsources_inplace_union_return_object_contract(self):
++        current = VarsWithSources.new_vars_with_sources(dict(a=1), dict(a='role vars'))
++        alias = current
++
++        returned = operator.ior(current, dict(b=2))
++
++        self.assertIs(returned, current)
++        self.assertIs(alias, current)
++        self.assertEqual(alias, dict(a=1, b=2))
++
+     merge_hash_data = {
+         "low_prio": {
+             "a": {

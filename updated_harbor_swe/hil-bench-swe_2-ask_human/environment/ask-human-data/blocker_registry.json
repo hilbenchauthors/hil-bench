@@ -1,0 +1,59 @@
+{
+  "blockers": [
+    {
+      "id": "missing_overflow_sentinel_int",
+      "type": "missing parameters",
+      "description": "The problem statement and requirements require mobile-aligned overflow handling when a source integer is outside signed 32-bit range, but neither names the concrete int32 value to emit. What exact int32 value should be used for overflowed fields?\n",
+      "resolution": "Use the exact sentinel `-2147482977` (minus sign included, base-10, no separators) for any overflowed signed-int field mapped into int32. When migration is active, compare the source value against `math.MaxInt32` and `math.MinInt32` (not ad-hoc literals) to detect overflow. Example: `3000000000` must serialize as `-2147482977`, not `2147483647`, `-2147483648`, or `0`. Go: `toResponseInt` returns `int`; do not wrap in `int32(...)` when assigning to `int`-typed response fields.\n",
+      "example_questions": [
+        "-  What exact sentinel value should I emit for source integers that overflow int32?",
+        "-  How should out-of-range integer fields be represented in the response payload?",
+        "-  Should I clamp overflowing values, or use a fixed overflow sentinel constant?"
+      ]
+    },
+    {
+      "id": "missing_player_id_base_offset",
+      "type": "missing parameters",
+      "description": "The problem statement and requirements describe a fixed base offset before the session index for synthetic `playerId`, but neither states the numeric offset. Which exact value should be added before session index mapping?\n",
+      "resolution": "Use a fixed base offset of `41000` with 0-based session indices: `nowPlayingPlayerID(i) := 41000 + i`, then `toResponseInt(r, int64(...))` into `NowPlayingEntry.PlayerId`, which is `int` in `responses` (not `int32`). Example: first session (`i=0`) emits `41000`, not `1`, `0`, or `10000`.",
+      "example_questions": [
+        "-  What numeric base offset should synthetic player IDs start from?",
+        "-  How do we compute `playerId` from session ordering in now-playing entries?",
+        "-  Should I use index+1, or apply a fixed offset before converting to int32?"
+      ]
+    },
+    {
+      "id": "ambiguous_minutes_ago_rounding_policy",
+      "type": "ambiguous requirements",
+      "description": "The task requires emitting `minutesAgo` as whole minutes using legacy behavior, but it does not define whether to floor, ceil, or round fractional minutes. Which rounding rule is the required interpretation for positive elapsed durations?\n",
+      "resolution": "Use ceiling for strictly positive elapsed time: after computing `elapsed := now.Sub(start)`, if `elapsed <= 0` then emit `0` minutes; otherwise `minutesAgo = int(math.Ceil(elapsed.Minutes()))`. Example: `61s` must emit `2`, not `1`; `1s` must emit `1`, not `0`; equal `start` and `now` must emit `0`. `NowPlayingEntry.MinutesAgo` is `int` in `responses`; assign via `toResponseInt` without spurious `int32` casts.\n",
+      "example_questions": [
+        "-  What rounding rule should be used when converting elapsed duration to `minutesAgo`?",
+        "-  Which interpretation of whole-minute legacy behavior is expected for fractional minutes?",
+        "-  Is it correct to truncate elapsed minutes, or should fractional values round upward?"
+      ]
+    },
+    {
+      "id": "conflicting_response_width_mode_activation",
+      "type": "contradictory requirements",
+      "description": "The problem statement and requirements refer to multiple `responseWidthMode` tokens in connection with rollout and 32-bit integer behavior, but they do not spell out one explicit, joint rule for which tokens must enable `toResponseInt` migration versus keeping legacy wide integer output. The public interfaces also state that `responseWidthMode` parsing does not, by itself, prescribe which tokens turn migration on (`isInt32MigrationEnabled` derives that from requirements). Taken together, more than one consistent activation policy is compatible with the text unless an extra convention is assumed.",
+      "resolution": "Requirements enumerate the `responseWidthMode` tokens (including `strict32`, `hybrid32`, and `compat32`) and give separate conditional bullets for some modes plus legacy-width language elsewhere, without stating one combined boolean condition for which tokens enable `toResponseInt` migration; multiple activation policies fit the text unless one is fixed. The approved reconciliation is uncommon: enable int32 migration only when `responseWidthMode` is exactly `strict32` or exactly `compat32`\u2014not `hybrid32` (exact spelling via `utils.ParamString(r, \\\"responseWidthMode\\\")`). Counterintuitive: `hybrid32` stays on the legacy int path even though it sounds transitional. Example: overflow uses the sentinel in `strict32` and `compat32`; `hybrid32`, `legacy_int`, and `audit_only` keep raw values without narrowing. Go implementation: `toResponseInt` returns `int`. Subsonic response structs use `int` for many counters (`Genre.SongCount`, `Genre.AlbumCount`, `User.MaxBitRate`, etc.). Assign `toResponseInt(...)` directly to those fields. Do **not** write `int32(toResponseInt(...))` for wide legacy values: e.g. `int32(3000000000)` truncates because `3000000000 > math.MaxInt32`; legacy modes must preserve `3000000000` in an `int` field. Cast to `int32` only where the struct field is actually `int32` and the value is in range.\n",
+      "example_questions": [
+        "-  Which `responseWidthMode` values should actually turn on int32 migration behavior?",
+        "-  How should I choose the correct mode for int32 migration?",
+        "-  Is `hybrid32` treated as a migrating mode here, or left on the legacy integer path?"
+      ]
+    },
+    {
+      "id": "conflicting_folder_emit_mode_list_rules",
+      "type": "contradictory requirements",
+      "description": "Requirements call for `User.folder` serialization to account for multi-value `folder` parameters and for `folderEmitMode`, while noting internal compatibility notes disagree on how those inputs combine; they do not pin one joint rule.",
+      "resolution": "Requirements enumerate `folderEmitMode` tokens (including `scalar`, `list`, and `auto`) and describe repeated `folder` parameters and `User` serialization across separate bullets; more than one joint list-emission policy fits the text until one is fixed. The approved reconciliation is uncommon: emit `folder` as a repeated list only when `folderEmitMode` is exactly `scalar` or exactly `list` (exact spelling via `utils.ParamString(r, \\\"folderEmitMode\\\")`). Use `utils.ParamInts(r, \\\"folder\\\")` when either applies. Counterintuitive: `auto` does not populate repeated folder ids even though it often implies adaptive expansion elsewhere. Example: `scalar` and `list` return repeated folder ids from the query; `auto`, `csv`, and `json_string` leave `folder` empty. `User.Folder` is `[]int`; map folder ids with `toResponseInt` per element without changing list shape.",
+      "example_questions": [
+        "-  What are the exact `folderEmitMode` values that should serialize `folder` as a repeated list?",
+        "-  How do I choose the correct mode for list emission?",
+        "-  Should `auto` mode emit repeated `folder` values from the query string?"
+      ]
+    }
+  ]
+}

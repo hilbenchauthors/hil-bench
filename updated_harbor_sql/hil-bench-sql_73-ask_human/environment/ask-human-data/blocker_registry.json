@@ -1,0 +1,65 @@
+{
+  "blockers": [
+    {
+      "description": "It's unclear which months \"spring\" refers to and whether \"2009\" means the 2008/2009 or 2009/2010 season. ",
+      "example_questions": [
+        "What months count as spring?",
+        "Does 2009 refer to the 2008/09 or 2009/10 season?",
+        "What is the date range for spring 2009?"
+      ],
+      "id": "spring_timeframe",
+      "resolution": "Spring refers to March, April, May. 2009 refers to the spring period within the 2008/09 season.",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "It's unclear which values in the defence Aggression column corresponds to \"aggressive\" defensive tactics - the column contains \"Press\", \"Double\", and \"Contain\", but it's not clear which represents aggressive play.",
+      "example_questions": [
+        "Which defence Aggression Class value means aggressive?",
+        "Does \"Press\", \"Double\", or \"Contain\" represent aggressive tactics?",
+        "What value should I filter for aggressive defense?"
+      ],
+      "id": "aggressive_defence_value",
+      "resolution": "Aggressive defensive tactics correspond to defenceAggressionClass = \"Double\"",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The query requires knowledge of which teams are currently in Belgium's top division for the 2025/26 season, which cannot be determined from the database.",
+      "example_questions": [
+        "Which teams are currently in Belgium's top division?",
+        "What teams are in the Belgian Pro League Today?",
+        "Can you tell me which teams are currently in the Belgian Pro League?"
+      ],
+      "id": "current_belgian_teams",
+      "resolution": "The teams from the dataset who are currently in the Belgian top division are: Club Brugge KV, RSC Anderlecht, KAA Gent, KRC Genk, Standard de Liege, Sporting Charleroi, KV Mechelen, SV Zulte-Waregem, KVC Westerlo, KSV Cercle Brugge, Oud-Heverlee Leuven, Sint-Truidense VV,  and FCV Dender EH.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The term \"Home dominance ratio\" is not defined in the business information.",
+      "example_questions": [
+        "What is home dominance ratio?",
+        "How is the home dominance ratio calculated?",
+        "What formula should I use for the home dominance ratio?",
+        "What determines the home dominance ratio?"
+      ],
+      "id": "home_dominance_ratio",
+      "resolution": "Home dominance ratio is the percentage of total goals scored by home teams, calculated as SUM(home_team_goal) * 100.0 / SUM(home_team_goal) + SUM(away_team_goal), rounded to one decimal place.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The columns B365H, B365D, B365A, and similar, have descriptions like \"Match Performance Indicator), that don't explain they are betting odds, or how to determine if a team was favored.",
+      "example_questions": [
+        "What do B365H, B365D, and B365A represent?",
+        "How do I determine if the home team was favored?",
+        "Which columns tell me about the betting favorites?"
+      ],
+      "id": "betting_odds",
+      "resolution": "B365H, B365D, and B365A are Bet365 betting odds for Home win, Draw, and Away win, respectively. Lower odds indicate a higher probability. A home team is favored when B365H < B365A (home odds are lower than away odds).",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[
+  "packages/components/containers/payments/paymentTokenHelper.test.ts | getDefaultVerifyPayment creates a manual-start modal and keeps redirect metadata internal",
+  "packages/components/containers/payments/paymentTokenHelper.test.ts | updates payment token consumers to use verification factories and leaves usePayPal unchanged",
+  "packages/components/containers/payments/paymentTokenHelper.test.ts | createPaymentToken calls verify with the pending token payload for wrapped card payments",
+  "packages/components/containers/payments/paymentTokenHelper.test.ts | createPaymentToken passes Payment as undefined for existing payment verification flows",
+  "packages/components/containers/payments/paymentTokenHelper.test.ts | getCreatePaymentToken pre-binds verify and preserves the public call shape",
+  "packages/components/containers/payments/paymentTokenHelper.test.ts | getCreatePaymentToken returns a chargeable token without invoking verify",
+  "packages/components/containers/payments/paymentTokenHelper.test.ts | getCreatePaymentToken rejects terminal failure statuses before verification"
+]

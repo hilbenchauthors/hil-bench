@@ -1,0 +1,65 @@
+{
+  "blockers": [
+    {
+      "description": "Which clubs are currently competing in the UEFA Champions League is real time information and can't be determined from the dataset. ",
+      "example_questions": [
+        "What teams are currently competing in the UEFA Champions League?",
+        "How do I determine which teams are competing in the current UEFA Champions League?",
+        "Can you tell me the names of the teams that are currently competing in the UEFA Champions League?"
+      ],
+      "id": "competing_in_champions_league",
+      "resolution": "The teams currently competing in the UEFA Champions League are Napoli, Inter, Atalanta, and Juventus.",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for data from the 128th Serie A season, but Serie A has only had approximately 124 seasons to date, so this season has not yet occurred in real life.",
+      "example_questions": [
+        "How do I identify the 128th Serie A season?",
+        "How many Serie A seasons have been played so far?",
+        "The 128th Serie A season hasn't occurred yet. Which season should I use instead?",
+        "How do I determine which Serie A season is the 128th?"
+      ],
+      "id": "one_hundred_twenty_eighth_serie_a_season",
+      "resolution": "Use the 2011/12 Serie A season. For attribute tables, filter for the exact season between '2011-08-01' AND pa.date <= '2012-06-01'",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "It's unclear what values determine if a player is \"clinical in front of goal\" and there is no business information to address this.",
+      "example_questions": [
+        "What value defines being clinical in front of goal?",
+        "How do I identify players that are clinical in front of goal?",
+        "Which attributes determine if a player is clinical in front of goal?"
+      ],
+      "id": "clinical_in_front_of_goal",
+      "resolution": "Players are clinical in front of goal if they have Finishing >= 83 AND Shot Power >= 80.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "It's unclear what is meant by a \"disciplined playstyle\" and there is no business information to address this.",
+      "example_questions": [
+        "What is a disciplined playstyle?",
+        "How is a disciplined playstyle defined in terms of team attributes?",
+        "What are the criteria for identifying teams with a disciplined playstyle?"
+      ],
+      "id": "disciplined_playstyle",
+      "resolution": "The term \"disciplined playstyle\" refers to teams with a controlled defensive structure. This is: Defence Pressure Class = 'Medium', Defence Defender Line Class = 'Cover', Build Up Play Speed Class = 'Balanced', defencePressure <=50 and buildUpPlayPassing >= 45.\n",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The venue_ops_tier column in the Match table contains single-letter coded values ('K', 'M', 'R', 'P') but the schema describes it only as 'A venue's category' without documenting what each code represents, making it impossible to determine which code corresponds to which venue classification.",
+      "example_questions": [
+        "What do the venue_ops_tier codes 'K', 'M', 'R', and 'P' represent?",
+        "How are the venue_ops_tier values defined in the Match table?",
+        "What does each venue_ops_tier code mean?"
+      ],
+      "id": "venue_ops_tier_codes",
+      "resolution": "In the venue_ops_tier column, 'K' represents the standard operational tier (eligible match venues), 'M' represents managed facilities, 'R' represents restricted venues, and 'P' represents provisional venues.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

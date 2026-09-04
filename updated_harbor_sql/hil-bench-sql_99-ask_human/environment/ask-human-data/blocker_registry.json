@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \"core enzymatic indicator\" is ambiguous because it could refer to a single enzyme's raw measurement, a composite score combining several enzyme values, or a clinically derived ratio between enzymes.",
+      "example_questions": [
+        "Does \"core enzymatic indicator\" refer to a single enzyme measurement or a composite score combining multiple enzyme values?",
+        "Should \"core enzymatic indicator\" be calculated as a ratio between enzymatic measurements, or as a standalone column value?",
+        "Is \"core enzymatic indicator\" a standard clinical metric, or does it correspond directly to one of the measured laboratory enzymes?"
+      ],
+      "id": "core_enzymatic_indicator_interpretation",
+      "resolution": "Interpret \"core enzymatic indicator\" as the alkaline phosphatase (ALP) measurement; compute AVG(ALP) across qualifying laboratory records, rounded to 4 decimal places.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The question requires laboratory entries where the patient shows both \"elevated protein markers\" and \"protein values within the standard reference range,\" which are mutually contradictory statements about protein levels.",
+      "example_questions": [
+        "What exact thresholds and columns define 'elevated protein markers' versus 'protein values within the standard reference range'?",
+        "Does 'elevated protein markers' and 'within the standard reference range' refer to the same or different protein measurements?",
+        "What numerical values constitute 'elevated' and 'standard reference range' for the relevant protein columns?"
+      ],
+      "id": "protein_elevation_vs_reference_range",
+      "resolution": "Interpret \"elevated protein markers\" as TP (total protein) > 8.5 and \"protein values within the standard reference range\" as ALB (albumin) between 3.5 and 5.5 inclusive.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"sustained engagement cohort\" using qualitative language (\"meaningful and continuous relationship,\" \"documented interaction history\") that cannot be directly translated into a precise SQL filter.",
+      "example_questions": [
+        "What is the precise quantitative definition of 'sustained engagement cohort' in terms of patient records?",
+        "What minimum number of laboratory records qualifies a patient for the 'sustained engagement cohort'?",
+        "What specific measurable criteria define 'meaningful and continuous relationship' with the facility?"
+      ],
+      "id": "sustained_engagement_cohort_definition",
+      "resolution": "Interpret \"sustained engagement cohort\" as patients who have at least 68 laboratory records in the database, i.e., COUNT of rows in the Laboratory table grouped by patient ID >= 68.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The Patient table contains four date columns: Description, First Date, Registration Date, and Referral Date,  and the question's reference to \"initial assessment record\" does not clarify which column should be used for the date range filter.",
+      "example_questions": [
+        "Which date column in the Patient table represents the 'initial assessment record'?",
+        "Does 'initial assessment record' refer to Description, First Date, Registration Date, or Referral Date?",
+        "What specific date column should be used to filter patients whose 'initial assessment record falls between 1991 and 1995'?"
+      ],
+      "id": "initial_assessment_record_column",
+      "resolution": "Interpret \"initial assessment record\" as the \"Referral Date\" column in the Patient table. Filter patients whose Referral Date falls between '1991-01-01' and '1995-12-31' inclusive.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for schools opened in \"the early 2000s\" but does not specify how many years constitute \"early.\" It is unclear whether this means 2000-2004, 2000-2007, 2000-2010, or another range within the decade.",
+      "example_questions": [
+        "What does \"the early 2000s\" mean in terms of years? Should I filter for schools opened between 2000-2004, 2000-2007, or 2000-2010?",
+        "How many years should be included when filtering for schools opened in \"the early 2000s\"? Does this mean the first 4 years, first 7 years, or the entire decade (2000-2010)?",
+        "The question references \"the early 2000s\" without specifying the exact date range. Should I use 2000-2005, 2000-2010, or another timeframe for the OpenDate filter?"
+      ],
+      "id": "early_twothousands_timeframe_unclear",
+      "resolution": "\"Early 2000s\" means 2000 through 2004 inclusive. Filter for schools where OpenDate is between '2000-01-01' and '2004-12-31'.",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The question asks for average scores in \"the most important subject for humanities degrees\" but the business information does not define which subject this refers to. It is unclear whether this means Reading, Writing, or another subject area.",
+      "example_questions": [
+        "The question references \"the most important subject for humanities degrees\" but this is not defined in the business information. Which subject does this refer to - Reading, Writing, or Math?",
+        "What is the most important subject for humanities degrees? Should I use AvgScrRead, AvgScrWrite, or AvgScrMath to identify the five schools with the lowest scores?",
+        "The business information doesn't specify which subject is most important for humanities degrees. Should I filter by Reading scores, Writing scores, or another subject?"
+      ],
+      "id": "most_important_humanities_subject_undefined",
+      "resolution": "The most important subject for humanities degrees is Reading. Filter for schools based on their AvgScrRead (average scores in Reading) from the satscores table.",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The StatusType column in the schools table contains numeric codes (1, 2, 3, 4) without clear explanations of what each code represents. It is unclear which numeric value corresponds to \"active district status\" when filtering schools.",
+      "example_questions": [
+        "The StatusType column in the schools table contains numeric codes (1, 2, 3, 4) but their meanings are not defined. Which code represents \"active\" district status?",
+        "What do the StatusType codes mean? Specifically, which numeric value (1, 2, 3, or 4) should I use to filter for schools with active district status?",
+        "The schools table has a StatusType column with coded values but no explanation. To filter for active district status, should I use StatusType = 1, StatusType = 2, or another value?"
+      ],
+      "id": "status_type_codes_unclear",
+      "resolution": "In the StatusType column, the value 1 represents Active status. Filter for schools where StatusType = 1 to identify schools with active district status.",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

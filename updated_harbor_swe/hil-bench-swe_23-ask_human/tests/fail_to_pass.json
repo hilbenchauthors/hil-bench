@@ -1,0 +1,8 @@
+[
+  "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider calls auth setters when resumedSession is truthy but keyPassword is empty",
+  "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider uses persistedSession.UID instead of resumedSession.UID for auth.setUID",
+  "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider uses persistedSession.localID when resuming session",
+  "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider returns null when all sessions are stale according to freshness policy",
+  "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider keeps sessions persisted at the exact freshness threshold",
+  "applications/drive/src/test/usePublicSession.test.tsx | usePublicSessionProvider returns null when multiple sessions are all stale"
+]

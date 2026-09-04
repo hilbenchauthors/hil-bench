@@ -1,0 +1,9 @@
+[
+  "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | mimeTypeFromFile returns File.type when present even if extension differs",
+  "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | mimeTypeFromFile returns File.type over extension for conflicting formats",
+  "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | mimeTypeFromFile uses extension lookup when File.type is empty",
+  "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | mimeTypeFromFile falls back to 'application/octet-stream' when no MIME source resolves",
+  "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | isSupportedImage HEIC/JXL runtime gate supports HEIC family and JXL on iOS Safari 17+",
+  "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | isSupportedImage HEIC/JXL runtime gate accepts strict numeric versions and rejects suffixed variants",
+  "applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts | isSupportedImage HEIC/JXL runtime gate does not normalize whitespace-padded versions"
+]

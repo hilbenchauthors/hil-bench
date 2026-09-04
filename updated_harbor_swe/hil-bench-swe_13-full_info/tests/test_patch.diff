@@ -1,0 +1,170 @@
+diff --git a/test/units/parsing/test_dataloader.py b/test/units/parsing/test_dataloader.py
+index 188d149e40..2cda421978 100644
+--- a/test/units/parsing/test_dataloader.py
++++ b/test/units/parsing/test_dataloader.py
+@@ -230,3 +230,41 @@ class TestDataLoaderWithVault(unittest.TestCase):
+         with patch('builtins.open', mock_open(read_data=vaulted_data.encode('utf-8'))):
+             output = self._loader.load_from_file('dummy_vault.txt')
+             self.assertEqual(output, dict(foo='bar'))
++
++    def test_cache_parameter_default(self):
++        """Validates the cache parameter default value, type annotation, and caching behavior."""
++        import inspect
++
++        sig = inspect.signature(self._loader.load_from_file)
++        param = sig.parameters['cache']
++        self.assertEqual(param.default, 'all',
++                         "load_from_file cache default must be 'all'")
++        self.assertIn(param.annotation, (str, 'str'),
++                      "load_from_file cache annotation must be str")
++
++        mock_data = (b'{"key": "value"}', True)
++        with patch.object(type(self._loader), '_get_file_contents', return_value=mock_data):
++            plain_path = '/tmp/test_default_plain.yml'
++            self._loader._FILE_CACHE.pop(plain_path, None)
++            self._loader.load_from_file(plain_path)
++            self.assertIn(plain_path, self._loader._FILE_CACHE,
++                          "Default cache value must cause file to be cached")
++
++    def test_selective_cache_criteria(self):
++        """Validates the caching criteria for cache='selective' mode."""
++        plain_path = '/tmp/test_selective_plain.yml'
++        self._loader._FILE_CACHE.pop(plain_path, None)
++        mock_data_plain = (b'{"plain_key": "plain_value"}', True)
++        with patch.object(type(self._loader), '_get_file_contents', return_value=mock_data_plain):
++            result = self._loader.load_from_file(plain_path, cache='selective')
++        self.assertEqual(result, {"plain_key": "plain_value"})
++        self.assertNotIn(plain_path, self._loader._FILE_CACHE,
++                         "cache='selective' must NOT cache files with show_content=True")
++
++        vault_path = '/tmp/test_selective_encrypted.yml'
++        self._loader._FILE_CACHE.pop(vault_path, None)
++        mock_data_vault = (b'{"secret_key": "secret_value"}', False)
++        with patch.object(type(self._loader), '_get_file_contents', return_value=mock_data_vault):
++            result = self._loader.load_from_file(vault_path, cache='selective')
++        self.assertIn(vault_path, self._loader._FILE_CACHE,
++                      "cache='selective' must cache files with show_content=False")
+diff --git a/test/units/plugins/vars/test_host_group_vars.py b/test/units/plugins/vars/test_host_group_vars.py
+new file mode 100644
+index 0000000000..ea8be73968
+--- /dev/null
++++ b/test/units/plugins/vars/test_host_group_vars.py
+@@ -0,0 +1,118 @@
++from __future__ import annotations
++
++import unittest
++from unittest.mock import MagicMock, patch
++
++
++class TestCallSiteCacheModes(unittest.TestCase):
++
++    def test_call_site_cache_modes(self):
++        """Validates that inventory, host_group_vars, and play vars_files each
++        pass the correct cache mode to load_from_file."""
++
++        # --- Inventory: yaml.py ---
++        from ansible.plugins.inventory.yaml import InventoryModule as YamlInventoryModule
++
++        loader = MagicMock()
++        loader.load_from_file.return_value = {'all': {'hosts': {'test1': None}}}
++        inventory = MagicMock()
++
++        yaml_plugin = YamlInventoryModule()
++        with patch.object(yaml_plugin, 'set_options'):
++            try:
++                yaml_plugin.parse(inventory, loader, '/tmp/test.yaml')
++            except Exception:
++                pass
++
++        loader.load_from_file.assert_called()
++        inv_call = loader.load_from_file.call_args
++        inv_cache = inv_call.kwargs.get(
++            'cache', inv_call.args[1] if len(inv_call.args) > 1 else None
++        )
++        self.assertEqual(inv_cache, 'none',
++                         "yaml.py InventoryModule must call load_from_file with cache='none'")
++
++        # --- Inventory: auto.py ---
++        from ansible.plugins.inventory.auto import InventoryModule as AutoInventoryModule
++
++        auto_loader = MagicMock()
++        auto_loader.load_from_file.return_value = {'plugin': 'test_plugin'}
++        auto_plugin = AutoInventoryModule()
++        try:
++            auto_plugin.parse(inventory, auto_loader, '/tmp/test.auto')
++        except Exception:
++            pass
++
++        auto_loader.load_from_file.assert_called()
++        auto_call = auto_loader.load_from_file.call_args
++        auto_cache = auto_call.kwargs.get(
++            'cache', auto_call.args[1] if len(auto_call.args) > 1 else None
++        )
++        self.assertEqual(auto_cache, 'none',
++                         "auto.py InventoryModule must call load_from_file with cache='none'")
++
++        # --- Inventory: __init__.py BaseInventoryPlugin._read_config_data ---
++        from ansible.plugins.inventory import BaseInventoryPlugin
++
++        base_loader = MagicMock()
++        base_loader.load_from_file.return_value = {'plugin': 'test'}
++        base_plugin = BaseInventoryPlugin()
++        base_plugin.loader = base_loader
++        base_plugin.NAME = 'test'
++        base_plugin._redirected_names = ['test']
++        try:
++            base_plugin._read_config_data('/tmp/test.config')
++        except Exception:
++            pass
++
++        base_loader.load_from_file.assert_called()
++        base_call = base_loader.load_from_file.call_args
++        base_cache = base_call.kwargs.get(
++            'cache', base_call.args[1] if len(base_call.args) > 1 else None
++        )
++        self.assertEqual(base_cache, 'none',
++                         "BaseInventoryPlugin._read_config_data must call load_from_file with cache='none'")
++
++        # --- host_group_vars ---
++        from ansible.plugins.vars.host_group_vars import VarsModule
++
++        vars_plugin = VarsModule()
++        mock_loader = MagicMock()
++        mock_loader.load_from_file.return_value = {"host_var": "value"}
++        vars_plugin.load_found_files(mock_loader, {}, ['/tmp/host_vars/host1.yml'])
++
++        hgv_call = mock_loader.load_from_file.call_args
++        hgv_cache = hgv_call.kwargs.get(
++            'cache', hgv_call.args[1] if len(hgv_call.args) > 1 else None
++        )
++        self.assertEqual(hgv_cache, 'all',
++                         "host_group_vars must call load_from_file with cache='all'")
++
++        # --- play vars_files in VariableManager ---
++        from ansible.vars.manager import VariableManager
++
++        vm_loader = MagicMock()
++        vm_loader.path_dwim_relative_stack.return_value = '/tmp/vars/main.yml'
++        vm_loader.load_from_file.return_value = [{"play_var": "val"}]
++
++        mock_inventory = MagicMock()
++        vm = VariableManager(loader=vm_loader, inventory=mock_inventory)
++
++        mock_play = MagicMock()
++        mock_play.get_search_path.return_value = ['/tmp']
++        mock_play.get_vars.return_value = {}
++        mock_play.get_roles.return_value = []
++        mock_play.get_vars_files.return_value = [['vars/main.yml']]
++
++        try:
++            vm.get_vars(play=mock_play)
++        except Exception:
++            pass
++
++        vm_loader.load_from_file.assert_called()
++        vm_call = vm_loader.load_from_file.call_args
++        vm_cache = vm_call.kwargs.get(
++            'cache', vm_call.args[1] if len(vm_call.args) > 1 else None
++        )
++        self.assertEqual(vm_cache, 'selective',
++                         "play vars_files must call load_from_file with cache='selective'")

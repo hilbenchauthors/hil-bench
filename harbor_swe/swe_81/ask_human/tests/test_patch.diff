@@ -1,0 +1,100 @@
+diff --git a/server/subsonic/middlewares_test.go b/server/subsonic/middlewares_test.go
+index ea5f7518..00000000 100644
+--- a/server/subsonic/middlewares_test.go
++++ b/server/subsonic/middlewares_test.go
+@@ -2,8 +2,11 @@ package subsonic
+ 
+ import (
+ 	"context"
++	"crypto/md5"
+ 	"errors"
++	"fmt"
+ 	"net/http"
++	"testing"
+ 	"net/http/httptest"
+ 	"strings"
+ 	"time"
+@@ -334,6 +337,83 @@ var _ = Describe("Middlewares", func() {
+ })
+ 
++func seedAuthenticatePatchUser(t *testing.T, ds model.DataStore) {
++	t.Helper()
++
++	if err := ds.User(context.TODO()).Put(&model.User{
++		UserName:    "admin",
++		NewPassword: "wordpass",
++	}); err != nil {
++		t.Fatalf("seed user: %v", err)
++	}
++}
++
++func TestAuthenticatePasswordSuccessRefreshesActivityState(t *testing.T) {
++	ds := &tests.MockDataStore{}
++	seedAuthenticatePatchUser(t, ds)
++
++	next := &mockHandler{}
++	w := httptest.NewRecorder()
++	r := newGetRequest("u=admin", "p=wordpass")
++	authenticate(ds)(next).ServeHTTP(w, r)
++	if !next.called {
++		t.Fatal("expected authenticated request to reach the next handler")
++	}
++
++	foundUser, err := ds.User(context.TODO()).FindByUsername("admin")
++	if err != nil {
++		t.Fatal("expected successful authentication to persist user activity state")
++	}
++	if foundUser.LastLoginAt == nil && foundUser.LastAccessAt == nil {
++		t.Fatal("expected successful authentication to refresh an existing activity state")
++	}
++}
++
++func TestAuthenticateTokenSaltMinimumIsSix(t *testing.T) {
++	ds := &tests.MockDataStore{}
++	seedAuthenticatePatchUser(t, ds)
++
++	shortSalt := "12345"
++	shortToken := fmt.Sprintf("%x", md5.Sum([]byte("wordpass"+shortSalt)))
++	next := &mockHandler{}
++	w := httptest.NewRecorder()
++	r := newGetRequest("u=admin", "t="+shortToken, "s="+shortSalt)
++	authenticate(ds)(next).ServeHTTP(w, r)
++	if next.called || !strings.Contains(w.Body.String(), `code="40"`) {
++		t.Fatal("expected short-salt token authentication to be rejected")
++	}
++
++	validSalt := "123456"
++	validToken := fmt.Sprintf("%x", md5.Sum([]byte("wordpass"+validSalt)))
++	next = &mockHandler{}
++	w = httptest.NewRecorder()
++	r = newGetRequest("u=admin", "t="+validToken, "s="+validSalt)
++	authenticate(ds)(next).ServeHTTP(w, r)
++	if !next.called {
++		t.Fatal("expected token authentication with a six-character salt to succeed")
++	}
++}
++
++func TestAuthenticateLookupFailureRejectsPlaceholderState(t *testing.T) {
++	ds := &tests.MockDataStore{}
++	seedAuthenticatePatchUser(t, ds)
++
++	mockRepo := ds.User(context.TODO()).(*tests.MockedUserRepo)
++	mockRepo.Data["ghost"] = &model.User{
++		ID:       "",
++		UserName: "ghost",
++		Password: "ghostpass",
++	}
++
++	next := &mockHandler{}
++	w := httptest.NewRecorder()
++	r := newGetRequest("u=ghost", "p=ghostpass")
++	authenticate(ds)(next).ServeHTTP(w, r)
++	if next.called || !strings.Contains(w.Body.String(), `code="40"`) {
++		t.Fatal("expected placeholder-user authentication to be rejected")
++	}
++}
++
+ type mockHandler struct {
+ 	req    *http.Request
+ 	called bool
+ }

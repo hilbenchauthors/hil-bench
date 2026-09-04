@@ -1,9 +1,8 @@
-tests/
-test_*.py
 __pycache__/
 *.pyc
 .env
 .venv
+.git
 xet/
 results/
 logs/
@@ -14,3 +13,8 @@ datasets--*/
 stored_tokens
 token
 jobs/
+reformat_tools/
+private_harbor/
+scratch/
+run_harbor_attributed.py
+test_attributed_runner.py

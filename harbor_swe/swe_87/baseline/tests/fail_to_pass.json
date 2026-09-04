@@ -1,0 +1,7 @@
+[
+  "test/units/utils/test_display_proxy.py::test_display_from_worker_proxies_with_method_literal_and_raw_newline",
+  "test/units/utils/test_display_proxy.py::test_warning_from_worker_proxies_raw_message_without_worker_formatting",
+  "test/units/utils/test_display_proxy.py::test_final_queue_send_display_stores_method_timestamp_and_payload",
+  "test/units/utils/test_display_proxy.py::test_results_thread_main_prints_timestamp_and_dispatches_by_method",
+  "test/units/utils/test_display_proxy.py::test_results_thread_main_applies_warning_formatting_and_global_dedup"
+]

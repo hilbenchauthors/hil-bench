@@ -1,0 +1,94 @@
+diff --git a/packages/shared/lib/contacts/helpers/csvFormat.ts b/packages/shared/lib/contacts/helpers/csvFormat.ts
+index 2c021836a8..8aafbc0516 100644
+--- a/packages/shared/lib/contacts/helpers/csvFormat.ts
++++ b/packages/shared/lib/contacts/helpers/csvFormat.ts
+@@ -1,5 +1,3 @@
+-import { isValid, parseISO } from 'date-fns';
+-
+ import capitalize from '@proton/utils/capitalize';
+ import isTruthy from '@proton/utils/isTruthy';
+ 
+@@ -12,6 +10,7 @@ import {
+     PreVcardProperty,
+     PreVcardsProperty,
+ } from '../../interfaces/contacts/Import';
++import { guessDateFromText } from '../property';
+ import { getStringContactValue } from '../properties';
+ import { icalValueToInternalAddress } from '../vcard';
+ 
+@@ -591,8 +590,8 @@ const getFirstValue = (preVcards: PreVcardProperty[]): string =>
+ 
+ const getDateValue = (preVcards: PreVcardProperty[]) => {
+     const text = getFirstValue(preVcards);
+-    const date = parseISO(text);
+-    return isValid(date) ? { date } : { text };
++    const date = guessDateFromText(text);
++    return date ? { date } : { text };
+ };
+ 
+ /**
+diff --git a/packages/shared/lib/contacts/property.ts b/packages/shared/lib/contacts/property.ts
+index c4a1a45cd9..91fbad724f 100644
+--- a/packages/shared/lib/contacts/property.ts
++++ b/packages/shared/lib/contacts/property.ts
+@@ -1,4 +1,4 @@
+-import { isValid } from 'date-fns';
++import { isValid, parse, parseISO } from 'date-fns';
+ 
+ import { VCardDateOrText, VCardProperty } from '@proton/shared/lib/interfaces/contacts/VCard';
+ 
+@@ -128,10 +128,45 @@ export const getType = (types: string | string[] = []): string => {
+ };
+ 
+ /**
+- * Stub for task — implement date parsing from free-form text.
++ * Attempts to convert a text value into a valid Date.
+  */
+ export const guessDateFromText = (text: string): Date | undefined => {
+-    void text;
++    if (text == null || typeof text !== 'string') {
++        return undefined;
++    }
++
++    const t = text.replace(/^[\uFEFF\u200B]+|[\uFEFF\u200B]+$/g, '').trim();
++    if (!t) {
++        return undefined;
++    }
++
++    const isoDate = parseISO(t);
++    if (isValid(isoDate)) {
++        return isoDate;
++    }
++
++    const slashMatch = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(t);
++    if (slashMatch) {
++        const first = Number(slashMatch[1]);
++        const second = Number(slashMatch[2]);
++        let parsed: Date;
++        if (first > 12) {
++            parsed = parse(t, 'd/M/yyyy', new Date(0));
++        } else if (second > 12) {
++            parsed = parse(t, 'M/d/yyyy', new Date(0));
++        } else {
++            parsed = parse(t, 'd/M/yyyy', new Date(0));
++        }
++        if (isValid(parsed)) {
++            return parsed;
++        }
++    }
++
++    const nativeDate = new Date(t);
++    if (isValid(nativeDate)) {
++        return nativeDate;
++    }
++
+     return undefined;
+ };
+ 
+@@ -149,5 +184,5 @@ export const getDateFromVCardProperty = ({ value: { date, text } }: VCardPropert
+         }
+     }
+ 
+-    return undefined;
++    return new Date(0);
+ };

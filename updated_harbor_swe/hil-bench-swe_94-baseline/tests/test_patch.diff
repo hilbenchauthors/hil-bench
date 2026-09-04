@@ -1,0 +1,329 @@
+diff --git a/internal/config/config_test.go b/internal/config/config_test.go
+index 753faa2f..5f41fdc7 100644
+--- a/internal/config/config_test.go
++++ b/internal/config/config_test.go
+@@ -24,6 +24,15 @@ func TestJSONSchema(t *testing.T) {
+ 	require.NoError(t, err)
+ }
+ 
++func TestBlocker5_RunDelimiterModeFieldName(t *testing.T) {
++	field, ok := reflect.TypeOf(LogFileSinkConfig{}).FieldByName("RunDelimiterMode")
++	require.True(t, ok)
++
++	assert.Equal(t, "run_delimiter_mode,omitempty", field.Tag.Get("json"))
++	assert.Equal(t, "run_delimiter_mode", field.Tag.Get("mapstructure"))
++	assert.Equal(t, "run_delimiter_mode,omitempty", field.Tag.Get("yaml"))
++}
++
+ func TestScheme(t *testing.T) {
+ 	tests := []struct {
+ 		name   string
+diff --git a/internal/server/audit/logfile/logfile_test.go b/internal/server/audit/logfile/logfile_test.go
+new file mode 100644
+index 00000000..9abdb29b
+--- /dev/null
++++ b/internal/server/audit/logfile/logfile_test.go
+@@ -0,0 +1,303 @@
++package logfile
++
++import (
++	"context"
++	"errors"
++	"os"
++	"testing"
++	"time"
++
++	"github.com/stretchr/testify/assert"
++	"github.com/stretchr/testify/mock"
++	"go.flipt.io/flipt/internal/config"
++	"go.flipt.io/flipt/internal/server/audit"
++	"go.uber.org/zap"
++)
++
++type mockFS struct {
++	mock.Mock
++}
++
++func (m *mockFS) OpenFile(name string, flag int, perm os.FileMode) (file, error) {
++	args := m.Called(name, flag, perm)
++	if args.Get(0) == nil {
++		return nil, args.Error(1)
++	}
++	return args.Get(0).(file), args.Error(1)
++}
++
++func (m *mockFS) Stat(name string) (os.FileInfo, error) {
++	args := m.Called(name)
++	if args.Get(0) == nil {
++		return nil, args.Error(1)
++	}
++	return args.Get(0).(os.FileInfo), args.Error(1)
++}
++
++func (m *mockFS) MkdirAll(path string, perm os.FileMode) error {
++	args := m.Called(path, perm)
++	return args.Error(0)
++}
++
++type mockFile struct {
++	mock.Mock
++}
++
++func (m *mockFile) Write(p []byte) (int, error) {
++	args := m.Called(p)
++	return args.Int(0), args.Error(1)
++}
++
++func (m *mockFile) Close() error {
++	args := m.Called()
++	return args.Error(0)
++}
++
++func (m *mockFile) Name() string {
++	args := m.Called()
++	return args.String(0)
++}
++
++func (m *mockFile) Sync() error {
++	args := m.Called()
++	return args.Error(0)
++}
++
++type mockDirInfo struct{}
++
++func (mockDirInfo) Name() string       { return "audit" }
++func (mockDirInfo) Size() int64        { return 0 }
++func (mockDirInfo) Mode() os.FileMode  { return os.ModeDir | 0751 }
++func (mockDirInfo) ModTime() time.Time { return time.Time{} }
++func (mockDirInfo) IsDir() bool        { return true }
++func (mockDirInfo) Sys() any           { return nil }
++
++func TestBlocker1_DirPermission(t *testing.T) {
++	fs := new(mockFS)
++	f := new(mockFile)
++
++	fs.On("Stat", "/tmp/audit").Return(nil, os.ErrNotExist)
++	fs.On("MkdirAll", "/tmp/audit", os.FileMode(0751)).Return(nil)
++	fs.On("OpenFile", "/tmp/audit/audit.log", mock.Anything, mock.Anything).Return(f, nil)
++	f.On("Write", mock.Anything).Return(0, nil)
++
++	cfg := config.LogFileSinkConfig{File: "/tmp/audit/audit.log", RunDelimiterMode: "always"}
++	_, err := newSink(zap.NewNop(), cfg, fs)
++	assert.NoError(t, err)
++	fs.AssertExpectations(t)
++}
++
++func TestBlocker2_FilePermission(t *testing.T) {
++	fs := new(mockFS)
++	f := new(mockFile)
++
++	fs.On("Stat", "/tmp/audit").Return(mockDirInfo{}, nil)
++	fs.On("OpenFile", "/tmp/audit/audit.log", os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(0641)).Return(f, nil)
++	f.On("Write", mock.Anything).Return(0, nil)
++
++	cfg := config.LogFileSinkConfig{File: "/tmp/audit/audit.log", RunDelimiterMode: "always"}
++	_, err := newSink(zap.NewNop(), cfg, fs)
++	assert.NoError(t, err)
++	fs.AssertExpectations(t)
++}
++
++func TestBlocker3(t *testing.T) {
++	fs := new(mockFS)
++	f := new(mockFile)
++
++	t.Run("accepts eight segments", func(t *testing.T) {
++		path := "/a/b/c/d/e/f/g/h/audit.log"
++		fs.On("Stat", "/a/b/c/d/e/f/g/h").Return(nil, os.ErrNotExist).Once()
++		fs.On("MkdirAll", "/a/b/c/d/e/f/g/h", mock.Anything).Return(nil).Once()
++		fs.On("OpenFile", path, mock.Anything, mock.Anything).Return(f, nil).Once()
++		f.On("Write", mock.Anything).Return(0, nil).Once()
++		_, err := newSink(zap.NewNop(), config.LogFileSinkConfig{File: path, RunDelimiterMode: "always"}, fs)
++		assert.NoError(t, err)
++	})
++
++	t.Run("rejects more than eight segments", func(t *testing.T) {
++		path := "/a/b/c/d/e/f/g/h/i/audit.log"
++		fs.On("Stat", "/a/b/c/d/e/f/g/h/i").Return(nil, os.ErrNotExist).Once()
++		_, err := newSink(zap.NewNop(), config.LogFileSinkConfig{File: path, RunDelimiterMode: "always"}, fs)
++		assert.Error(t, err)
++	})
++}
++
++func TestBlocker4(t *testing.T) {
++	fs := new(mockFS)
++	f := new(mockFile)
++
++	fs.On("Stat", "/tmp").Return(mockDirInfo{}, nil)
++	fs.On("OpenFile", "/tmp/audit.log", mock.Anything, mock.Anything).Return(f, nil)
++	f.On("Write", mock.Anything).Return(0, nil).Once()
++
++	cfg := config.LogFileSinkConfig{File: "/tmp/audit.log", RunDelimiterMode: "always"}
++	sink, err := newSink(zap.NewNop(), cfg, fs)
++	assert.NoError(t, err)
++
++	f.On("Write", mock.Anything).Return(0, nil).Twice()
++	f.On("Sync").Return(nil).Twice()
++
++	events := []audit.Event{{}, {}}
++	err = sink.SendAudits(context.Background(), events)
++	assert.NoError(t, err)
++	f.AssertExpectations(t)
++}
++
++func TestBlocker4_SyncError(t *testing.T) {
++	fs := new(mockFS)
++	f := new(mockFile)
++
++	fs.On("Stat", "/tmp").Return(mockDirInfo{}, nil)
++	fs.On("OpenFile", "/tmp/audit.log", mock.Anything, mock.Anything).Return(f, nil)
++	f.On("Write", mock.Anything).Return(0, nil).Once()
++
++	cfg := config.LogFileSinkConfig{File: "/tmp/audit.log", RunDelimiterMode: "always"}
++	sink, err := newSink(zap.NewNop(), cfg, fs)
++	assert.NoError(t, err)
++
++	f.On("Write", mock.Anything).Return(0, nil).Twice()
++	f.On("Sync").Return(errors.New("sync failed")).Twice()
++	f.On("Name").Return("audit.log")
++
++	events := []audit.Event{{}, {}}
++	err = sink.SendAudits(context.Background(), events)
++	assert.Error(t, err)
++	f.AssertExpectations(t)
++}
++
++func TestBlocker5(t *testing.T) {
++	tests := []struct {
++		mode        string
++		expectWrite bool
++		expectErr   bool
++	}{
++		{"always", true, false},
++		{"per_session", true, false},
++		{"on_restart", false, false},
++		{"never", false, false},
++		{"disabled", false, false},
++		{"", true, false},
++		{"invalid", false, true},
++	}
++
++	for _, tt := range tests {
++		t.Run(tt.mode, func(t *testing.T) {
++			fs := new(mockFS)
++			f := new(mockFile)
++			fs.On("Stat", "/tmp").Return(mockDirInfo{}, nil)
++			fs.On("OpenFile", "/tmp/audit.log", mock.Anything, mock.Anything).Return(f, nil)
++
++			cfg := config.LogFileSinkConfig{File: "/tmp/audit.log", RunDelimiterMode: tt.mode}
++
++			if tt.expectErr {
++				f.On("Close").Return(nil).Maybe()
++			}
++
++			if tt.expectWrite {
++				f.On("Write", mock.MatchedBy(func(p []byte) bool {
++					return string(p) == "{\"type\":\"run_start\"}\n"
++				})).Return(0, nil).Once()
++			}
++
++			_, err := newSink(zap.NewNop(), cfg, fs)
++			if tt.expectErr {
++				assert.Error(t, err)
++			} else {
++				assert.NoError(t, err)
++			}
++			f.AssertExpectations(t)
++		})
++	}
++}
++
++func TestBlocker5_WriteFailure(t *testing.T) {
++	fs := new(mockFS)
++	f := new(mockFile)
++
++	fs.On("Stat", "/tmp").Return(mockDirInfo{}, nil)
++	fs.On("OpenFile", "/tmp/audit.log", mock.Anything, mock.Anything).Return(f, nil)
++	f.On("Write", mock.Anything).Return(0, errors.New("write failed")).Once()
++	f.On("Close").Return(nil).Maybe()
++	f.On("Name").Return("audit.log").Maybe()
++
++	cfg := config.LogFileSinkConfig{File: "/tmp/audit.log", RunDelimiterMode: "always"}
++	_, err := newSink(zap.NewNop(), cfg, fs)
++	assert.Error(t, err)
++	assert.Contains(t, err.Error(), "write failed")
++	f.AssertExpectations(t)
++}
++
++func TestNewSink_NewFile(t *testing.T) {
++	fs := new(mockFS)
++	f := new(mockFile)
++
++	fs.On("Stat", "/tmp").Return(mockDirInfo{}, nil)
++	fs.On("OpenFile", "/tmp/audit.log", mock.Anything, mock.Anything).Return(f, nil)
++	f.On("Write", mock.Anything).Return(0, nil)
++
++	cfg := config.LogFileSinkConfig{File: "/tmp/audit.log", RunDelimiterMode: "always"}
++	_, err := newSink(zap.NewNop(), cfg, fs)
++	assert.NoError(t, err)
++}
++
++func TestNewSink_ExistingFile(t *testing.T) {
++	fs := new(mockFS)
++	f := new(mockFile)
++
++	fs.On("Stat", "/tmp").Return(mockDirInfo{}, nil)
++	fs.On("OpenFile", "/tmp/audit.log", mock.Anything, mock.Anything).Return(f, nil)
++	f.On("Write", mock.Anything).Return(0, nil)
++
++	cfg := config.LogFileSinkConfig{File: "/tmp/audit.log", RunDelimiterMode: "always"}
++	_, err := newSink(zap.NewNop(), cfg, fs)
++	assert.NoError(t, err)
++}
++
++func TestNewSink_DirNotExists(t *testing.T) {
++	fs := new(mockFS)
++	f := new(mockFile)
++
++	fs.On("Stat", "/tmp").Return(nil, os.ErrNotExist)
++	fs.On("MkdirAll", "/tmp", mock.Anything).Return(nil)
++	fs.On("OpenFile", "/tmp/audit.log", mock.Anything, mock.Anything).Return(f, nil)
++	f.On("Write", mock.Anything).Return(0, nil)
++
++	cfg := config.LogFileSinkConfig{File: "/tmp/audit.log", RunDelimiterMode: "always"}
++	_, err := newSink(zap.NewNop(), cfg, fs)
++	assert.NoError(t, err)
++}
++
++func TestNewSink_Error(t *testing.T) {
++	fs := new(mockFS)
++
++	fs.On("Stat", "/tmp").Return(nil, os.ErrNotExist)
++	fs.On("MkdirAll", "/tmp", mock.Anything).Return(errors.New("mkdir failed"))
++
++	cfg := config.LogFileSinkConfig{File: "/tmp/audit.log"}
++	_, err := newSink(zap.NewNop(), cfg, fs)
++	assert.Error(t, err)
++}
++
++func TestSink_SendAudits(t *testing.T) {
++	fs := new(mockFS)
++	f := new(mockFile)
++
++	fs.On("Stat", "/tmp").Return(mockDirInfo{}, nil)
++	fs.On("OpenFile", "/tmp/audit.log", mock.Anything, mock.Anything).Return(f, nil)
++	f.On("Write", mock.Anything).Return(0, nil)
++
++	cfg := config.LogFileSinkConfig{File: "/tmp/audit.log", RunDelimiterMode: "always"}
++	sink, err := newSink(zap.NewNop(), cfg, fs)
++	assert.NoError(t, err)
++
++	f.On("Write", mock.MatchedBy(func(p []byte) bool {
++		return string(p) == "{\"version\":\"0.1\",\"type\":\"flag\",\"action\":\"created\",\"metadata\":{},\"payload\":null,\"timestamp\":\"\"}\n"
++	})).Return(0, nil)
++	f.On("Sync").Return(nil)
++
++	events := []audit.Event{{Version: "0.1", Type: "flag", Action: "created"}}
++	err = sink.SendAudits(context.Background(), events)
++	assert.NoError(t, err)
++	f.AssertExpectations(t)
++}

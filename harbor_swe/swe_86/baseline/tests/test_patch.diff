@@ -1,0 +1,330 @@
+diff --git a/applications/drive/src/app/store/_shares/useDefaultShare.test.tsx b/applications/drive/src/app/store/_shares/useDefaultShare.test.tsx
+old mode 100644
+new mode 100755
+index b54b7266d0..4f31a8b856
+--- a/applications/drive/src/app/store/_shares/useDefaultShare.test.tsx
++++ b/applications/drive/src/app/store/_shares/useDefaultShare.test.tsx
+@@ -5,7 +5,9 @@ import useDefaultShare from './useDefaultShare';
+ const mockRequest = jest.fn();
+ const mockCreateVolume = jest.fn();
+ const mockGetDefaultShareId = jest.fn();
++const mockGetShare = jest.fn();
+ const mockGetShareWithKey = jest.fn();
++const mockDebouncedFunction = jest.fn((wrapper: any, args: any, signal?: AbortSignal) => wrapper());
+ 
+ jest.mock('../_api/useDebouncedRequest', () => {
+     const useDebouncedRequest = () => {
+@@ -16,7 +18,7 @@ jest.mock('../_api/useDebouncedRequest', () => {
+ 
+ jest.mock('../_utils/useDebouncedFunction', () => {
+     const useDebouncedFunction = () => {
+-        return (wrapper: any) => wrapper();
++        return (wrapper: any, args: any, signal?: AbortSignal) => mockDebouncedFunction(wrapper, args, signal);
+     };
+     return useDebouncedFunction;
+ });
+@@ -35,6 +37,7 @@ jest.mock('./useSharesState', () => {
+ jest.mock('../_shares/useShare', () => {
+     const useLink = () => {
+         return {
++            getShare: mockGetShare,
+             getShareWithKey: mockGetShareWithKey,
+         };
+     };
+@@ -57,8 +60,11 @@ describe('useDefaultShare', () => {
+ 
+     const defaultShareId = Symbol('shareId');
+ 
++    const ac = new AbortController();
++
+     beforeEach(() => {
+         jest.resetAllMocks();
++        mockDebouncedFunction.mockImplementation((wrapper: any, args: any, signal?: AbortSignal) => wrapper(signal));
+ 
+         mockCreateVolume.mockImplementation(async () => {
+             return { shareId: defaultShareId };
+@@ -117,4 +123,90 @@ describe('useDefaultShare', () => {
+         expect(mockCreateVolume.mock.calls.length).toBe(1);
+         expect(mockGetShareWithKey).toHaveBeenCalledWith(expect.anything(), defaultShareId);
+     });
++
++    it('says share is available by default', async () => {
++        mockGetShare.mockImplementation(async () => ({}));
++
++        await act(async () => {
++            const isAvailable = await hook.current.isShareAvailable(ac.signal, 'shareId');
++            expect(isAvailable).toBeTruthy();
++        });
++    });
++
++    it('says share is not available if locked', async () => {
++        mockGetShare.mockImplementation(async () => {
++            return {
++                isLocked: true,
++            };
++        });
++
++        await act(async () => {
++            const isAvailable = await hook.current.isShareAvailable(ac.signal, 'shareId');
++            expect(isAvailable).toBeFalsy();
++        });
++    });
++
++    it('says share is not available if soft deleted', async () => {
++        mockGetShare.mockImplementation(async () => {
++            return {
++                isVolumeSoftDeleted: true,
++            };
++        });
++
++        await act(async () => {
++            const isAvailable = await hook.current.isShareAvailable(ac.signal, 'shareId');
++            expect(isAvailable).toBeFalsy();
++        });
++    });
++
++    it('uses isShareAvailable dedup key with shareId', async () => {
++        mockGetShare.mockImplementation(async () => ({}));
++
++        await act(async () => {
++            await hook.current.isShareAvailable(ac.signal, 'share-123');
++        });
++
++        expect(mockDebouncedFunction).toHaveBeenCalledWith(
++            expect.any(Function),
++            ['driveShareAvailability', 'byShareId', 'share-123'],
++            ac.signal
++        );
++    });
++
++    it('caches availability result for exactly 17 seconds', async () => {
++        let now = 1000;
++        const nowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
++
++        let isFirstGetShare = true;
++        mockGetShare.mockImplementation(async () => {
++            if (isFirstGetShare) {
++                // Simulate request latency so TTL starts at successful response time.
++                now = 1500;
++                isFirstGetShare = false;
++            }
++            return {};
++        });
++
++        await act(async () => {
++            await hook.current.isShareAvailable(ac.signal, 'share-ttl');
++        });
++        expect(mockGetShare).toHaveBeenCalledTimes(1);
++
++        const fetchedAt = now;
++
++        now = fetchedAt + 16999;
++        await act(async () => {
++            await hook.current.isShareAvailable(ac.signal, 'share-ttl');
++        });
++        expect(mockGetShare).toHaveBeenCalledTimes(1);
++
++        now = fetchedAt + 17000;
++        await act(async () => {
++            await hook.current.isShareAvailable(ac.signal, 'share-ttl');
++        });
++
++        expect(mockGetShare).toHaveBeenCalledTimes(2);
++
++        nowSpy.mockRestore();
++    });
+ });
+diff --git a/applications/drive/src/app/store/_shares/useSharesState.fallback.test.tsx b/applications/drive/src/app/store/_shares/useSharesState.fallback.test.tsx
+new file mode 100755
+index 0000000000..71fae81c3b
+--- /dev/null
++++ b/applications/drive/src/app/store/_shares/useSharesState.fallback.test.tsx
+@@ -0,0 +1,188 @@
++import React from 'react';
++import { renderHook, act } from '@testing-library/react-hooks';
++
++import useSharesState, { SharesStateProvider } from './useSharesState';
++import { ShareType } from './interface';
++
++const wrapper: React.FC = ({ children }) => (
++    <SharesStateProvider>{children}</SharesStateProvider>
++);
++
++describe('useSharesState fallback selection', () => {
++    it('prefers most recent personal share over shared', () => {
++        const { result } = renderHook(() => useSharesState(), { wrapper });
++
++        act(() => {
++            result.current.setShares([
++                {
++                    shareId: 'personal-old',
++                    rootLinkId: 'r1',
++                    volumeId: 'v1',
++                    creator: 'u1',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    possibleKeyPackets: [],
++                    type: ShareType.default,
++                    lastAccessedAt: 1000,
++                } as any,
++                {
++                    shareId: 'shared-new',
++                    rootLinkId: 'r2',
++                    volumeId: 'v2',
++                    creator: 'u2',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    possibleKeyPackets: [],
++                    type: ShareType.standart,
++                    lastAccessedAt: 3000,
++                } as any,
++                {
++                    shareId: 'personal-new',
++                    rootLinkId: 'r3',
++                    volumeId: 'v3',
++                    creator: 'u3',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    possibleKeyPackets: [],
++                    type: ShareType.default,
++                    lastAccessedAt: 2000,
++                } as any,
++            ]);
++        });
++
++        const id = result.current.getDefaultShareId();
++        expect(id).toBe('personal-new');
++    });
++
++    it('treats ShareType.default as the only personal space', () => {
++        const { result } = renderHook(() => useSharesState(), { wrapper });
++
++        act(() => {
++            result.current.setShares([
++                {
++                    shareId: 'device-new',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    type: ShareType.device,
++                    lastAccessedAt: 5000,
++                } as any,
++                {
++                    shareId: 'personal-old',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    type: ShareType.default,
++                    lastAccessedAt: 1000,
++                } as any,
++            ]);
++        });
++
++        const id = result.current.getDefaultShareId();
++        expect(id).toBe('personal-old');
++    });
++
++    it('breaks ties by shareId ascending within personal spaces', () => {
++        const { result } = renderHook(() => useSharesState(), { wrapper });
++
++        act(() => {
++            result.current.setShares([
++                {
++                    shareId: 'personal-b',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    type: ShareType.default,
++                    lastAccessedAt: 2000,
++                } as any,
++                {
++                    shareId: 'personal-a',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    type: ShareType.default,
++                    lastAccessedAt: 2000,
++                } as any,
++            ]);
++        });
++
++        const id = result.current.getDefaultShareId();
++        expect(id).toBe('personal-a');
++    });
++
++    it('treats missing lastAccessedAt as 0 for sorting', () => {
++        const { result } = renderHook(() => useSharesState(), { wrapper });
++
++        act(() => {
++            result.current.setShares([
++                {
++                    shareId: 'personal-negative',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    type: ShareType.default,
++                    lastAccessedAt: -5,
++                } as any,
++                {
++                    shareId: 'personal-missing',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    type: ShareType.default,
++                } as any,
++            ]);
++        });
++
++        const id = result.current.getDefaultShareId();
++        expect(id).toBe('personal-missing');
++    });
++
++    it('when no personal spaces exist, picks most recent non-personal with shareId tie-break', () => {
++        const { result } = renderHook(() => useSharesState(), { wrapper });
++
++        act(() => {
++            result.current.setShares([
++                {
++                    shareId: 'shared-locked',
++                    isLocked: true,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    type: ShareType.standart,
++                    lastAccessedAt: 9999,
++                } as any,
++                {
++                    shareId: 'shared-soft-deleted',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: true,
++                    type: ShareType.standart,
++                    lastAccessedAt: 8888,
++                } as any,
++                {
++                    shareId: 'shared-b',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    type: ShareType.standart,
++                    lastAccessedAt: 1000,
++                } as any,
++                {
++                    shareId: 'shared-a',
++                    isLocked: false,
++                    isDefault: false,
++                    isVolumeSoftDeleted: false,
++                    type: ShareType.standart,
++                    lastAccessedAt: 1000,
++                } as any,
++            ]);
++        });
++
++        const id = result.current.getDefaultShareId();
++        expect(id).toBe('shared-a');
++    });
++});
++
++

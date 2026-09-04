@@ -1,0 +1,41 @@
+{
+  "blockers": [
+    {
+      "description": "The term \"modern era\" is temporally ambiguous and lacks a specific date range. Without defined start and end dates, the timeframe cannot be accurately determined.",
+      "example_questions": [
+        "What timeframe does \"modern era\" refer to?",
+        "Which years are considered the modern era?",
+        "What is the date range for modern era cards?"
+      ],
+      "id": "modern_era_cards",
+      "resolution": "Modern era cards are defined as cards from sets with releaseDate between '2019-01-01' and '2020-12-31' inclusive.",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The business info defines vintage edition printing but does not specify which attribute or value in the database corresponds to this classification.",
+      "example_questions": [
+        "What qualifies as vintage edition printing?",
+        "How do I identify vintage edition cards?",
+        "Does vintage edition refer to old sets or a specific printing style?",
+        "What attribute determines vintage edition printing?"
+      ],
+      "id": "vintage_edition_printing",
+      "resolution": "Vintage edition printing refers to cards with borderColor = \"black\" in the cards table.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "It's unclear which column(s) contains the information about tournament certified status. The database contains multiple sources that could indicate competitive eligibility classification.",
+      "example_questions": [
+        "What criteria define tournament certified status?",
+        "What columns determine tournament certified status?",
+        "How do I identify tournament certified cards?"
+      ],
+      "id": "tournament_certified_status",
+      "resolution": "Tournament certified status requires multiple conditions in the tournament_registry table: cert_level = \"sanctioned\" AND play_tier = 2 AND competition_rank = 4 AND tournament_grade = 3. ",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

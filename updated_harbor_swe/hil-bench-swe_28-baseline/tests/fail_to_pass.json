@@ -1,0 +1,7 @@
+[
+  "test/units/modules/test_async_wrapper.py::TestAsyncWrapper::test_inline_diagnostic_cap_is_tail_preserving",
+  "test/units/modules/test_async_wrapper.py::TestAsyncWrapper::test_jwrite_keeps_latest_record_and_appends_history",
+  "test/units/modules/test_async_wrapper.py::TestAsyncWrapper::test_end_emits_single_json_and_exits",
+  "test/units/modules/test_async_wrapper.py::TestAsyncWrapper::test_jwrite_derives_timeout_event",
+  "test/units/modules/test_async_wrapper.py::TestAsyncWrapper::test_jwrite_derives_finished_event"
+]

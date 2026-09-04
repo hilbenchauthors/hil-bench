@@ -1,0 +1,7 @@
+[
+  "applications/drive/src/app/store/_uploads/worker/encryption.test.ts | should generate all file blocks",
+  "applications/drive/src/app/store/_uploads/worker/encryption.test.ts | should generate thumbnail as first block",
+  "applications/drive/src/app/store/_uploads/worker/encryption.test.ts | should throw and log if there is a consistent encryption error",
+  "applications/drive/src/app/store/_uploads/worker/encryption.test.ts | should retry and log if there is an encryption error once",
+  "applications/drive/src/app/store/_uploads/worker/encryption.test.ts | should call the hasher correctly"
+]

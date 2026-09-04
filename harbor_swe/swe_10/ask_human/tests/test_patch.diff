@@ -1,0 +1,221 @@
+diff --git a/test/units/module_utils/facts/network/test_locally_reachable_ips_obstructed.py b/test/units/module_utils/facts/network/test_locally_reachable_ips_obstructed.py
+new file mode 100644
+index 0000000000..8340732905
+--- /dev/null
++++ b/test/units/module_utils/facts/network/test_locally_reachable_ips_obstructed.py
+@@ -0,0 +1,215 @@
++# -*- coding: utf-8 -*-
++#
++# Ansible is free software: you can redistribute it and/or modify
++# it under the terms of the GNU General Public License as published by
++# the Free Software Foundation, either version 3 of the License, or
++# (at your option) any later version.
++#
++
++from __future__ import (absolute_import, division, print_function)
++__metaclass__ = type
++
++from ansible.module_utils.facts.network import linux
++from units.compat import unittest
++from units.compat.mock import Mock
++
++try:
++    from unittest.mock import patch
++except ImportError:
++    from mock import patch
++
++
++# Blocker: missing_ip_route_list_verb_and_table_id_for_locally_reachable_collection
++IP_V4_LOCAL_TABLE = ['fake/ip', '-4', 'route', 'list', 'table', '255']
++IP_V6_LOCAL_TABLE = ['fake/ip', '-6', 'route', 'list', 'table', '255']
++
++# Stubs use ``run_command(command, **kwargs)`` so implementations may pass the same keyword
++# arguments as production Ansible modules (e.g. ``errors=``) without breaking these tests.
++
++
++class TestLocallyReachableIpsLinux(unittest.TestCase):
++    gather_subset = ['all']
++
++    def _mock_module(self):
++        module = Mock()
++        module.params = {
++            'gather_subset': self.gather_subset,
++            'gather_timeout': 5,
++            'filter': '*',
++        }
++        module.get_bin_path = Mock(return_value='fake/ip')
++        module.warn = Mock()
++        return module
++
++    def test_missing_param_exact_argv_list_table_255_only(self):
++        """Blocker 1: no show/ls/local name; exact list + 255 for both families."""
++        module = self._mock_module()
++        invocations = []
++
++        def run_command(command, **kwargs):
++            invocations.append(list(command))
++            if command == IP_V4_LOCAL_TABLE:
++                return 0, '', ''
++            if command == IP_V6_LOCAL_TABLE:
++                return 0, '', ''
++            return 99, '', 'unexpected argv'
++
++        module.run_command.side_effect = run_command
++        net = linux.LinuxNetwork(module)
++        net.get_locally_reachable_ips('fake/ip')
++
++        self.assertEqual(len(invocations), 2)
++        self.assertIn(IP_V4_LOCAL_TABLE, invocations)
++        self.assertIn(IP_V6_LOCAL_TABLE, invocations)
++        for cmd in invocations:
++            self.assertEqual(cmd[3], 'list', 'must use route list, not show/ls')
++            self.assertEqual(cmd[5], '255', 'must use numeric table id string')
++            self.assertNotEqual(cmd[5], 'local')
++
++    def test_accepts_only_local_lines_and_src_field(self):
++        """Blocker 3: first token must be exactly ``local`` (lowercase); ``src`` field value.
++
++        Ignores broadcast/unicast/multicast. ``Local …`` lines carry valid ``src`` values so
++        case-folded acceptance (e.g. ``.lower()``) would add spurious entries and fail below.
++        A ``local`` line without a ``src`` field is skipped entirely.
++        """
++        module = self._mock_module()
++
++        def run_command(command, **kwargs):
++            if command == IP_V4_LOCAL_TABLE:
++                return 0, (
++                    "broadcast 127.0.0.0 dev lo proto kernel scope link src 127.0.0.1\n"
++                    "Local 10.99.99.99 dev lo scope host src 10.99.99.99\n"
++                    "local 192.168.1.1 dev eth1 scope host\n"
++                    "local 127.0.0.1 dev lo proto kernel scope host src 127.0.0.1\n"
++                    "unicast 10.1.0.0/16 dev eth0 scope host src 10.1.0.1\n"
++                ), ''
++            if command == IP_V6_LOCAL_TABLE:
++                return 0, (
++                    "Local FE80::9 dev lo scope host src FE80::9\n"
++                    "local FE80::2EEA:7FFF:FECA:FE68 dev eth0 proto kernel metric 0 src FE80::2EEA:7FFF:FECA:FE68 pref medium\n"
++                    "multicast ff00::/8 dev eth0 proto kernel metric 256 pref medium\n"
++                ), ''
++            return 1, '', ''
++
++        module.run_command.side_effect = run_command
++
++        net = linux.LinuxNetwork(module)
++        res = net.get_locally_reachable_ips('fake/ip')
++
++        self.assertEqual(res['ipv4'], ['127.0.0.1'])
++        self.assertEqual(res['ipv6'], ['fe80::2eea:7fff:feca:fe68'])
++
++    def test_src_field_wins_when_destination_differs(self):
++        """Blocker 3: use labeled src field, not positional destination token."""
++        module = self._mock_module()
++
++        def run_command(command, **kwargs):
++            if command == IP_V4_LOCAL_TABLE:
++                return 0, (
++                    "local 10.0.0.5 dev eth0 proto kernel scope host src 203.0.113.99\n"
++                ), ''
++            if command == IP_V6_LOCAL_TABLE:
++                return 0, '', ''
++            return 1, '', ''
++
++        module.run_command.side_effect = run_command
++        net = linux.LinuxNetwork(module)
++        res = net.get_locally_reachable_ips('fake/ip')
++
++        self.assertEqual(res['ipv4'], ['203.0.113.99'])
++        self.assertEqual(res['ipv6'], [])
++
++    def test_contradictory_canonicalizes_deduplicates_sorts_lexicographically(self):
++        """Blocker 4: ip_address canonical form, dedupe on canonical, sort lists."""
++        module = self._mock_module()
++
++        def run_command(command, **kwargs):
++            if command == IP_V4_LOCAL_TABLE:
++                return 0, (
++                    "local 10.0.0.44 dev lo scope host src 10.0.0.44\n"
++                    "local 10.0.0.44 dev eth0 scope host src 10.0.0.44\n"
++                    "local 10.0.0.1 dev lo scope host src 10.0.0.1\n"
++                ), ''
++            if command == IP_V6_LOCAL_TABLE:
++                return 0, (
++                    "local 2A02:123:15::1 dev lo metric 1024 src 2A02:0123:0015::1 pref medium\n"
++                    "local 2a02:123:15::1 dev lo metric 1024 src 2a02:123:15::1 pref medium\n"
++                ), ''
++            return 1, '', ''
++
++        module.run_command.side_effect = run_command
++
++        net = linux.LinuxNetwork(module)
++        res = net.get_locally_reachable_ips('fake/ip')
++
++        self.assertEqual(res['ipv4'], ['10.0.0.1', '10.0.0.44'])
++        self.assertEqual(res['ipv6'], ['2a02:123:15::1'])
++
++    def test_sort_order_is_lexicographic_not_input_order(self):
++        """Blocker 4: final lists sorted; order must differ from naive append order here."""
++        module = self._mock_module()
++
++        def run_command(command, **kwargs):
++            if command == IP_V4_LOCAL_TABLE:
++                # Encounter order: 10.0.0.2 then 10.0.0.10 — lexicographic sort reverses relative order
++                return 0, (
++                    "local 10.0.0.2 dev lo scope host src 10.0.0.2\n"
++                    "local 10.0.0.10 dev lo scope host src 10.0.0.10\n"
++                ), ''
++            if command == IP_V6_LOCAL_TABLE:
++                return 0, '', ''
++            return 1, '', ''
++
++        module.run_command.side_effect = run_command
++        net = linux.LinuxNetwork(module)
++        res = net.get_locally_reachable_ips('fake/ip')
++
++        self.assertEqual(res['ipv4'], ['10.0.0.10', '10.0.0.2'])
++
++    def test_host_address_not_forced_to_slash32(self):
++        """Blocker 4: standalone hosts stay single-address strings (not /32 CIDR)."""
++        module = self._mock_module()
++
++        def run_command(command, **kwargs):
++            if command == IP_V4_LOCAL_TABLE:
++                return 0, "local 192.0.2.77 dev lo scope host src 192.0.2.77\n", ''
++            if command == IP_V6_LOCAL_TABLE:
++                return 0, '', ''
++            return 1, '', ''
++
++        module.run_command.side_effect = run_command
++        net = linux.LinuxNetwork(module)
++        res = net.get_locally_reachable_ips('fake/ip')
++
++        self.assertEqual(res['ipv4'], ['192.0.2.77'])
++        self.assertNotIn('/', res['ipv4'][0])
++
++    def test_populate_registers_only_snr_scope_host_addrs_key(self):
++        """Blocker 2: exact fact entry key; no legacy guessed names."""
++        module = self._mock_module()
++
++        def run_command(command, **kwargs):
++            if command == IP_V4_LOCAL_TABLE:
++                return 0, "local 10.11.12.13 dev lo scope host src 10.11.12.13\n", ''
++            if command == IP_V6_LOCAL_TABLE:
++                return 0, '', ''
++            return 1, '', ''
++
++        module.run_command.side_effect = run_command
++
++        with patch.object(linux.LinuxNetwork, 'get_default_interfaces', return_value=({}, {})):
++            with patch.object(
++                linux.LinuxNetwork,
++                'get_interfaces_info',
++                return_value=({}, {'all_ipv4_addresses': [], 'all_ipv6_addresses': []}),
++            ):
++                net = linux.LinuxNetwork(module)
++                facts = net.populate()
++
++        self.assertIn('snr_scope_host_addrs', facts)
++        self.assertNotIn('locally_reachable_ips', facts)
++        self.assertNotIn('local_ips', facts)
++        self.assertNotIn('reachable_ips', facts)
++        self.assertEqual(facts['snr_scope_host_addrs']['ipv4'], ['10.11.12.13'])
++        self.assertEqual(facts['snr_scope_host_addrs']['ipv6'], [])

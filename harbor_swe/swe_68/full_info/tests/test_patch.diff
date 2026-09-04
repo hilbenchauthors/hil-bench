@@ -1,0 +1,132 @@
+diff --git a/test/units/module_utils/facts/system/test_pkg_mgr.py b/test/units/module_utils/facts/system/test_pkg_mgr.py
+new file mode 100644
+index 0000000000..7a615f1bba
+--- /dev/null
++++ b/test/units/module_utils/facts/system/test_pkg_mgr.py
+@@ -0,0 +1,126 @@
++# unit tests for ansible system pkg_mgr fact collector
++# -*- coding: utf-8 -*-
++
++from __future__ import (absolute_import, division, print_function)
++__metaclass__ = type
++
++from units.compat.mock import Mock, patch
++
++from ansible.module_utils.facts.system.pkg_mgr import PkgMgrFactCollector
++
++
++def _make_exists(*existing_paths):
++    def _exists(path):
++        return path in existing_paths
++    return _exists
++
++
++def _make_realpath(mapping):
++    def _realpath(path):
++        return mapping.get(path, path)
++    return _realpath
++
++
++def _collect(collected_facts, exists_fn, realpath_fn):
++    with patch('ansible.module_utils.facts.system.pkg_mgr.os.path.exists', side_effect=exists_fn):
++        with patch('ansible.module_utils.facts.system.pkg_mgr.os.path.realpath', side_effect=realpath_fn):
++            return PkgMgrFactCollector().collect(module=Mock(), collected_facts=collected_facts)
++
++
++def test_dnf_variant_detection_via_realpath_to_dnf5():
++    facts = _collect(
++        {'ansible_distribution': 'Fedora', 'ansible_distribution_major_version': '38', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/dnf'),
++        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),
++    )
++    assert facts['pkg_mgr'] == 'dnf5'
++
++
++def test_dnf_variant_detection_via_realpath_to_non_dnf5():
++    facts = _collect(
++        {'ansible_distribution': 'Fedora', 'ansible_distribution_major_version': '39', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/dnf', '/usr/bin/dnf5'),
++        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf-3', '/usr/bin/dnf5': '/usr/bin/dnf-3'}),
++    )
++    assert facts['pkg_mgr'] == 'dnf'
++
++
++def test_amazon_dnf_variant_detection_via_realpath_to_dnf5():
++    facts = _collect(
++        {'ansible_distribution': 'Amazon', 'ansible_distribution_major_version': '2023', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/dnf'),
++        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),
++    )
++    assert facts['pkg_mgr'] == 'dnf5'
++
++
++def test_microdnf_fallback_returns_dnf_when_dnf_missing():
++    facts = _collect(
++        {'ansible_distribution': 'Fedora', 'ansible_distribution_major_version': '38', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/microdnf'),
++        _make_realpath({'/usr/bin/microdnf': '/usr/bin/dnf5'}),
++    )
++    assert facts['pkg_mgr'] == 'dnf'
++
++
++def test_returns_unknown_when_only_secondary_binaries_exist():
++    facts = _collect(
++        {'ansible_distribution': 'Rocky', 'ansible_distribution_major_version': '8', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/dnf-3', '/usr/bin/dnf5'),
++        _make_realpath({}),
++    )
++    assert facts['pkg_mgr'] == 'unknown'
++
++
++def test_amazon_microdnf_fallback_returns_dnf_when_dnf_missing():
++    facts = _collect(
++        {'ansible_distribution': 'Amazon', 'ansible_distribution_major_version': '2023', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/microdnf'),
++        _make_realpath({'/usr/bin/microdnf': '/usr/bin/dnf5'}),
++    )
++    assert facts['pkg_mgr'] == 'dnf'
++
++
++def test_non_integer_major_version_detects_via_binary():
++    facts = _collect(
++        {'ansible_distribution': 'Fedora', 'ansible_distribution_major_version': 'rawhide', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/dnf'),
++        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),
++    )
++    assert facts['pkg_mgr'] == 'dnf5'
++
++
++def test_other_redhat_v8_without_dnf_returns_unknown():
++    facts = _collect(
++        {'ansible_distribution': 'Rocky', 'ansible_distribution_major_version': '8', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/yum', '/usr/bin/dnf5'),
++        _make_realpath({}),
++    )
++    assert facts['pkg_mgr'] == 'unknown'
++
++
++def test_other_redhat_v8_detects_dnf5_via_realpath():
++    facts = _collect(
++        {'ansible_distribution': 'Rocky', 'ansible_distribution_major_version': '8', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/dnf'),
++        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),
++    )
++    assert facts['pkg_mgr'] == 'dnf5'
++
++
++def test_fedora_lt23_yum_absent_detects_via_dnf_binary():
++    facts = _collect(
++        {'ansible_distribution': 'Fedora', 'ansible_distribution_major_version': '22', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/dnf'),
++        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),
++    )
++    assert facts['pkg_mgr'] == 'dnf5'
++
++
++def test_amazon_lt2022_yum_absent_detects_via_dnf_binary():
++    facts = _collect(
++        {'ansible_distribution': 'Amazon', 'ansible_distribution_major_version': '2021', 'ansible_os_family': 'RedHat'},
++        _make_exists('/usr/bin/dnf'),
++        _make_realpath({'/usr/bin/dnf': '/usr/bin/dnf5'}),
++    )
++    assert facts['pkg_mgr'] == 'dnf5'

@@ -1,0 +1,43 @@
+schema_version = "1.1"
+artifacts = []
+[task]
+name = "scale-ai/hil-bench-sql_8-full_info"
+description = ""
+authors = []
+keywords = []
+[metadata]
+task_id = "full_info"
+task_type = "sql"
+mode = "full_info"
+database_name = "codebase_community"
+task_attempt_id = "6977cf5464c4667b98edc500_699cb57e0c4be152e4fd2ad0"
+tags = [ "sql", "full_info", "hil-bench",]
+[verifier]
+timeout_sec = 300.0
+
+[verifier.env]
+[agent]
+timeout_sec = 1800.0
+[environment]
+docker_image = "public.ecr.aws/b2z8n5q1/hil-bench@sha256:548be0c5f66710c42e4a3c51cbc8a77292afe7e1894d645daf7486efca7a428d"
+build_timeout_sec = 600.0
+os = "linux"
+cpus = 2
+memory_mb = 4096
+storage_mb = 12288
+gpus = 0
+allow_internet = true
+[[environment.mcp_servers]]
+name = "sql-tools"
+transport = "streamable-http"
+url = "http://sql-tools:8000/mcp"
+args = []
+
+[[environment.mcp_servers]]
+name = "business-info"
+transport = "streamable-http"
+url = "http://business-info:8000/mcp"
+args = []
+
+[environment.env]
+[solution.env]

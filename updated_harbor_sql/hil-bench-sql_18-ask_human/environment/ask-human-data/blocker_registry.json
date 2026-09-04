@@ -1,0 +1,40 @@
+{
+  "blockers": [
+    {
+      "description": "The term \"high-risk clients\" is not defined and could refer to clients with loan payment issues, clients in economically vulnerable regions, or clients with certain demographic characteristics.",
+      "example_questions": [
+        "Should \"high-risk clients\" be determined by their loan repayment status or district economic conditions?",
+        "How should I identify which clients are considered \"high-risk\"?",
+        "What criteria should be used to classify clients as \"high-risk\"?"
+      ],
+      "id": "high_risk_clients",
+      "resolution": "High-risk clients are those whose accounts are located in districts (use account.district_id) where the unemployment rate exceeds 6.0% in either 1995 (A12) or 1996 (A13).",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The business information defines \"urban districts\" as areas with \"high urbanization levels\" but does not specify what threshold constitutes \"high\".",
+      "example_questions": [
+        "What urbanization ratio threshold defines \"urban districts\"?",
+        "How should I determine which districts are considered \"urban\"?",
+        "What value of urbanization ratio qualifies a district as having \"high urbanization levels\"?"
+      ],
+      "id": "urban_districts_definition",
+      "resolution": "Urban districts are those with urbanization ratio (A10) > 65.",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The district table contains three separate economic metrics (economic_resilience, financial_health_score, and development_index) but it is unclear which metric or combination should be used to determine \"stable economic conditions\".",
+      "example_questions": [
+        "Which metric should I use to measure economic stability for districts?",
+        "How do I determine if a district has stable economic conditions?",
+        "Is there a specific formula to calculate economic stability from the available district metrics?"
+      ],
+      "id": "stable_economic_conditions",
+      "resolution": "Stable economic conditions are calculated as (economic_resilience * 2 + financial_health_score * 3 + development_index) / 6. Districts with a stability score above 50 are considered to have stable economic conditions.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

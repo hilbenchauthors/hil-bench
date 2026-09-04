@@ -1,0 +1,9 @@
+[
+  "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_non_ascii_number[1.\\u1040k?]",
+  "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_non_ascii_number[8\\U00016b59B]",
+  "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_non_ascii_number[\\u1040k]",
+  "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_nonsensical[13youcanhaveabyteofmysandwich]",
+  "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_blocker_max_input_length_raw_len",
+  "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_blocker_natural_language_exact_singular_only",
+  "test/units/module_utils/common/text/formatters/test_human_to_bytes.py::test_human_to_bytes_blocker_unit_mode_truth_table"
+]

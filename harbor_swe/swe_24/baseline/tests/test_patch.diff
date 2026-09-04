@@ -1,0 +1,110 @@
+diff --git a/test/units/modules/test_pip_blockers.py b/test/units/modules/test_pip_blockers.py
+new file mode 100644
+index 0000000000..b1ed560f4b
+--- /dev/null
++++ b/test/units/modules/test_pip_blockers.py
+@@ -0,0 +1,104 @@
++# Narrow tests for pip module blocker validations.
++from __future__ import (absolute_import, division, print_function)
++__metaclass__ = type
++
++import sys
++import builtins
++
++import pytest
++
++from ansible.modules import pip
++
++
++class TestPipModuleLauncher:
++    """Tests for pip module launcher construction."""
++
++    def test_pip_launcher_module_target(self, mocker):
++        """The launcher must use -m pip.__main__ as target."""
++        mocker.patch('ansible.modules.pip._have_pip_module').return_value = True
++
++        module_mock = mocker.MagicMock()
++        module_mock.get_bin_path.return_value = None
++        module_mock.fail_json.side_effect = SystemExit(1)
++
++        result = pip._get_pip(module_mock)
++
++        assert '-m' in result
++        assert 'pip.__main__' in result
++        joined = ' '.join(result)
++        assert 'pip._internal' not in joined
++
++    def test_module_priority_over_path(self, mocker):
++        """When pip module is available, it takes priority over PATH."""
++        mocker.patch('ansible.modules.pip._have_pip_module').return_value = True
++
++        module_mock = mocker.MagicMock()
++        module_mock.get_bin_path.return_value = '/usr/bin/pip3'
++
++        result = pip._get_pip(module_mock)
++
++        module_mock.get_bin_path.assert_not_called()
++
++
++class TestPipDetection:
++    """Tests for pip module detection mechanism."""
++
++    def test_detection_uses_find_spec(self, mocker):
++        """Primary detection must use importlib.util.find_spec."""
++        mock_find_spec = mocker.patch(
++            'importlib.util.find_spec', return_value=mocker.MagicMock())
++
++        result = pip._have_pip_module()
++
++        mock_find_spec.assert_called_once_with('pip')
++        assert result is True
++
++    def test_detection_no_fallback_after_primary_api_exception(self, mocker):
++        """If primary API raises Exception, return False without trying fallback API."""
++        import imp as _imp_module
++        mocker.patch(
++            'importlib.util.find_spec', side_effect=RuntimeError('broken'))
++        mock_imp_find = mocker.patch.object(_imp_module, 'find_module')
++
++        result = pip._have_pip_module()
++
++        mock_imp_find.assert_not_called()
++        assert result is False
++
++    def test_detection_imp_fallback(self, mocker):
++        """When importlib cannot be imported, must fall back to imp."""
++        import imp as _imp_module
++        _real = builtins.__import__
++
++        def _no_importlib(name, *a, **kw):
++            if name == 'importlib':
++                raise ImportError
++            return _real(name, *a, **kw)
++
++        mocker.patch('builtins.__import__', side_effect=_no_importlib)
++        mock_find = mocker.patch.object(
++            _imp_module, 'find_module', return_value=(None, '/path', ('', '', 0)))
++
++        result = pip._have_pip_module()
++
++        mock_find.assert_called_once_with('pip')
++        assert result is True
++
++
++class TestGetPackagesReturn:
++    """Tests for _get_packages return format."""
++
++    def test_packages_returns_string_command(self, mocker):
++        """Must pass list to run_command but return space-joined string."""
++        module_mock = mocker.MagicMock()
++        module_mock.run_command.return_value = (0, 'six==1.16.0\n', '')
++        mocker.patch('ansible.modules.pip.get_best_parsable_locale',
++                     return_value='en_US.UTF-8')
++
++        command, out, err = pip._get_packages(
++            module_mock, ['/usr/bin/pip3'], None)
++
++        args, kwargs = module_mock.run_command.call_args
++        assert isinstance(args[0], list)
++        assert isinstance(command, str)
++        assert command == ' '.join(args[0])

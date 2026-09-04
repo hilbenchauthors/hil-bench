@@ -1,0 +1,10 @@
+[
+  "packages/components/containers/payments/subscription/helpers/payment.test.ts | subscriptionExpires() should name the cancellation flag parameter cancelled and default it to false in subscriptionExpires",
+  "packages/components/containers/payments/subscription/helpers/payment.test.ts | subscriptionExpires() should only use active subscription details when cancellation context is explicitly requested",
+  "packages/components/containers/payments/subscription/helpers/payment.test.ts | subscriptionExpires() should force cancellation renewal flags even when base Renew stays Enabled",
+  "packages/components/containers/payments/subscription/helpers/payment.test.ts | subscriptionExpires() should derive renewEnabled as the inverse of renewDisabled across inputs",
+  "packages/components/containers/payments/subscription/helpers/payment.test.ts | subscriptionExpires() should ignore UpcomingSubscription when base subscription Renew is Disabled",
+  "packages/components/containers/payments/subscription/cancellationFlow/CancelRedirectionModal.test.tsx | CancelRedirectionModal should request cancellation-specific expiry details from the shared helper",
+  "packages/components/containers/payments/subscription/cancellationFlow/config/commonExpirationTime.test.tsx | ExpirationTime should use the shared helper for b2c cancellation expiry dates",
+  "packages/components/containers/payments/subscription/cancellationFlow/config/commonExpirationTime.test.tsx | ExpirationTime should use the shared helper for b2b cancellation expiry dates"
+]

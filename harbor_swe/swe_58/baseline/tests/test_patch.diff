@@ -1,0 +1,110 @@
+diff --git a/internal/storage/unmodifiable/store_test.go b/internal/storage/unmodifiable/store_test.go
+new file mode 100644
+index 00000000..c52dfdf1
+--- /dev/null
++++ b/internal/storage/unmodifiable/store_test.go
+@@ -0,0 +1,104 @@
++package unmodifiable
++
++import (
++	"errors"
++	"testing"
++
++	"github.com/stretchr/testify/require"
++	"go.flipt.io/flipt/internal/storage/fs"
++	"go.flipt.io/flipt/rpc/flipt"
++)
++
++func TestModificationMethods(t *testing.T) {
++	ctx := t.Context()
++	s := NewStore(fs.NewStore(nil))
++
++	// Representative mutating operations across entities and operation types.
++	_, err := s.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{})
++	require.ErrorIs(t, err, errReadOnly)
++
++	// Also validate one blocker-dependent contract detail on the same error.
++	var roErr *readOnlyError
++	require.True(t, errors.As(err, &roErr))
++	require.Equal(t, "STORAGE_MUTATION_BLOCKED", roErr.Code())
++
++	err = s.DeleteFlag(ctx, &flipt.DeleteFlagRequest{})
++	require.ErrorIs(t, err, errReadOnly)
++
++	err = s.OrderRules(ctx, &flipt.OrderRulesRequest{})
++	require.ErrorIs(t, err, errReadOnly)
++
++	_, err = s.UpdateDistribution(ctx, &flipt.UpdateDistributionRequest{})
++	require.ErrorIs(t, err, errReadOnly)
++
++	err = s.OrderRollouts(ctx, &flipt.OrderRolloutsRequest{})
++	require.ErrorIs(t, err, errReadOnly)
++}
++
++func TestReadOnlyErrorCodeToken(t *testing.T) {
++	ctx := t.Context()
++	s := NewStore(fs.NewStore(nil))
++
++	_, err := s.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{})
++
++	var roErr *readOnlyError
++	require.True(t, errors.As(err, &roErr))
++	require.Equal(t, "STORAGE_MUTATION_BLOCKED", roErr.Code())
++}
++
++func TestReadOnlyHTTPStatusCode(t *testing.T) {
++	ctx := t.Context()
++	s := NewStore(fs.NewStore(nil))
++
++	_, err := s.CreateFlag(ctx, &flipt.CreateFlagRequest{})
++
++	type statusCoder interface {
++		StatusCode() int
++	}
++	var sc statusCoder
++	require.True(t, errors.As(err, &sc))
++	require.Equal(t, 423, sc.StatusCode())
++}
++
++func TestStoreIdentifier(t *testing.T) {
++	s := NewStore(fs.NewStore(nil))
++	require.Equal(t, "fenced-store", s.String())
++}
++
++func TestReadOnlyPrecedenceOverValidation(t *testing.T) {
++	ctx := t.Context()
++	s := NewStore(fs.NewStore(nil))
++
++	_, err := s.CreateNamespace(ctx, &flipt.CreateNamespaceRequest{Key: ""})
++	require.False(t, errors.Is(err, fs.ErrNotImplemented))
++	require.ErrorIs(t, err, errReadOnly)
++
++	var roErr *readOnlyError
++	require.True(t, errors.As(err, &roErr))
++	require.Equal(t, "STORAGE_MUTATION_BLOCKED", roErr.Code())
++}
++
++func TestUniformSentinelAcrossOperations(t *testing.T) {
++	ctx := t.Context()
++	s := NewStore(fs.NewStore(nil))
++
++	_, errCreate := s.CreateFlag(ctx, &flipt.CreateFlagRequest{})
++	_, errUpdate := s.UpdateFlag(ctx, &flipt.UpdateFlagRequest{})
++	errDelete := s.DeleteFlag(ctx, &flipt.DeleteFlagRequest{})
++	errOrder := s.OrderRules(ctx, &flipt.OrderRulesRequest{})
++	_, errCreateRollout := s.CreateRollout(ctx, &flipt.CreateRolloutRequest{})
++
++	require.True(t, errCreate == errUpdate)
++	require.True(t, errCreate == errDelete)
++	require.True(t, errCreate == errOrder)
++	require.True(t, errCreate == errCreateRollout)
++
++	require.Equal(t, errCreate.Error(), errUpdate.Error())
++	require.Equal(t, errCreate.Error(), errDelete.Error())
++	require.Equal(t, errCreate.Error(), errOrder.Error())
++	require.Equal(t, errCreate.Error(), errCreateRollout.Error())
++
++	var roErr *readOnlyError
++	require.True(t, errors.As(errCreate, &roErr))
++	require.Equal(t, "STORAGE_MUTATION_BLOCKED", roErr.Code())
++}

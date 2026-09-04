@@ -1,0 +1,197 @@
+diff --git a/tests/blocker_contract_test.go b/tests/blocker_contract_test.go
+new file mode 100644
+index 00000000..f6adef3e
+--- /dev/null
++++ b/tests/blocker_contract_test.go
+@@ -0,0 +1,191 @@
++package tests
++
++import (
++	"os"
++	"os/exec"
++	"path/filepath"
++	"strings"
++	"testing"
++)
++
++const snippetRunName = "Test" + "Snippet"
++const snippetFuncPlaceholder = "SNIPPET_FUNC_NAME"
++
++func renderSnippet(snippet string) string {
++	return strings.ReplaceAll(snippet, snippetFuncPlaceholder, snippetRunName)
++}
++
++func runSnippetTest(t *testing.T, snippet string) {
++	t.Helper()
++
++	tmp := t.TempDir()
++	snippet = renderSnippet(snippet)
++	goMod := `module blockercheck
++
++go 1.23
++
++require github.com/navidrome/navidrome v0.0.0
++
++replace github.com/navidrome/navidrome => /app
++`
++
++	if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goMod), 0o644); err != nil {
++		t.Fatalf("failed writing go.mod: %v", err)
++	}
++	if err := os.WriteFile(filepath.Join(tmp, "snippet_test.go"), []byte(snippet), 0o644); err != nil {
++		t.Fatalf("failed writing snippet_test.go: %v", err)
++	}
++
++	cmd := exec.Command("go", "test", "-count=1", "-run", snippetRunName, "-v")
++	cmd.Dir = tmp
++	out, err := cmd.CombinedOutput()
++	if err != nil {
++		t.Fatalf("snippet test failed:\n%s", string(out))
++	}
++}
++
++func runSnippetCompileFailureTest(t *testing.T, snippet string, expectedErrorParts ...string) {
++	t.Helper()
++
++	tmp := t.TempDir()
++	snippet = renderSnippet(snippet)
++	goMod := `module blockercheck
++
++go 1.23
++
++require github.com/navidrome/navidrome v0.0.0
++
++replace github.com/navidrome/navidrome => /app
++`
++
++	if err := os.WriteFile(filepath.Join(tmp, "go.mod"), []byte(goMod), 0o644); err != nil {
++		t.Fatalf("failed writing go.mod: %v", err)
++	}
++	if err := os.WriteFile(filepath.Join(tmp, "snippet_test.go"), []byte(snippet), 0o644); err != nil {
++		t.Fatalf("failed writing snippet_test.go: %v", err)
++	}
++
++	cmd := exec.Command("go", "test", "-count=1", "-run", snippetRunName, "-v")
++	cmd.Dir = tmp
++	out, err := cmd.CombinedOutput()
++	if err == nil {
++		t.Fatalf("expected snippet to fail compilation, but it passed:\n%s", string(out))
++	}
++
++	output := string(out)
++	for _, part := range expectedErrorParts {
++		if !strings.Contains(output, part) {
++			t.Fatalf("expected compile output to contain %q, got:\n%s", part, output)
++		}
++	}
++}
++
++func TestCollectChunksUsesIteratorFirstSignature(t *testing.T) {
++	runSnippetTest(t, `package blockercheck
++
++import (
++	"reflect"
++	"slices"
++	"testing"
++
++	sliceutil "github.com/navidrome/navidrome/utils/slice"
++)
++
++func SNIPPET_FUNC_NAME(t *testing.T) {
++	input := []int{1, 2, 3, 4, 5}
++	var got [][]int
++	for chunk := range sliceutil.CollectChunks(slices.Values(input), 3) {
++		got = append(got, chunk)
++	}
++	want := [][]int{{1, 2, 3}, {4, 5}}
++	if !reflect.DeepEqual(got, want) {
++		t.Fatalf("got=%v want=%v", got, want)
++	}
++}`)
++}
++
++func TestCollectChunksUsesFallbackTwoForNonPositiveN(t *testing.T) {
++	runSnippetTest(t, `package blockercheck
++
++import (
++	"reflect"
++	"slices"
++	"testing"
++
++	sliceutil "github.com/navidrome/navidrome/utils/slice"
++)
++
++func SNIPPET_FUNC_NAME(t *testing.T) {
++	input := []int{10, 20, 30, 40, 50}
++	want := [][]int{{10, 20}, {30, 40}, {50}}
++
++	var gotZero [][]int
++	for chunk := range sliceutil.CollectChunks(slices.Values(input), 0) {
++		gotZero = append(gotZero, chunk)
++	}
++	if !reflect.DeepEqual(gotZero, want) {
++		t.Fatalf("n=0 got=%v want=%v", gotZero, want)
++	}
++
++	var gotNeg [][]int
++	for chunk := range sliceutil.CollectChunks(slices.Values(input), -3) {
++		gotNeg = append(gotNeg, chunk)
++	}
++	if !reflect.DeepEqual(gotNeg, want) {
++		t.Fatalf("n=-3 got=%v want=%v", gotNeg, want)
++	}
++}`)
++}
++
++func TestCollectChunksYieldsDefensiveTightChunks(t *testing.T) {
++	runSnippetTest(t, `package blockercheck
++
++import (
++	"reflect"
++	"slices"
++	"testing"
++
++	sliceutil "github.com/navidrome/navidrome/utils/slice"
++)
++
++func SNIPPET_FUNC_NAME(t *testing.T) {
++	input := []int{1, 2, 3, 4, 5}
++	chunks := make([][]int, 0, 2)
++	for chunk := range sliceutil.CollectChunks(slices.Values(input), 3) {
++		chunks = append(chunks, chunk)
++	}
++
++	if len(chunks) != 2 {
++		t.Fatalf("chunks=%v", chunks)
++	}
++	if !reflect.DeepEqual(chunks[0], []int{1, 2, 3}) || !reflect.DeepEqual(chunks[1], []int{4, 5}) {
++		t.Fatalf("chunks=%v", chunks)
++	}
++	for i, c := range chunks {
++		if cap(c) != len(c) {
++			t.Fatalf("chunk %d must be tight, len=%d cap=%d", i, len(c), cap(c))
++		}
++	}
++
++	chunks[0][0] = 99
++	if !reflect.DeepEqual(chunks[1], []int{4, 5}) {
++		t.Fatalf("second chunk was aliased: %v", chunks[1])
++	}
++}`)
++}
++
++func TestDeprecatedSliceChunkingAPIsWereRemoved(t *testing.T) {
++	runSnippetCompileFailureTest(t, `package blockercheck
++
++import (
++	"testing"
++
++	sliceutil "github.com/navidrome/navidrome/utils/slice"
++)
++
++func SNIPPET_FUNC_NAME(t *testing.T) {
++	_ = sliceutil.BreakUp([]int{1, 2, 3}, 2)
++	_ = sliceutil.RangeByChunks([]int{1, 2, 3}, 2, func(_ []int) error { return nil })
++}`, "undefined: sliceutil.BreakUp", "undefined: sliceutil.RangeByChunks")
++}
++

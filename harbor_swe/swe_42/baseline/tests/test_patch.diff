@@ -1,0 +1,257 @@
+diff --git a/core/metrics/blocker_test.go b/core/metrics/blocker_test.go
+new file mode 100644
+index 00000000..33d6d75a
+--- /dev/null
++++ b/core/metrics/blocker_test.go
+@@ -0,0 +1,167 @@
++package metrics
++
++import (
++	"context"
++	"net/http/httptest"
++	"testing"
++	"time"
++
++	"github.com/navidrome/navidrome/conf"
++	"github.com/prometheus/client_golang/prometheus"
++	dto "github.com/prometheus/client_model/go"
++)
++
++func metricValue(col prometheus.Collector) float64 {
++	ch := make(chan prometheus.Metric, 1)
++	col.Collect(ch)
++	m := <-ch
++	pb := &dto.Metric{}
++	_ = m.Write(pb)
++	if pb.Gauge != nil {
++		return pb.Gauge.GetValue()
++	}
++	if pb.Counter != nil {
++		return pb.Counter.GetValue()
++	}
++	return 0
++}
++
++func TestBlocker1MinPasswordAuth(t *testing.T) {
++	conf.Server.Prometheus.Password = "six666"
++	m := NewPrometheusInstance(nil)
++	h := m.GetHandler()
++	w := httptest.NewRecorder()
++	h.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
++	if w.Code == 401 {
++		t.Fatalf("6-char password must not enable BasicAuth, got 401")
++	}
++
++	conf.Server.Prometheus.Password = "seven77"
++	h = m.GetHandler()
++	w = httptest.NewRecorder()
++	h.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
++	if w.Code != 401 {
++		t.Fatalf("7-char password must enable BasicAuth, got %d", w.Code)
++	}
++}
++
++type blockingCollector struct {
++	ready   chan struct{}
++	blocker chan struct{}
++	desc    *prometheus.Desc
++}
++
++func (c *blockingCollector) Describe(ch chan<- *prometheus.Desc) { ch <- c.desc }
++func (c *blockingCollector) Collect(ch chan<- prometheus.Metric) {
++	c.ready <- struct{}{}
++	<-c.blocker
++	ch <- prometheus.MustNewConstMetric(c.desc, prometheus.GaugeValue, 0)
++}
++
++func TestBlocker3ConcurrentLimit(t *testing.T) {
++	conf.Server.Prometheus.Password = ""
++	m := NewPrometheusInstance(nil)
++
++	blocker := make(chan struct{})
++	defer close(blocker)
++
++	ready := make(chan struct{}, 7)
++	bc := &blockingCollector{
++		ready:   ready,
++		blocker: blocker,
++		desc:    prometheus.NewDesc("test_blocking_metric", "blocks for concurrency test", nil, nil),
++	}
++	prometheus.MustRegister(bc)
++	defer prometheus.Unregister(bc)
++
++	h := m.GetHandler()
++
++	for i := 0; i < 6; i++ {
++		go func() {
++			w := httptest.NewRecorder()
++			h.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
++		}()
++	}
++
++	for i := 0; i < 6; i++ {
++		select {
++		case <-ready:
++		case <-time.After(5 * time.Second):
++			t.Fatal("timeout waiting for requests to enter handler; throttle limit may be less than 6")
++		}
++	}
++
++	done := make(chan int, 1)
++	go func() {
++		w := httptest.NewRecorder()
++		h.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
++		done <- w.Code
++	}()
++
++	select {
++	case code := <-done:
++		if code != 429 {
++			t.Errorf("7th concurrent request must get 429, got %d", code)
++		}
++	case <-time.After(5 * time.Second):
++		t.Fatal("timeout on 7th request; throttle limit may be greater than 6 or not implemented")
++	}
++}
++
++func TestBlocker4WriteAfterScanNoDBCounts(t *testing.T) {
++	pm := getPrometheusMetrics()
++	m := NewPrometheusInstance(nil)
++
++	beforeCount := metricValue(pm.mediaScansCounter.WithLabelValues("true"))
++
++	m.WriteAfterScanMetrics(context.Background(), true)
++
++	afterCount := metricValue(pm.mediaScansCounter.WithLabelValues("true"))
++	if afterCount <= beforeCount {
++		t.Error("WriteAfterScanMetrics(true) must increment mediaScansCounter")
++	}
++
++	if metricValue(pm.lastMediaScan.WithLabelValues("true")) <= 0 {
++		t.Error("WriteAfterScanMetrics(true) must set lastMediaScan timestamp")
++	}
++
++	beforeFailCount := metricValue(pm.mediaScansCounter.WithLabelValues("false"))
++	m.WriteAfterScanMetrics(context.Background(), false)
++	afterFailCount := metricValue(pm.mediaScansCounter.WithLabelValues("false"))
++
++	if afterFailCount != beforeFailCount {
++		t.Error("WriteAfterScanMetrics(false) must NOT increment mediaScansCounter")
++	}
++
++	if metricValue(pm.lastMediaScan.WithLabelValues("false")) <= 0 {
++		t.Error("WriteAfterScanMetrics(false) must still set lastMediaScan timestamp")
++	}
++}
++
++func TestBlocker5MetricsDetailLevel(t *testing.T) {
++	mustQueryDB := []string{"full", "timestamps_only"}
++	mustNotQueryDB := []string{"counts_only", "minimal", "off"}
++
++	for _, level := range mustQueryDB {
++		conf.Server.Prometheus.DetailLevel = level
++		m := NewPrometheusInstance(nil)
++		panicked := false
++		func() {
++			defer func() {
++				if r := recover(); r != nil {
++					panicked = true
++				}
++			}()
++			m.WriteInitialMetrics(context.Background())
++		}()
++		if !panicked {
++			t.Errorf("detail level %q must trigger database queries in WriteInitialMetrics", level)
++		}
++	}
++
++	for _, level := range mustNotQueryDB {
++		conf.Server.Prometheus.DetailLevel = level
++		m := NewPrometheusInstance(nil)
++		m.WriteInitialMetrics(context.Background())
++	}
++}
+diff --git a/server/auth_test.go b/server/auth_test.go
+index 864fb743..35ca2edd 100644
+--- a/server/auth_test.go
++++ b/server/auth_test.go
+@@ -219,18 +219,36 @@ var _ = Describe("Auth", func() {
+ 		})
+ 	})
+ 
+-	Describe("authHeaderMapper", func() {
+-		It("maps the custom header to Authorization header", func() {
+-			r := httptest.NewRequest("GET", "/index.html", nil)
+-			r.Header.Set(consts.UIAuthorizationHeader, "test authorization bearer")
+-			w := httptest.NewRecorder()
+-
+-			authHeaderMapper(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+-				Expect(r.Header.Get("Authorization")).To(Equal("test authorization bearer"))
+-				w.WriteHeader(200)
+-			})).ServeHTTP(w, r)
+-
+-			Expect(w.Code).To(Equal(200))
++	Describe("tokenFromHeader", func() {
++		It("returns the token when the Authorization header is set correctly", func() {
++			req := httptest.NewRequest("GET", "/", nil)
++			req.Header.Set(consts.UIAuthorizationHeader, "Bearer testtoken")
++
++			token := tokenFromHeader(req)
++			Expect(token).To(Equal("testtoken"))
++		})
++
++		It("returns an empty string when the Authorization header is not set", func() {
++			req := httptest.NewRequest("GET", "/", nil)
++
++			token := tokenFromHeader(req)
++			Expect(token).To(BeEmpty())
++		})
++
++		It("returns an empty string when the Authorization header is not a Bearer token", func() {
++			req := httptest.NewRequest("GET", "/", nil)
++			req.Header.Set(consts.UIAuthorizationHeader, "Basic testtoken")
++
++			token := tokenFromHeader(req)
++			Expect(token).To(BeEmpty())
++		})
++
++		It("returns an empty string when the Bearer token is too short", func() {
++			req := httptest.NewRequest("GET", "/", nil)
++			req.Header.Set(consts.UIAuthorizationHeader, "Bearer")
++
++			token := tokenFromHeader(req)
++			Expect(token).To(BeEmpty())
+ 		})
+ 	})
+ 
+diff --git a/server/blocker_auth_test.go b/server/blocker_auth_test.go
+new file mode 100644
+index 00000000..7f2b3108
+--- /dev/null
++++ b/server/blocker_auth_test.go
+@@ -0,0 +1,25 @@
++package server
++
++import (
++	"net/http"
++	"strings"
++	"testing"
++
++	"github.com/navidrome/navidrome/consts"
++)
++
++func TestBlocker2MaxTokenLength(t *testing.T) {
++	validToken := strings.Repeat("x", 2000)
++	r, _ := http.NewRequest(http.MethodGet, "/", nil)
++	r.Header.Set(consts.UIAuthorizationHeader, "Bearer "+validToken)
++	if got := tokenFromHeader(r); got != validToken {
++		t.Errorf("2000-char token must be accepted, got empty")
++	}
++
++	oversizedToken := strings.Repeat("x", 2001)
++	r, _ = http.NewRequest(http.MethodGet, "/", nil)
++	r.Header.Set(consts.UIAuthorizationHeader, "Bearer "+oversizedToken)
++	if got := tokenFromHeader(r); got != "" {
++		t.Errorf("2001-char token must be rejected, got len=%d", len(got))
++	}
++}

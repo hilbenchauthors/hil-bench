@@ -1,0 +1,145 @@
+diff --git a/test/units/utils/test_display_proxy.py b/test/units/utils/test_display_proxy.py
+new file mode 100644
+index 0000000000..941bdb9099
+--- /dev/null
++++ b/test/units/utils/test_display_proxy.py
+@@ -0,0 +1,139 @@
++from __future__ import absolute_import, division, print_function
++__metaclass__ = type
++
++import re
++from collections import deque
++from unittest.mock import MagicMock
++
++import ansible.plugins.strategy as strategy_module
++
++from ansible.executor.task_queue_manager import DisplaySend, FinalQueue
++from ansible.utils.display import Display
++from ansible.utils.multiprocessing import context as multiprocessing_context
++
++
++def test_display_from_worker_proxies_with_method_literal_and_raw_newline():
++    def target():
++        queue = MagicMock()
++        display = Display()
++        display.set_queue(queue)
++
++        display.display(
++            'worker message',
++            color='green',
++            stderr=True,
++            screen_only=True,
++            log_only=False,
++            newline=True,
++        )
++
++        queue.send_display.assert_called_once_with(
++            'displaytocurrentuser',
++            'worker message',
++            color='green',
++            stderr=True,
++            screen_only=True,
++            log_only=False,
++            newline=False,
++        )
++
++    proc = multiprocessing_context.Process(target=target)
++    proc.start()
++    proc.join()
++    assert proc.exitcode == 0
++
++
++def test_warning_from_worker_proxies_raw_message_without_worker_formatting():
++    def target():
++        queue = MagicMock()
++        display = Display()
++        display.set_queue(queue)
++
++        display.warning('warning from worker', formatted=True)
++
++        queue.send_display.assert_called_once_with(
++            'sendwarningtouser',
++            'warning from worker',
++            formatted=True,
++        )
++
++    proc = multiprocessing_context.Process(target=target)
++    proc.start()
++    proc.join()
++    assert proc.exitcode == 0
++
++
++def test_final_queue_send_display_stores_method_timestamp_and_payload(monkeypatch):
++    queue = FinalQueue()
++    put = MagicMock()
++    monkeypatch.setattr(queue, 'put', put)
++
++    queue.send_display('displaytocurrentuser', 'queued message', newline=False)
++
++    put.assert_called_once()
++    result = put.call_args.args[0]
++
++    assert isinstance(result, DisplaySend)
++    assert result.method == 'displaytocurrentuser'
++    assert re.match(r'^\d{4}-\d{3}T\d{6}Z$', result.timestamp)
++    assert result.args == ('queued message',)
++    assert result.kwargs == {'newline': False}
++
++
++def test_results_thread_main_prints_timestamp_and_dispatches_by_method(capsys, mocker):
++    test_display = Display()
++    test_display._final_q = None
++    dispatched = MagicMock()
++    test_display.displaytocurrentuser = dispatched
++    mocker.patch.object(strategy_module, 'display', test_display)
++
++    class FakeQueue:
++        def __init__(self, items):
++            self._items = deque(items)
++
++        def get(self):
++            return self._items.popleft()
++
++    strategy = MagicMock()
++    strategy._final_q = FakeQueue([
++        DisplaySend('displaytocurrentuser', '2025-071T143000Z', 'queued output', newline=False),
++        strategy_module._sentinel,
++    ])
++
++    strategy_module.results_thread_main(strategy)
++
++    out, err = capsys.readouterr()
++
++    assert out == '2025-071T143000Z\n'
++    assert err == ''
++    dispatched.assert_called_once_with('queued output', newline=False)
++
++
++def test_results_thread_main_applies_warning_formatting_and_global_dedup(capsys, mocker):
++    mocker.patch('ansible.utils.color.ANSIBLE_COLOR', False)
++
++    test_display = Display()
++    test_display._final_q = None
++    test_display._warns = {}
++    mocker.patch.object(strategy_module, 'display', test_display)
++
++    class FakeQueue:
++        def __init__(self, items):
++            self._items = deque(items)
++
++        def get(self):
++            return self._items.popleft()
++
++    strategy = MagicMock()
++    strategy._final_q = FakeQueue([
++        DisplaySend('sendwarningtouser', '2025-071T143000Z', 'duplicate warning', formatted=False),
++        DisplaySend('sendwarningtouser', '2025-071T143001Z', 'duplicate warning', formatted=False),
++        strategy_module._sentinel,
++    ])
++
++    strategy_module.results_thread_main(strategy)
++
++    out, err = capsys.readouterr()
++
++    assert out == '2025-071T143000Z\n2025-071T143001Z\n'
++    assert err == '[WARNING]: duplicate warning\n'

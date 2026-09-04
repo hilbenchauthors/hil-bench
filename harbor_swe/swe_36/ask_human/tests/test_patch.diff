@@ -1,0 +1,183 @@
+diff --git a/test/units/executor/module_common/test_modify_module.py b/test/units/executor/module_common/test_modify_module.py
+index 89e4a163f8..af0dd2dd16 100644
+--- a/test/units/executor/module_common/test_modify_module.py
++++ b/test/units/executor/module_common/test_modify_module.py
+@@ -5,6 +5,12 @@
+ from __future__ import (absolute_import, division, print_function)
+ __metaclass__ = type
+ 
++import base64
++import re
++import zipfile
++
++from io import BytesIO
++
+ import pytest
+ 
+ from ansible.executor.module_common import modify_module
+@@ -15,6 +21,17 @@ import sys
+ print('{"result": "%s"}' % sys.executable)
+ '''
+ 
++FAKE_NEW_STYLE_MODULE = b'''#!/usr/bin/python
++from ansible.module_utils.basic import AnsibleModule
++
++def main():
++    module = AnsibleModule(argument_spec={})
++    module.exit_json(changed=False)
++
++if __name__ == '__main__':
++    main()
++'''
++
+ 
+ @pytest.fixture
+ def fake_old_module_open(mocker):
+@@ -35,3 +52,31 @@ def test_shebang_task_vars(fake_old_module_open, templar):
+ 
+     (data, style, shebang) = modify_module('fake_module', 'fake_path', {}, templar, task_vars=task_vars)
+     assert shebang == '#!/usr/bin/python3'
++
++
++def test_new_style_module_bundle_includes_transitional_collections_shim(mocker, templar, tmp_path):
++    module_path = tmp_path / 'fake_module.py'
++    module_path.write_bytes(FAKE_NEW_STYLE_MODULE)
++    mocker.patch('ansible.executor.module_common.recursive_finder')
++
++    data, style, shebang = modify_module(
++        'fake_module',
++        str(module_path),
++        {},
++        templar,
++        task_vars={'ansible_python_interpreter': '/usr/bin/python3'},
++        module_compression='ZIP_STORED',
++    )
++
++    assert style == 'new'
++    assert shebang.startswith('#!')
++
++    encoded_zipdata = re.search(br'ZIPDATA = """([A-Za-z0-9+/=\n]+)"""', data).group(1).replace(b'\n', b'')
++    payload = base64.b64decode(encoded_zipdata)
++    with zipfile.ZipFile(BytesIO(payload), mode='r') as zf:
++        assert 'ansible/module_utils/common/_collections_compat.py' in zf.namelist()
++    import ansible.executor.module_common as module_common
++    with open(module_common.__file__) as f:
++        module_common_source = f.read()
++    assert '_TRANSITIONAL_COLLECTIONS_COMPAT_PATH' in module_common_source
++    assert '_add_transitional_collections_compat_to_zip' in module_common_source
+diff --git a/test/units/executor/module_common/test_recursive_finder.py b/test/units/executor/module_common/test_recursive_finder.py
+index 651ed78255..b359ec29e2 100644
+--- a/test/units/executor/module_common/test_recursive_finder.py
++++ b/test/units/executor/module_common/test_recursive_finder.py
+@@ -42,7 +42,6 @@ MODULE_UTILS_BASIC_FILES = frozenset(('ansible/__init__.py',
+                                       'ansible/module_utils/basic.py',
+                                       'ansible/module_utils/six/__init__.py',
+                                       'ansible/module_utils/_text.py',
+-                                      'ansible/module_utils/common/_collections_compat.py',
+                                       'ansible/module_utils/common/_json_compat.py',
+                                       'ansible/module_utils/common/collections.py',
+                                       'ansible/module_utils/common/parameters.py',
+@@ -130,3 +129,14 @@ class TestRecursiveFinder(object):
+         data = b'#!/usr/bin/python\nfrom ansible.module_utils.six.moves.urllib.parse import urlparse'
+         recursive_finder(name, os.path.join(ANSIBLE_LIB, 'modules', 'system', 'ping.py'), data, *finder_containers)
+         assert frozenset(finder_containers.zf.namelist()) == frozenset(('ansible/module_utils/six/__init__.py',)).union(MODULE_UTILS_BASIC_FILES)
++
++    def test_no_module_utils_excludes_legacy_collections_shim_from_discovery(self, finder_containers):
++        name = 'ping'
++        data = b'#!/usr/bin/python\nreturn \'{\"changed\": false}\''
++        recursive_finder(name, os.path.join(ANSIBLE_LIB, 'modules', 'system', 'ping.py'), data, *finder_containers)
++        assert 'ansible/module_utils/common/_collections_compat.py' not in finder_containers.zf.namelist()
++        import ansible.executor.module_common as module_common
++        with open(module_common.__file__) as f:
++            module_common_source = f.read()
++        assert '_TRANSITIONAL_COLLECTIONS_COMPAT_PATH' in module_common_source
++        assert '_add_transitional_collections_compat_to_zip' in module_common_source
+diff --git a/test/units/module_utils/common/test_collections.py b/test/units/module_utils/common/test_collections.py
+index 95b2a402f2..f826d1d099 100644
+--- a/test/units/module_utils/common/test_collections.py
++++ b/test/units/module_utils/common/test_collections.py
+@@ -6,10 +6,12 @@
+ from __future__ import absolute_import, division, print_function
+ __metaclass__ = type
+ 
++import os
++
+ import pytest
+ 
+ from ansible.module_utils.six import Iterator
+-from ansible.module_utils.common._collections_compat import Sequence
++from ansible.module_utils.six.moves.collections_abc import Sequence
+ from ansible.module_utils.common.collections import ImmutableDict, is_iterable, is_sequence
+ 
+ 
+@@ -65,6 +67,70 @@ TEST_ITEMS_SEQUENCES = TEST_ITEMS_SEQUENCES + (
+     TEST_ITEMS_NON_SEQUENCES,
+ )
+ 
++PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
++
++RUNTIME_IMPORT_TARGETS = (
++    'lib/ansible/module_utils/basic.py',
++    'lib/ansible/module_utils/common/parameters.py',
++    'lib/ansible/module_utils/common/dict_transformations.py',
++    'lib/ansible/module_utils/common/json.py',
++    'lib/ansible/module_utils/common/text/converters.py',
++    'lib/ansible/module_utils/compat/_selectors2.py',
++    'lib/ansible/modules/uri.py',
++)
++
++CONTROLLER_IMPORT_TARGETS = (
++    'lib/ansible/plugins/shell/__init__.py',
++)
++
++_EXPECTED_ABC_NAMES = (
++    'MappingView', 'ItemsView', 'KeysView', 'ValuesView',
++    'Mapping', 'MutableMapping', 'Sequence', 'MutableSequence',
++    'Set', 'MutableSet', 'Container', 'Hashable',
++    'Sized', 'Callable', 'Iterable', 'Iterator',
++)
++
++
++def _read_source(rel_path):
++    with open(os.path.join(PROJECT_ROOT, rel_path), 'r') as fd:
++        return fd.read()
++
++
++def test_runtime_files_use_canonical_runtime_collections_import_path():
++    for rel_path in RUNTIME_IMPORT_TARGETS:
++        source = _read_source(rel_path)
++        assert 'from ansible.module_utils.six.moves.collections_abc import ' in source
++        assert 'ansible.module_utils.common._collections_compat' not in source
++    runtime_collections_source = _read_source('lib/ansible/module_utils/common/collections.py')
++    assert 'from ansible.module_utils.six.moves.collections_abc import ' in runtime_collections_source
++    assert 'ansible.module_utils.common._collections_compat' not in runtime_collections_source
++
++
++def test_controller_files_use_canonical_controller_collections_import_path():
++    for rel_path in CONTROLLER_IMPORT_TARGETS:
++        source = _read_source(rel_path)
++        assert 'from collections.abc import ' in source
++        assert 'ansible.module_utils.common._collections_compat' not in source
++
++
++def test_collections_compat_transitional_signal_is_docstring_only():
++    source = _read_source('lib/ansible/module_utils/common/_collections_compat.py')
++
++    assert 'from ansible.module_utils.six.moves.collections_abc import (' in source
++    assert 'warnings.warn' not in source
++    assert 'DeprecationWarning' not in source
++    assert 'ansible-core 2.11' in source
++
++
++def test_collections_compat_uses_single_import_block_without_fallback():
++    source = _read_source('lib/ansible/module_utils/common/_collections_compat.py')
++
++    assert 'from ansible.module_utils.six.moves.collections_abc import (' in source
++    assert 'try:' not in source
++    assert 'except ImportError' not in source
++    for name in _EXPECTED_ABC_NAMES:
++        assert name in source
++
+ 
+ @pytest.mark.parametrize('sequence_input', TEST_ITEMS_SEQUENCES)
+ def test_sequence_positive(sequence_input):

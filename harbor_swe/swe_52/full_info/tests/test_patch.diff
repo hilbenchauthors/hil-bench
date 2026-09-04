@@ -1,0 +1,162 @@
+diff --git a/config/config_test.go b/config/config_test.go
+index c6d80efd..76479096 100644
+--- a/config/config_test.go
++++ b/config/config_test.go
+@@ -4,6 +4,8 @@ import (
+ 	"io/ioutil"
+ 	"net/http"
+ 	"net/http/httptest"
++	"os"
++	"path/filepath"
+ 	"testing"
+ 	"time"
+ 
+@@ -11,6 +13,51 @@ import (
+ 	"github.com/stretchr/testify/require"
+ )
+ 
++const advancedConfigYAML = `log:
++  level: WARN
++  file: "testLogFile.txt"
++
++ui:
++  enabled: false
++
++cors:
++  enabled: true
++  allowed_origins: "foo.com"
++
++cache:
++  memory:
++    enabled: true
++    expiration: 5m
++    eviction_interval: 1m
++
++server:
++  protocol: https
++  host: 127.0.0.1
++  http_port: 8081
++  https_port: 8080
++  grpc_port: 9001
++  cert_file: "./testdata/config/ssl_cert.pem"
++  cert_key: "./testdata/config/ssl_key.pem"
++
++db:
++  url: postgres://postgres@localhost:5432/flipt?sslmode=disable
++  migrations:
++    path: ./config/migrations
++  max_idle_conn: 10
++  max_open_conn: 50
++  pool_conn_ttl: 30m
++
++meta:
++  check_for_updates: false
++`
++
++func writeAdvancedConfig(t *testing.T) string {
++	dir := t.TempDir()
++	path := filepath.Join(dir, "advanced.yml")
++	require.NoError(t, os.WriteFile(path, []byte(advancedConfigYAML), 0644))
++	return path
++}
++
+ func TestScheme(t *testing.T) {
+ 	tests := []struct {
+ 		name   string
+@@ -60,7 +107,7 @@ func TestLoad(t *testing.T) {
+ 		},
+ 		{
+ 			name: "configured",
+-			path: "./testdata/config/advanced.yml",
++			path: "", // set at runtime via writeAdvancedConfig
+ 			expected: &Config{
+ 				Log: logConfig{
+ 					Level: "WARN",
+@@ -90,11 +137,14 @@ func TestLoad(t *testing.T) {
+ 					CertKey:   "./testdata/config/ssl_key.pem",
+ 				},
+ 				Database: databaseConfig{
+-					MigrationsPath: "./config/migrations",
+-					URL:            "postgres://postgres@localhost:5432/flipt?sslmode=disable",
++					MigrationsPath:  "./config/migrations",
++					URL:             "postgres://postgres@localhost:5432/flipt?sslmode=disable",
++					MaxIdleConn:     10,
++					MaxOpenConn:     50,
++					ConnMaxLifetime: 30 * time.Minute,
+ 				},
+ 				Meta: metaConfig{
+-					CheckForUpdates: true,
++					CheckForUpdates: false,
+ 				},
+ 			},
+ 		},
+@@ -108,7 +158,11 @@ func TestLoad(t *testing.T) {
+ 		)
+ 
+ 		t.Run(tt.name, func(t *testing.T) {
+-			cfg, err := Load(path)
++			loadPath := path
++			if tt.name == "configured" {
++				loadPath = writeAdvancedConfig(t)
++			}
++			cfg, err := Load(loadPath)
+ 
+ 			if wantErr {
+ 				require.Error(t, err)
+@@ -238,3 +292,56 @@ func TestServeHTTP(t *testing.T) {
+ 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+ 	assert.NotEmpty(t, body)
+ }
++
++func TestBlocker1(t *testing.T) {
++	assert.Equal(t, 4, Default().Database.MaxIdleConn, "Blocker1: MaxIdleConn default must be 4")
++}
++
++func TestBlocker2(t *testing.T) {
++	d := Default().Database
++	assert.Equal(t, 1, d.MaxOpenConn, "Blocker2: Default() must set MaxOpenConn: 1 (embedded profile)")
++	assert.Equal(t, 1*time.Second, d.ConnMaxLifetime, "Blocker2: Default() must set ConnMaxLifetime: 1s (embedded profile)")
++}
++
++func TestBlocker3(t *testing.T) {
++	// The connection lifetime uses db.pool_conn_ttl (not conn_max_lifetime)
++	dir := t.TempDir()
++	path := filepath.Join(dir, "pool_ttl.yml")
++	yaml := "db:\n  url: file:test.db\n  pool_conn_ttl: 30m\n"
++	require.NoError(t, os.WriteFile(path, []byte(yaml), 0644))
++	cfg, err := Load(path)
++	require.NoError(t, err)
++	assert.Equal(t, 30*time.Minute, cfg.Database.ConnMaxLifetime, "Blocker3: must read from pool_conn_ttl key, not conn_max_lifetime")
++
++	// Verify conn_max_lifetime is NOT used (wrong key)
++	pathWrong := filepath.Join(dir, "wrong_key.yml")
++	yamlWrong := "db:\n  url: file:test.db\n  conn_max_lifetime: 30m\n"
++	require.NoError(t, os.WriteFile(pathWrong, []byte(yamlWrong), 0644))
++	cfgWrong, err := Load(pathWrong)
++	require.NoError(t, err)
++	assert.NotEqual(t, 30*time.Minute, cfgWrong.Database.ConnMaxLifetime, "Blocker3: conn_max_lifetime must NOT be the key; use pool_conn_ttl")
++}
++
++func TestBlocker5(t *testing.T) {
++	tests := []struct {
++		name     string
++		yaml     string
++		wantIdle int
++		wantOpen int
++	}{
++		{"idle_exceeds_open", "db:\n  max_idle_conn: 20\n  max_open_conn: 10\n", 20, 20},
++		{"idle_less_than_open", "db:\n  max_idle_conn: 5\n  max_open_conn: 10\n", 5, 10},
++		{"idle_equals_open", "db:\n  max_idle_conn: 10\n  max_open_conn: 10\n", 10, 10},
++	}
++	for _, tt := range tests {
++		t.Run(tt.name, func(t *testing.T) {
++			dir := t.TempDir()
++			path := filepath.Join(dir, "pool_adj.yml")
++			require.NoError(t, os.WriteFile(path, []byte(tt.yaml), 0644))
++			cfg, err := Load(path)
++			require.NoError(t, err)
++			assert.Equal(t, tt.wantIdle, cfg.Database.MaxIdleConn, "MaxIdleConn")
++			assert.Equal(t, tt.wantOpen, cfg.Database.MaxOpenConn, "MaxOpenConn")
++		})
++	}
++}

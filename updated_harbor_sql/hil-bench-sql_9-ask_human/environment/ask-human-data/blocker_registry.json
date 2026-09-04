@@ -1,0 +1,69 @@
+{
+  "blockers": [
+    {
+      "description": "The question asks for loans with a duration exceeding 100 months, but the loan table only contains durations up to 60 months, making this requirement impossible to satisfy.",
+      "example_questions": [
+        "How should loans with duration exceeding 100 months be handled given the available data?",
+        "What loan duration should be used since durations above 100 months do not exist in the database?",
+        "What is the maximum loan duration available in the loan table?",
+        "Which loan duration value should replace the requested duration exceeding 100 months?"
+      ],
+      "id": "loan_duration_exceeds_available_range",
+      "resolution": "Use loans with a duration of 48 months.",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The phrase \"fully repaid active loans\" contains contradicting requirements, as a loan cannot be both fully repaid and active simultaneously.",
+      "example_questions": [
+        "Should fully repaid active loans refer to loans that are currently running or loans that are finished?",
+        "What loan status value should be used to filter for fully repaid active loans?",
+        "How should the contradiction between fully repaid and active be resolved for loan filtering?",
+        "Which interpretation of fully repaid active loans should be applied - completed contracts or ongoing contracts?"
+      ],
+      "id": "repaid_active_loans_contradiction",
+      "resolution": "Filter for loans with status 'C' which would signify loan repaid.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The term \"priority-tier clients\" can be interpreted as clients based on age, account balance, transaction volume, loan history, or card type, making the filtering criteria unclear.",
+      "example_questions": [
+        "What criteria define a priority-tier client?",
+        "Does priority-tier refer to client age, card type, or account balance?",
+        "What attribute determines priority-tier status for clients?",
+        "How is priority-tier classification determined in the database?"
+      ],
+      "id": "priority_tier_clients_definition",
+      "resolution": "Priority-tier clients are those born before January 1, 1950.",
+      "subtype": "multiple_interpretations",
+      "type": "question"
+    },
+    {
+      "description": "The term \"indexed accounts\" is not defined in the business information or database descriptions, making it unclear what criteria determine indexed status for accounts.",
+      "example_questions": [
+        "What criteria define an indexed account?",
+        "Which account attribute or value determines indexed status?",
+        "What characteristic classifies an account as indexed?",
+        "How is indexed account status determined in the database?"
+      ],
+      "id": "indexed_accounts_definition",
+      "resolution": "Indexed accounts are those with a monthly statement frequency (frequency = 'POPLATEK MESICNE').",
+      "subtype": "missing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The question refers to an \u201ceconomic distress indicator\u201d, but the district table contains multiple numeric economic metrics (A11, A12, A13, A17) that are not directly comparable or rankable against each other, as they are compiled using different measurement bases, scales, and reference populations. Without knowing which metric is intended, applying a ranking across districts is ambiguous because ranking by different columns produces different and incompatible district orders.",
+      "example_questions": [
+        "Which column should be used for economic distress indicator: A11, A12, A13, or A17?",
+        "Does income compilation, labor compilation, workforce compilation, or regional compilation represent economic distress?",
+        "What column contains the economic distress indicator for district ranking?",
+        "Which district economic metric column should be used to measure economic distress?"
+      ],
+      "id": "economic_distress_indicator_column",
+      "resolution": "Use column A17 (labor compilation) for the economic distress indicator. Rank all districts by A17 in descending order and select the A17 value of the 5th row (using ORDER BY A17 DESC LIMIT 1 OFFSET 4, without DISTINCT).",
+      "subtype": "confusing_column_or_column_definition",
+      "type": "schema"
+    }
+  ]
+}

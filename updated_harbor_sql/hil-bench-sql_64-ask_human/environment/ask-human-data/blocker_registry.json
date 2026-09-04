@@ -1,0 +1,52 @@
+{
+  "blockers": [
+    {
+      "description": "The phrase \u201cFresno and surrounding schools\u201d is ambiguous because it does not clearly define which locations are included. It is unclear whether \u201csurrounding\u201d refers only to adjacent cities, a specific mileage radius, Fresno County as a whole, or the broader Fresno metropolitan area. Without a precise geographic boundary, the scope of the term is open to multiple interpretations.",
+      "example_questions": [
+        "Is there a maximum distance from Fresno that determines whether a school is considered \u201csurrounding\u201d?",
+        "Should \u201csurrounding schools\u201d include all of Fresno County or only schools within the Fresno metropolitan area?",
+        "How do you define \u201csurrounding schools\u201d in relation to Fresno (e.g., adjacent cities, a mileage radius, or a specific county)?"
+      ],
+      "id": "fresno_and_surroundings",
+      "resolution": "Surrounding schools include those in Clovis, Sanger, Madera, and Reedley.",
+      "subtype": "unclear_value",
+      "type": "question"
+    },
+    {
+      "description": "The phrase \u201cschools that opened in the early 1980s\u201d is ambiguous because the term \u201cearly\u201d is not clearly defined. It is unclear which specific years are included, making it uncertain which schools qualify for the analysis and potentially leading to inconsistent interpretations of the data set.",
+      "example_questions": [
+        "What specific years are included in the term \u201cearly 1980s\u201d?",
+        "Should \u201cearly 1980s\u201d be defined as a fixed range (e.g., 1980\u20131982 or 1980\u20131985)?",
+        "Is there an official or preferred cutoff year that determines where \u201cearly\u201d ends in the 1980s?"
+      ],
+      "id": "early_eightys",
+      "resolution": "Early 1980s means the year 1980 only (between 1/1/1980 and 12/31/1980)",
+      "subtype": "timeframe_ambiguity",
+      "type": "question"
+    },
+    {
+      "description": "The phrase \u201cschools with adequate testing participation\u201d is ambiguous because \u201cadequate\u201d is not defined by any measurable or objective standard. Without a clear threshold or criteria, it is unclear which schools should be included, making the requirement open to interpretation and preventing consistent analysis.",
+      "example_questions": [
+        "How is \u201cadequate testing participation\u201d defined (e.g., a minimum percentage or number of test takers)?",
+        "Is there a specific participation threshold a school must meet to be included in the group of schools with adequate testing participation?",
+        "Should the the adequate testing participation requirement be applied uniformly across all schools or vary by school size or grade level?"
+      ],
+      "id": "adequate_participation",
+      "resolution": "Adequate testing participation means schools with at least 182 test takers",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "The satscores table contains multiple plausible \u201ctest taker count\u201d fields: NumTstTakr, TestTakerCount, test_taker_reported, test_taker_audited, testtaker_real, final_review_real_test_taker_count with overlapping intent, but the schema/table definition does not specify which field should be treated as the authoritative count for \u201caverage number of test takers.\u201d This prevents a consistent calculation.",
+      "example_questions": [
+        "The satscores table contains multiple test taker count columns (NumTstTakr, TestTakerCount, testtaker_real, test_taker_audited, test_taker_reported, final_review_real_test_taker_count) with similar values. Which test taker count column should I use to calculate the excellence rate or other test taker-based statistics for SAT scores?",
+        "There are six different test taker count columns in the satscores table (NumTstTakr, TestTakerCount, testtaker_real, test_taker_audited, test_taker_reported, final_review_real_test_taker_count), all with slightly different values. Which specific column should I use when calculating statistics involving the number of test takers - NumTstTakr, TestTakerCount, testtaker_real, test_taker_audited, test_taker_reported, or final_review_real_test_taker_count?",
+        "The satscores table has multiple columns that count test takers (NumTstTakr, TestTakerCount, testtaker_real, test_taker_audited, test_taker_reported, final_review_real_test_taker_count). For queries requiring the count of students who took the SAT, which of these six test taker columns represents the correct value to use in calculations?"
+      ],
+      "id": "multuple_test_taker_values",
+      "resolution": "Use test_taker_audited column from satscores table for test taker counts",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

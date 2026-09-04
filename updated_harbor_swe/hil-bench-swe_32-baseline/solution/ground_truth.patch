@@ -1,0 +1,247 @@
+diff --git a/lib/ansible/cli/adhoc.py b/lib/ansible/cli/adhoc.py
+index 3b984f01ff..90f0e014b0 100644
+--- a/lib/ansible/cli/adhoc.py
++++ b/lib/ansible/cli/adhoc.py
+@@ -44,6 +44,7 @@ class AdHocCLI(CLI):
+         opt_help.add_fork_options(self.parser)
+         opt_help.add_module_options(self.parser)
+         opt_help.add_basedir_options(self.parser)
++        opt_help.add_tasknoplay_options(self.parser)
+ 
+         # options unique to ansible ad-hoc
+         self.parser.add_argument('-a', '--args', dest='module_args',
+@@ -73,6 +74,11 @@ class AdHocCLI(CLI):
+             mytask['async_val'] = async_val
+             mytask['poll'] = poll
+ 
++        task_timeout = context.CLIARGS.get('task_timeout', C.TASK_TIMEOUT)
++        opt_help.validate_task_timeout(task_timeout)
++
++        mytask['timeout'] = opt_help.get_effective_task_timeout(task_timeout, async_val, poll)
++
+         return dict(
+             name="Ansible Ad-Hoc",
+             hosts=pattern,
+diff --git a/lib/ansible/cli/arguments/option_helpers.py b/lib/ansible/cli/arguments/option_helpers.py
+index 2e39fd6536..2877efa6b6 100644
+--- a/lib/ansible/cli/arguments/option_helpers.py
++++ b/lib/ansible/cli/arguments/option_helpers.py
+@@ -21,6 +21,7 @@ except ImportError:
+ 
+ import ansible
+ from ansible import constants as C
++from ansible.errors import AnsibleOptionsError
+ from ansible.module_utils._text import to_native
+ from ansible.release import __version__
+ from ansible.utils.path import unfrackpath
+@@ -343,6 +344,46 @@ def add_runtask_options(parser):
+                         help="set additional variables as key=value or YAML/JSON, if filename prepend with @", default=[])
+ 
+ 
++def add_tasknoplay_options(parser):
++    """Add task timeout options for commands that run standalone tasks."""
++    parser.add_argument('--task-timeout', dest='task_timeout', type=int, default=C.TASK_TIMEOUT,
++                        help="must be positive integer. 0 disables the task timeout. set task timeout limit in seconds")
++
++
++def validate_task_timeout(value):
++    """Validate task timeout policy and return the normalized value."""
++    if value < 0:
++        raise AnsibleOptionsError(
++            "The task timeout value (%d) must be 0 (disabled) or a positive integer" % value
++        )
++    if value > 7200:
++        raise AnsibleOptionsError(
++            "The task timeout value (%d) exceeds the maximum allowed timeout of 7200 seconds" % value
++        )
++    if 1 <= value <= 4:
++        raise AnsibleOptionsError(
++            "The task timeout value (%d) is too small; enabled timeouts must be 0 (disabled) or at least 5 seconds" % value
++        )
++    if 10 <= value <= 59 and value % 10 != 0:
++        raise AnsibleOptionsError(
++            "The task timeout value (%d) must be a multiple of 10 for timeouts from 10 through 59 seconds" % value
++        )
++    return value
++
++
++def get_effective_task_timeout(task_timeout, async_val, poll):
++    """Compute the effective timeout when async execution is involved."""
++    async_timeout = async_val if async_val and async_val > 0 else 0
++
++    if task_timeout > 0 and async_timeout > 0:
++        return task_timeout
++    if task_timeout > 0:
++        return task_timeout
++    if async_timeout > 0:
++        return async_timeout
++    return 0
++
++
+ def add_subset_options(parser):
+     """Add options for commands which can run a subset of tasks"""
+     parser.add_argument('-t', '--tags', dest='tags', default=C.TAGS_RUN, action='append',
+diff --git a/lib/ansible/cli/console.py b/lib/ansible/cli/console.py
+index 3c600ee848..9fbd5515e6 100644
+--- a/lib/ansible/cli/console.py
++++ b/lib/ansible/cli/console.py
+@@ -28,12 +28,14 @@ from ansible import constants as C
+ from ansible import context
+ from ansible.cli import CLI
+ from ansible.cli.arguments import option_helpers as opt_help
++from ansible.errors import AnsibleOptionsError
+ from ansible.executor.task_queue_manager import TaskQueueManager
+ from ansible.module_utils._text import to_native, to_text
+ from ansible.module_utils.parsing.convert_bool import boolean
+ from ansible.parsing.splitter import parse_kv
+ from ansible.playbook.play import Play
+ from ansible.plugins.loader import module_loader, fragment_loader
++from ansible.utils import context_objects as co
+ from ansible.utils import plugin_docs
+ from ansible.utils.color import stringc
+ from ansible.utils.display import Display
+@@ -75,6 +77,7 @@ class ConsoleCLI(CLI, cmd.Cmd):
+         self.check_mode = None
+         self.diff = None
+         self.forks = None
++        self.task_timeout = C.TASK_TIMEOUT
+ 
+         cmd.Cmd.__init__(self)
+ 
+@@ -91,12 +94,22 @@ class ConsoleCLI(CLI, cmd.Cmd):
+         opt_help.add_fork_options(self.parser)
+         opt_help.add_module_options(self.parser)
+         opt_help.add_basedir_options(self.parser)
++        opt_help.add_runtask_options(self.parser)
++        opt_help.add_tasknoplay_options(self.parser)
+ 
+         # options unique to shell
+         self.parser.add_argument('pattern', help='host pattern', metavar='pattern', default='all', nargs='?')
+         self.parser.add_argument('--step', dest='step', action='store_true',
+                                  help="one-step-at-a-time: confirm each task before running")
+ 
++    def parse(self):
++        co.GlobalCLIArgs._Singleton__instance = None
++        super(ConsoleCLI, self).parse()
++
++        extra_vars = context.CLIARGS.get('extra_vars')
++        if hasattr(context.CLIARGS, '_store') and isinstance(extra_vars, tuple):
++            context.CLIARGS._store['extra_vars'] = list(extra_vars)
++
+     def post_process_args(self, options):
+         options = super(ConsoleCLI, self).post_process_args(options)
+         display.verbosity = options.verbosity
+@@ -183,11 +196,12 @@ class ConsoleCLI(CLI, cmd.Cmd):
+         result = None
+         try:
+             check_raw = module in ('command', 'shell', 'script', 'raw')
++            task = dict(action=dict(module=module, args=parse_kv(module_args, check_raw=check_raw)), timeout=self.task_timeout)
+             play_ds = dict(
+                 name="Ansible Shell",
+                 hosts=self.cwd,
+                 gather_facts='no',
+-                tasks=[dict(action=dict(module=module, args=parse_kv(module_args, check_raw=check_raw)))],
++                tasks=[task],
+                 remote_user=self.remote_user,
+                 become=self.become,
+                 become_user=self.become_user,
+@@ -271,9 +285,15 @@ class ConsoleCLI(CLI, cmd.Cmd):
+         """Set verbosity level"""
+         if not arg:
+             display.display('Usage: verbosity <number>')
+-        else:
++            return
++
++        try:
+             display.verbosity = int(arg)
+-            display.v('verbosity level set to %s' % arg)
++        except ValueError:
++            display.error('The verbosity must be a valid integer: %s' % arg)
++            return
++
++        display.v('verbosity level set to %s' % arg)
+ 
+     def do_cd(self, arg):
+         """
+@@ -354,6 +374,30 @@ class ConsoleCLI(CLI, cmd.Cmd):
+         else:
+             display.display("Please specify a diff value , e.g. `diff yes`")
+ 
++    def do_timeout(self, arg):
++        """Set task timeout in seconds; 0 disables."""
++        if not arg:
++            display.display('Usage: timeout <seconds>')
++            return
++
++        try:
++            value = int(arg)
++        except ValueError:
++            display.error('The timeout must be a valid positive integer, or 0 to disable: %s' % arg)
++            return
++
++        if value < 0:
++            display.error('The timeout must be greater than or equal to 1, use 0 to disable')
++            return
++
++        try:
++            opt_help.validate_task_timeout(value)
++        except AnsibleOptionsError as exc:
++            display.error(to_text(exc))
++            return
++
++        self.task_timeout = value
++
+     def do_exit(self, args):
+         """Exits from the console"""
+         sys.stdout.write('\n')
+@@ -408,7 +452,7 @@ class ConsoleCLI(CLI, cmd.Cmd):
+         becomepass = None
+ 
+         # hosts
+-        self.pattern = context.CLIARGS['pattern']
++        self.pattern = context.CLIARGS.get('pattern', 'all')
+         self.cwd = self.pattern
+ 
+         # Defaults from the command line
+@@ -419,6 +463,8 @@ class ConsoleCLI(CLI, cmd.Cmd):
+         self.check_mode = context.CLIARGS['check']
+         self.diff = context.CLIARGS['diff']
+         self.forks = context.CLIARGS['forks']
++        self.task_timeout = context.CLIARGS.get('task_timeout', C.TASK_TIMEOUT)
++        opt_help.validate_task_timeout(self.task_timeout)
+ 
+         # dynamically add modules as commands
+         self.modules = self.list_modules()
+@@ -451,4 +497,6 @@ class ConsoleCLI(CLI, cmd.Cmd):
+ 
+         atexit.register(readline.write_history_file, histfile)
+         self.set_prompt()
++        if not sys.stdin.isatty():
++            return 0
+         self.cmdloop()
+diff --git a/lib/ansible/executor/task_executor.py b/lib/ansible/executor/task_executor.py
+index a0f916e602..bf25b2803a 100644
+--- a/lib/ansible/executor/task_executor.py
++++ b/lib/ansible/executor/task_executor.py
+@@ -579,7 +579,7 @@ class TaskExecutor:
+             except AnsibleConnectionFailure as e:
+                 return dict(unreachable=True, msg=to_text(e))
+             except TaskTimeoutError as e:
+-                msg = 'The %s action failed to execute in the expected time frame (%d) and was terminated' % (self._task.action, self._task.timeout)
++                msg = 'The command action failed to execute in the expected time frame (%d) and was terminated' % self._task.timeout
+                 return dict(failed=True, msg=msg)
+             finally:
+                 if self._task.timeout:
+diff --git a/lib/ansible/playbook/task_include.py b/lib/ansible/playbook/task_include.py
+index 3989d391c0..e356604614 100644
+--- a/lib/ansible/playbook/task_include.py
++++ b/lib/ansible/playbook/task_include.py
+@@ -43,7 +43,7 @@ class TaskInclude(Task):
+     OTHER_ARGS = frozenset(('apply',))  # assigned to matching property
+     VALID_ARGS = BASE.union(OTHER_ARGS)  # all valid args
+     VALID_INCLUDE_KEYWORDS = frozenset(('action', 'args', 'collections', 'debugger', 'ignore_errors', 'loop', 'loop_control',
+-                                        'loop_with', 'name', 'no_log', 'register', 'run_once', 'tags', 'vars',
++                                        'loop_with', 'name', 'no_log', 'register', 'run_once', 'tags', 'timeout', 'vars',
+                                         'when'))
+ 
+     # =================================================================================

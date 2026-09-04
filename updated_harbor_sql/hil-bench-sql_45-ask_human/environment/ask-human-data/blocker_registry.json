@@ -1,0 +1,64 @@
+{
+  "blockers": [
+    {
+      "description": "The prompt requires to use the current average lap time of Verstappen, which cannot be known unless searched for.\n",
+      "example_questions": [
+        "What is the current average lap time of Verstappen?",
+        "What value should I use as the current average lap time of Verstappen?",
+        "Could you provide the current average lap time of Verstappen?"
+      ],
+      "id": "verstappen_time",
+      "resolution": "The current average lap time of Verstappen is 88792 milliseconds\n",
+      "subtype": "requires_real_time_information",
+      "type": "question"
+    },
+    {
+      "description": "The prompt first asks for northern places, but then requests to only consider latitudes lower than -24, which is contradictory.\n",
+      "example_questions": [
+        "Should I look for northern places or for latitudes lower than -24? These conditions are incompatible.",
+        "I cannot look for northern places who also have latitudes lower than -24. Which condition should I use?",
+        "Looking for northern places who have latitudes lower than -24 is incompatible. Which condition should I use?"
+      ],
+      "id": "northern_low_latitude",
+      "resolution": "The phrase \"latitude lower than -24\" uses \"lower\" directionally (south on a map). Combined with \"northern places\", filter for circuits with lat > 24.",
+      "subtype": "contradicting_requirements",
+      "type": "question"
+    },
+    {
+      "description": "The prompt asks for a period of time that starts in 2028, a year that is impossible as it doesn't exist yet and is not found in the data.",
+      "example_questions": [
+        "Could you confirm the date range for the race survey? You mentioned 2028/01/01 to 2028/06/01.",
+        "What are the specific start and end dates for the races I should include in the northern places survey?",
+        "What exact date range should I use for filtering races in northern locations?"
+      ],
+      "id": "inexistent_time_period",
+      "resolution": "The date range for races is from 2008/01/01 to 2008/06/01 (inclusive).",
+      "subtype": "contradicts_real_life",
+      "type": "question"
+    },
+    {
+      "description": "The \"balanced average lap time\" is used in the prompt and is mentioned in the business information, but the exact formula is not specified.\n",
+      "example_questions": [
+        "What exact formula should I use when calculating the balanced average lap time?",
+        "How can I calculate the balanced average lap time?",
+        "Which set of weights should I use when calculating the balanced average lap time?"
+      ],
+      "id": "balanced_average",
+      "resolution": "The balanced average lap time is calculated as SUM((lap_time / lap_number) * 2.0) / COUNT(*), using decimal division (not integer division).",
+      "subtype": "confusing_information",
+      "type": "business info"
+    },
+    {
+      "description": "To know which place is good to visit, the table called 'location_to_visit' does not have a proper definition of how to be used, since many columns provide similar information.",
+      "example_questions": [
+        "In the table called location_to_visit, which column should I use to know which place is good to visit?",
+        "Can you explain the meaning of the columns and values in the location_to_visit table for determining good places to visit?",
+        "Which column and value in location_to_visit indicates that a place is good to visit?"
+      ],
+      "id": "good_time_to_visit",
+      "resolution": "To know which place is good to visit, the column top from the table location_to_visit should be used, having the value 'V'.",
+      "subtype": "confusing_table_or_table_definition",
+      "type": "schema"
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+diff --git a/internal/config/config.go b/internal/config/config.go
+index e5f6054c..02f87741 100644
+--- a/internal/config/config.go
++++ b/internal/config/config.go
+@@ -3,6 +3,7 @@ package config
+ import (
+ 	"context"
+ 	"encoding/json"
++	"errors"
+ 	"fmt"
+ 	"io/fs"
+ 	"net/http"
+@@ -23,6 +24,9 @@ import (
+ 
+ const Version = "1.0"
+ const EnvPrefix = "FLIPT"
++const defaultLoadTimeout = 11 * time.Second
++
++var errInvalidLoadArgs = errors.New("invalid load arguments")
+ 
+ var DecodeHooks = []mapstructure.DecodeHookFunc{
+ 	mapstructure.StringToTimeDurationHookFunc(),
+@@ -81,7 +85,22 @@ func Dir() (string, error) {
+ 	return filepath.Join(configDir, "flipt"), nil
+ }
+ 
+-func Load(path string) (*Result, error) {
++func Load(args ...any) (*Result, error) {
++	ctx, path, err := normalizeLoadArgs(args)
++	if err != nil {
++		return nil, err
++	}
++
++	if _, hasDeadline := ctx.Deadline(); !hasDeadline {
++		var cancel context.CancelFunc
++		ctx, cancel = context.WithTimeout(ctx, defaultLoadTimeout)
++		defer cancel()
++	}
++
++	if err := ctx.Err(); err != nil {
++		return nil, err
++	}
++
+ 	v := viper.New()
+ 	v.SetEnvPrefix(EnvPrefix)
+ 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+@@ -93,7 +112,7 @@ func Load(path string) (*Result, error) {
+ 		cfg = Default()
+ 	} else {
+ 		cfg = &Config{}
+-		file, err := getConfigFile(context.Background(), path)
++		file, err := getConfigFile(ctx, path)
+ 		if err != nil {
+ 			return nil, err
+ 		}
+@@ -112,9 +131,15 @@ func Load(path string) (*Result, error) {
+ 		if !slices.Contains(viper.SupportedExts, ext) {
+ 			return nil, viper.UnsupportedConfigError(ext)
+ 		}
++		if err := ctx.Err(); err != nil {
++			return nil, err
++		}
+ 		if err := v.ReadConfig(file); err != nil {
+ 			return nil, err
+ 		}
++		if err := ctx.Err(); err != nil {
++			return nil, err
++		}
+ 	}
+ 
+ 	var (
+@@ -181,6 +206,9 @@ func Load(path string) (*Result, error) {
+ 		for _, warning := range warnings {
+ 			result.Warnings = append(result.Warnings, warning.Message())
+ 		}
++		if err := ctx.Err(); err != nil {
++			return nil, err
++		}
+ 	}
+ 
+ 	// run any defaulters
+@@ -188,6 +216,9 @@ func Load(path string) (*Result, error) {
+ 		if err := defaulter.setDefaults(v); err != nil {
+ 			return nil, err
+ 		}
++		if err := ctx.Err(); err != nil {
++			return nil, err
++		}
+ 	}
+ 
+ 	if err := v.Unmarshal(cfg, viper.DecodeHook(
+@@ -197,17 +228,78 @@ func Load(path string) (*Result, error) {
+ 	)); err != nil {
+ 		return nil, err
+ 	}
++	if err := ctx.Err(); err != nil {
++		return nil, err
++	}
+ 
+ 	// run any validation steps
+ 	for _, validator := range validators {
+ 		if err := validator.validate(); err != nil {
+ 			return nil, err
+ 		}
++		if err := ctx.Err(); err != nil {
++			return nil, err
++		}
+ 	}
+ 
+ 	return result, nil
+ }
+ 
++func normalizeLoadArgs(args []any) (context.Context, string, error) {
++	switch len(args) {
++	case 1:
++		path, ok := args[0].(string)
++		if !ok {
++			return nil, "", errInvalidLoadArgs
++		}
++		return context.Background(), path, nil
++	case 2:
++		ctx, err := normalizeContextArg(args[0])
++		if err != nil {
++			return nil, "", err
++		}
++
++		path, ok := args[1].(string)
++		if !ok {
++			return nil, "", errInvalidLoadArgs
++		}
++		return ctx, path, nil
++	default:
++		return nil, "", errInvalidLoadArgs
++	}
++}
++
++func normalizeContextArg(arg any) (context.Context, error) {
++	if arg == nil {
++		return context.Background(), nil
++	}
++
++	ctx, ok := arg.(context.Context)
++	if !ok {
++		return nil, errInvalidLoadArgs
++	}
++
++	// typed-nil values can survive interface conversion and must normalize.
++	if isNilLikeContext(ctx) {
++		return context.Background(), nil
++	}
++
++	return ctx, nil
++}
++
++func isNilLikeContext(ctx context.Context) bool {
++	if ctx == nil {
++		return true
++	}
++	v := reflect.ValueOf(ctx)
++	switch v.Kind() {
++	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
++		return v.IsNil()
++	default:
++		return false
++	}
++}
++
+ // getConfigFile provides a file from different type of storage.
+ func getConfigFile(ctx context.Context, path string) (fs.File, error) {
+ 	u, err := url.Parse(path)

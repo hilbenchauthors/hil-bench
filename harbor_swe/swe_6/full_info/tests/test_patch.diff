@@ -1,0 +1,374 @@
+diff --git a/packages/components/containers/payments/paymentTokenHelper.test.ts b/packages/components/containers/payments/paymentTokenHelper.test.ts
+index 6395880704..3d9cd8a732 100644
+--- a/packages/components/containers/payments/paymentTokenHelper.test.ts
++++ b/packages/components/containers/payments/paymentTokenHelper.test.ts
+@@ -1,13 +1,33 @@
++import * as fs from 'fs';
++import * as path from 'path';
++
+ import { c } from 'ttag';
+ 
+-import { process } from '@proton/components/containers/payments/paymentTokenHelper';
+-import { PAYMENT_TOKEN_STATUS } from '@proton/shared/lib/constants';
++import { PAYMENT_METHOD_TYPES, PAYMENT_TOKEN_STATUS } from '@proton/shared/lib/constants';
++import { Api } from '@proton/shared/lib/interfaces';
++
++import PaymentVerificationModal from './PaymentVerificationModal';
++import { ExistingPayment, TokenPaymentMethod, WrappedCardPayment } from './interface';
++import {
++    VerifyPayment,
++    createPaymentToken,
++    getCreatePaymentToken,
++    getDefaultVerifyPayment,
++    process,
++} from './paymentTokenHelper';
+ 
+ let tab: { closed: boolean; close: () => any };
+ 
+-function delay(ms: number) {
+-    return new Promise((resolve) => setTimeout(resolve, ms));
+-}
++const rootDir = path.resolve(__dirname, '../../../../');
++const readSource = (relativePath: string) => fs.readFileSync(path.resolve(rootDir, relativePath), 'utf8');
++
++beforeAll(() => {
++    jest.useFakeTimers();
++});
++
++afterAll(() => {
++    jest.useRealTimers();
++});
+ 
+ beforeEach(() => {
+     jest.clearAllMocks();
+@@ -103,10 +123,329 @@ describe('process', () => {
+ 
+         const delayListening = 10;
+         const promise = process({ api, ApprovalURL, ReturnHost, signal, Token }, delayListening);
+-        await delay(delayListening * 5);
+ 
++        await jest.advanceTimersByTimeAsync(delayListening);
+         tab.closed = true;
++        await jest.advanceTimersByTimeAsync(delayListening);
+ 
+         await expect(promise).resolves.toEqual(undefined);
+     });
+ });
++
++describe('createPaymentToken', () => {
++    let verify: VerifyPayment;
++    let api: Api;
++
++    beforeEach(() => {
++        verify = jest.fn();
++        api = jest.fn();
++    });
++
++    it('calls verify with the pending token payload for wrapped card payments', async () => {
++        const params: WrappedCardPayment = {
++            Payment: {
++                Type: PAYMENT_METHOD_TYPES.CARD,
++                Details: {
++                    Name: 'John Doe',
++                    Number: '4242424242424242',
++                    ExpMonth: '12',
++                    ExpYear: '2032',
++                    CVC: '123',
++                    ZIP: '12345',
++                    Country: 'US',
++                },
++            },
++        };
++
++        (api as jest.Mock).mockResolvedValue({
++            Token: 'some-payment-token-222',
++            Status: PAYMENT_TOKEN_STATUS.STATUS_PENDING,
++            ApprovalURL: 'https://example.proton.me',
++            ReturnHost: 'return.proton.me',
++        });
++
++        const verifyResult: TokenPaymentMethod = {
++            Payment: {
++                Type: PAYMENT_METHOD_TYPES.TOKEN,
++                Details: {
++                    Token: 'some-payment-token-222',
++                },
++            },
++        };
++
++        (verify as jest.Mock).mockResolvedValue(verifyResult);
++
++        const result = await createPaymentToken({
++            params,
++            verify,
++            api,
++        });
++
++        expect(verify).toHaveBeenCalledWith({
++            Payment: params.Payment,
++            Token: 'some-payment-token-222',
++            ApprovalURL: 'https://example.proton.me',
++            ReturnHost: 'return.proton.me',
++        });
++        expect(result).toEqual(verifyResult);
++    });
++
++    it('passes Payment as undefined for existing payment verification flows', async () => {
++        const params: ExistingPayment = {
++            PaymentMethodID: 'payment-method-id',
++        };
++
++        (api as jest.Mock).mockResolvedValue({
++            Token: 'some-payment-token-333',
++            Status: PAYMENT_TOKEN_STATUS.STATUS_PENDING,
++            ApprovalURL: 'https://example.proton.me',
++            ReturnHost: 'return.proton.me',
++        });
++
++        const verifyResult: TokenPaymentMethod = {
++            Payment: {
++                Type: PAYMENT_METHOD_TYPES.TOKEN,
++                Details: {
++                    Token: 'some-payment-token-333',
++                },
++            },
++        };
++
++        (verify as jest.Mock).mockResolvedValue(verifyResult);
++
++        const result = await createPaymentToken({
++            params,
++            verify,
++            api,
++        });
++
++        expect(verify).toHaveBeenCalledWith({
++            Payment: undefined,
++            Token: 'some-payment-token-333',
++            ApprovalURL: 'https://example.proton.me',
++            ReturnHost: 'return.proton.me',
++        });
++        expect(result).toEqual(verifyResult);
++    });
++});
++
++it('getCreatePaymentToken pre-binds verify and preserves the public call shape', async () => {
++    const verify: VerifyPayment = jest.fn().mockResolvedValue({
++        Payment: {
++            Type: PAYMENT_METHOD_TYPES.TOKEN,
++            Details: {
++                Token: 'some-payment-token-555',
++            },
++        },
++    });
++    const api = jest.fn().mockResolvedValue({
++        Token: 'some-payment-token-555',
++        Status: PAYMENT_TOKEN_STATUS.STATUS_PENDING,
++        ApprovalURL: 'https://example.proton.me',
++        ReturnHost: 'return.proton.me',
++    });
++    const params: WrappedCardPayment = {
++        Payment: {
++            Type: PAYMENT_METHOD_TYPES.CARD,
++            Details: {
++                Name: 'John Doe',
++                Number: '4242424242424242',
++                ExpMonth: '12',
++                ExpYear: '2032',
++                CVC: '123',
++                ZIP: '12345',
++                Country: 'US',
++            },
++        },
++    };
++
++    const boundCreatePaymentToken = getCreatePaymentToken(verify);
++
++    const result = await boundCreatePaymentToken(
++        {
++            mode: 'add-card',
++            api,
++            params,
++        },
++        {
++            Amount: 1200,
++            Currency: 'USD',
++        }
++    );
++
++    expect(verify).toHaveBeenCalledWith({
++        mode: 'add-card',
++        Payment: params.Payment,
++        Token: 'some-payment-token-555',
++        ApprovalURL: 'https://example.proton.me',
++        ReturnHost: 'return.proton.me',
++    });
++    expect(result).toEqual({
++        Payment: {
++            Type: PAYMENT_METHOD_TYPES.TOKEN,
++            Details: {
++                Token: 'some-payment-token-555',
++            },
++        },
++    });
++});
++
++it('getCreatePaymentToken returns a chargeable token without invoking verify', async () => {
++    const verify: VerifyPayment = jest.fn();
++    const api = jest.fn().mockResolvedValue({
++        Token: 'some-payment-token-777',
++        Status: PAYMENT_TOKEN_STATUS.STATUS_CHARGEABLE,
++    });
++    const params: WrappedCardPayment = {
++        Payment: {
++            Type: PAYMENT_METHOD_TYPES.CARD,
++            Details: {
++                Name: 'John Doe',
++                Number: '4242424242424242',
++                ExpMonth: '12',
++                ExpYear: '2032',
++                CVC: '123',
++                ZIP: '12345',
++                Country: 'US',
++            },
++        },
++    };
++
++    const boundCreatePaymentToken = getCreatePaymentToken(verify);
++    const result = await boundCreatePaymentToken({ api, params });
++
++    expect(result).toEqual({
++        Payment: {
++            Type: PAYMENT_METHOD_TYPES.TOKEN,
++            Details: {
++                Token: 'some-payment-token-777',
++            },
++        },
++    });
++    expect(verify).not.toHaveBeenCalled();
++});
++
++it('getCreatePaymentToken rejects terminal failure statuses before verification', async () => {
++    const verify: VerifyPayment = jest.fn();
++    const api = jest
++        .fn()
++        .mockResolvedValueOnce({
++            Token: 'failed-token',
++            Status: PAYMENT_TOKEN_STATUS.STATUS_FAILED,
++        })
++        .mockResolvedValueOnce({
++            Token: 'consumed-token',
++            Status: PAYMENT_TOKEN_STATUS.STATUS_CONSUMED,
++        })
++        .mockResolvedValueOnce({
++            Token: 'unsupported-token',
++            Status: PAYMENT_TOKEN_STATUS.STATUS_NOT_SUPPORTED,
++        })
++        .mockResolvedValueOnce({
++            Token: 'unknown-token',
++            Status: 999,
++        });
++    const params: WrappedCardPayment = {
++        Payment: {
++            Type: PAYMENT_METHOD_TYPES.CARD,
++            Details: {
++                Name: 'John Doe',
++                Number: '4242424242424242',
++                ExpMonth: '12',
++                ExpYear: '2032',
++                CVC: '123',
++                ZIP: '12345',
++                Country: 'US',
++            },
++        },
++    };
++
++    const boundCreatePaymentToken = getCreatePaymentToken(verify);
++
++    await expect(boundCreatePaymentToken({ api, params })).rejects.toThrow('Payment process failed');
++    await expect(boundCreatePaymentToken({ api, params })).rejects.toThrow('Payment process consumed');
++    await expect(boundCreatePaymentToken({ api, params })).rejects.toThrow('Payment process not supported');
++    await expect(boundCreatePaymentToken({ api, params })).rejects.toThrow('Unknown payment token status');
++    expect(verify).not.toHaveBeenCalled();
++});
++
++it('getDefaultVerifyPayment creates a manual-start modal and keeps redirect metadata internal', async () => {
++    const createModal = jest.fn();
++    const api = jest.fn();
++    const payment: WrappedCardPayment['Payment'] = {
++        Type: PAYMENT_METHOD_TYPES.CARD,
++        Details: {
++            Name: 'John Doe',
++            Number: '4242424242424242',
++            ExpMonth: '12',
++            ExpYear: '2032',
++            CVC: '123',
++            ZIP: '12345',
++            Country: 'US',
++        },
++    };
++    const verifyPromise = getDefaultVerifyPayment(createModal, api)({
++        mode: 'add-card',
++        Payment: payment,
++        Token: 'some-payment-token-666',
++        ApprovalURL: 'https://example.proton.me',
++        ReturnHost: 'return.proton.me',
++    });
++
++    expect(createModal).toHaveBeenCalledTimes(1);
++    const modal = createModal.mock.calls[0][0];
++
++    expect(modal.type).toBe(PaymentVerificationModal);
++    expect(modal.props.mode).toBe('add-card');
++    expect(modal.props.payment).toEqual(payment);
++    expect(modal.props.token).toBe('some-payment-token-666');
++    expect(modal.props.ApprovalURL).toBeUndefined();
++    expect(modal.props.ReturnHost).toBeUndefined();
++    expect(modal.props.initialProcess).toBeUndefined();
++    expect(typeof modal.props.onProcess).toBe('function');
++
++    const processController = modal.props.onProcess();
++    expect(processController.abort).toBeInstanceOf(AbortController);
++    expect(window.open).toHaveBeenCalledWith('https://example.proton.me');
++    processController.abort.abort();
++    await expect(processController.promise).rejects.toEqual(new Error(c('Error').t`Process aborted`));
++
++    const verificationResult: TokenPaymentMethod = {
++        Payment: {
++            Type: PAYMENT_METHOD_TYPES.TOKEN,
++            Details: {
++                Token: 'some-payment-token-666',
++            },
++        },
++    };
++
++    modal.props.onSubmit(verificationResult);
++
++    await expect(verifyPromise).resolves.toEqual(verificationResult);
++});
++
++it('updates payment token consumers to use verification factories and leaves usePayPal unchanged', () => {
++    const consumerFiles = [
++        'applications/account/src/app/signup/PaymentStep.tsx',
++        'packages/components/containers/invoices/PayInvoiceModal.tsx',
++        'packages/components/containers/payments/CreditsModal.tsx',
++        'packages/components/containers/payments/EditCardModal.tsx',
++        'packages/components/containers/payments/subscription/SubscriptionModal.tsx',
++    ];
++
++    for (const file of consumerFiles) {
++        const source = readSource(file);
++
++        expect(source).toContain('getDefaultVerifyPayment');
++        expect(source).toContain('getCreatePaymentToken');
++        expect(source).toMatch(/const verify = getDefaultVerifyPayment\(createModal, api\);/);
++        expect(source).toMatch(/const createPaymentToken = getCreatePaymentToken\(verify\);/);
++    }
++
++    const paypalSource = readSource('packages/components/containers/payments/usePayPal.tsx');
++
++    expect(paypalSource).toContain('PaymentVerificationModal');
++    expect(paypalSource).toContain('initialProcess={onProcess()}');
++    expect(paypalSource).not.toContain('getDefaultVerifyPayment');
++    expect(paypalSource).not.toContain('getCreatePaymentToken');
++});

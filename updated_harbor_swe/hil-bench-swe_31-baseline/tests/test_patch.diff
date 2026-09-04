@@ -1,0 +1,93 @@
+diff --git a/packages/components/containers/payments/subscription/InAppPurchaseModal.test.tsx b/packages/components/containers/payments/subscription/InAppPurchaseModal.test.tsx
+index 4a7b67712a..859562fec7 100644
+--- a/packages/components/containers/payments/subscription/InAppPurchaseModal.test.tsx
++++ b/packages/components/containers/payments/subscription/InAppPurchaseModal.test.tsx
+@@ -27,6 +27,37 @@ it('should trigger onClose when user presses the button', async () => {
+     expect(onClose).toHaveBeenCalled();
+ });
+ 
++it('should render Android external warning content', () => {
++    const { container, getByTestId } = render(
++        <InAppPurchaseModal onClose={() => {}} open={true} subscription={{ External: External.Android } as any} />
++    );
++
++    expect(container).toHaveTextContent('Manage your subscription on Google Play');
++    expect(container).toHaveTextContent('Google Play');
++    expect(container).toHaveTextContent('Payments & subscriptions');
++    const boldNavigationNoun = container.querySelector('span.text-bold');
++    expect(boldNavigationNoun).toBeInTheDocument();
++    expect(boldNavigationNoun).toHaveTextContent('Payments & subscriptions');
++    expect(container).not.toHaveTextContent('Google Play store');
++    expect(getByTestId('InAppPurchaseModal/onClose')).toHaveTextContent('Got it');
++    expect(container.querySelector('.modal-two-dialog--large')).toBeInTheDocument();
++    expect(container.querySelector('.prompt')).not.toBeInTheDocument();
++});
++
++it('should render iOS external warning content', () => {
++    const { container, getByTestId } = render(
++        <InAppPurchaseModal onClose={() => {}} open={true} subscription={{ External: External.iOS } as any} />
++    );
++
++    expect(container).toHaveTextContent('Manage your subscription on Apple App Store');
++    expect(container).toHaveTextContent('Apple App Store');
++    expect(container).toHaveTextContent('Subscriptions');
++    const boldNavigationNoun = container.querySelector('span.text-bold');
++    expect(boldNavigationNoun).toBeInTheDocument();
++    expect(boldNavigationNoun).toHaveTextContent('Subscriptions');
++    expect(getByTestId('InAppPurchaseModal/onClose')).toHaveTextContent('Got it');
++});
++
+ it('should render iOS text if subscription is managed by Apple', async () => {
+     const { container } = render(
+         <InAppPurchaseModal onClose={() => {}} open={true} subscription={{ External: External.iOS } as any} />
+@@ -47,8 +78,8 @@ it('should immediately close if subscription is not managed externally', () => {
+     expect(container).toBeEmptyDOMElement();
+ });
+ 
+-it('should show admin text if the adminPanel property is enabled', () => {
+-    const { container } = render(
++it('should render delegated warning content when admin context is provided', () => {
++    const { container, getByTestId, queryByText } = render(
+         <InAppPurchaseModal
+             onClose={() => {}}
+             adminPanelInfo={{ userId: 1001 }}
+@@ -57,5 +88,9 @@ it('should show admin text if the adminPanel property is enabled', () => {
+         />
+     );
+ 
+-    expect(container).toHaveTextContent('Subscription of user ID-1001 has been done via an in-app purchase.');
++    expect(getByTestId('InAppPurchaseModal/text')).toHaveTextContent(
++        /^Subscription for user ID: 1001 was purchased via an in-app purchase\.$/
++    );
++    expect(container.querySelectorAll('p').length).toBe(1);
++    expect(queryByText(/Just sign in/i)).not.toBeInTheDocument();
+ });
+diff --git a/packages/components/containers/payments/subscription/SubscriptionModalProvider.test.tsx b/packages/components/containers/payments/subscription/SubscriptionModalProvider.test.tsx
+index 4a06e92416..75ec3a4387 100644
+--- a/packages/components/containers/payments/subscription/SubscriptionModalProvider.test.tsx
++++ b/packages/components/containers/payments/subscription/SubscriptionModalProvider.test.tsx
+@@ -111,7 +111,7 @@ it('should render <SubscriptionModal> if there is no legacy plans', async () =>
+     expect(container).toHaveTextContent('SubscriptionModal');
+ });
+ 
+-it('should render <InAppPurchaseModal> if subscription is managed externally', async () => {
++it('should render warning surface for externally managed subscriptions', async () => {
+     const subscription = cloneDeep(subscriptionDefaultResponse);
+     subscription.Subscription.External = External.Android;
+     mockSubscriptionApi(subscription);
+@@ -124,7 +124,7 @@ it('should render <InAppPurchaseModal> if subscription is managed externally', a
+         return null;
+     };
+ 
+-    const { container } = render(
++    const { getByTestId } = render(
+         <Providers>
+             <SubscriptionModalProvider app="proton-account">
+                 <ContextReaderComponent />
+@@ -137,5 +137,5 @@ it('should render <InAppPurchaseModal> if subscription is managed externally', a
+     expect(openSubscriptionModal).toBeDefined();
+     openSubscriptionModal({} as any);
+ 
+-    expect(container).toHaveTextContent('Your subscription has been done via an in-app purchase.');
++    expect(getByTestId('InAppPurchaseModal/text')).not.toBeEmptyDOMElement();
+ });

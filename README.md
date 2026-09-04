@@ -110,28 +110,27 @@ uv run hil sql /path/to/sql_task_dir \
 
 Harbor supports three modes for every task: `baseline`, `ask_human`, `full_info`.
 
-- Local layout (this repo): `harbor_sql/sql_<i>/<mode>` and `harbor_swe/swe_<j>/<mode>`
+- Runnable standalone tasks (this repo): `updated_harbor_sql/hil-bench-sql_<i>-<mode>` and `updated_harbor_swe/hil-bench-swe_<j>-<mode>`
 - Registry layout (published): one dataset `scale-ai/hil-bench` containing all SQL+SWE mode tasks
 
 ```bash
-# 1) One-time setup (from models/hil_bench)
+# One-time setup
 uv tool install harbor
 harbor auth login
 
-# 2) Build MCP/server images
-bash harbor_sql/build_images.sh
-bash harbor_swe/build_images.sh
 
-# 3) Warm task artifacts
-bash harbor_sql/warmup_data.sh
-bash harbor_swe/warmup_images.sh
-
-# 4) Run examples
-harbor run -p harbor_sql/sql_3/baseline -a claude-code -m anthropic/claude-opus-4-1
-harbor run -p harbor_swe/swe_5/ask_human -a claude-code -m anthropic/claude-opus-4-1
+harbor run -p updated_harbor_sql/hil-bench-sql_3-baseline \
+  -a claude-code -m anthropic/claude-opus-4-1
+harbor run -p updated_harbor_swe/hil-bench-swe_5-ask_human \
+  -a claude-code -m anthropic/claude-opus-4-1
 ```
 
-For `ask_human` mode, set judge env vars before `harbor run` (for example `ASK_HUMAN_MODEL`, `LITELLM_BASE_URL`, `LITELLM_API_KEY`).
+For `ask_human` mode, select the judge backend with `ASK_HUMAN_BACKEND`
+(`litellm_proxy`, `provider_native`, or `vllm`) and set that backend's model,
+URL, and credential variables. `litellm_proxy` is the default. Proxy mode
+requires a caller-supplied `LITELLM_USER` and fails closed before an
+API request when it is missing. Provider-native and direct vLLM modes do not
+require proxy attribution.
 
 Registry examples:
 
@@ -140,7 +139,8 @@ Registry examples:
 harbor run -d scale-ai/hil-bench@v1 -a claude-code -m anthropic/claude-opus-4-1
 
 # Run one specific published task
-harbor run -t scale-ai/hil-bench-sql_3-baseline@v1 -a claude-code -m anthropic/claude-opus-4-1
+harbor run -t scale-ai/hil-bench-sql_3-baseline@v1 \
+  -a claude-code -m anthropic/claude-opus-4-1
 ```
 
 ## Output Structure

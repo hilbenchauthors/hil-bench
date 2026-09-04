@@ -1,0 +1,269 @@
+diff --git a/utils/cache/simple_cache_resolution_test.go b/utils/cache/simple_cache_resolution_test.go
+new file mode 100644
+index 00000000..9852f4ac
+--- /dev/null
++++ b/utils/cache/simple_cache_resolution_test.go
+@@ -0,0 +1,263 @@
++package cache
++
++import (
++	"os"
++	"os/exec"
++	"path/filepath"
++	"strings"
++	"testing"
++)
++
++func TestSimpleCacheBasicContract(t *testing.T) {
++	runGeneratedCacheProgram(t, `
++package main
++
++import (
++	"time"
++
++	cache "github.com/navidrome/navidrome/utils/cache"
++)
++
++func main() {
++	c := cache.NewSimpleCache[string]()
++
++	if err := c.Add("persist", "v1"); err != nil {
++		panic(err)
++	}
++	time.Sleep(25 * time.Millisecond)
++	if got, err := c.Get("persist"); err != nil || got != "v1" {
++		panic("expected persistent Add value")
++	}
++
++	if err := c.Add("persist", "v2"); err != nil {
++		panic(err)
++	}
++	if got, err := c.Get("persist"); err != nil || got != "v2" {
++		panic("expected replacement value")
++	}
++
++	if err := c.AddWithTTL("ttl", "v", 40*time.Millisecond); err != nil {
++		panic(err)
++	}
++	if got, err := c.Get("ttl"); err != nil || got != "v" {
++		panic("expected active TTL value")
++	}
++	time.Sleep(70 * time.Millisecond)
++	if got, err := c.Get("ttl"); err == nil || got != "" {
++		panic("expected expired TTL value to miss with zero value")
++	}
++
++	keys := c.Keys()
++	if len(keys) != 1 || keys[0] != "persist" {
++		panic("expected only active key persist")
++	}
++}
++`)
++}
++
++func TestSimpleCacheRespectsMaxActiveEntriesLimit(t *testing.T) {
++	runGeneratedCacheProgram(t, `
++package main
++
++import (
++	"fmt"
++
++	cache "github.com/navidrome/navidrome/utils/cache"
++)
++
++func main() {
++	c := cache.NewSimpleCache[string]()
++
++	for i := 0; i < 256; i++ {
++		if err := c.Add(fmt.Sprintf("k-%03d", i), "v"); err != nil {
++			panic(err)
++		}
++	}
++	if len(c.Keys()) != 256 {
++		panic("expected 256 active keys")
++	}
++	if err := c.Add("overflow", "v"); err == nil {
++		panic("expected overflow add to fail")
++	}
++	if _, err := c.Get("overflow"); err == nil {
++		panic("overflow key should not become active")
++	}
++	if len(c.Keys()) != 256 {
++		panic("expected active keys to remain unchanged")
++	}
++}
++`)
++}
++
++func TestSimpleCacheServesStaleValueOnRefreshFailure(t *testing.T) {
++	runGeneratedCacheProgram(t, `
++package main
++
++import (
++	"errors"
++	"time"
++
++	cache "github.com/navidrome/navidrome/utils/cache"
++)
++
++func main() {
++	c := cache.NewSimpleCache[string]()
++
++	if err := c.AddWithTTL("stale", "v1", 30*time.Millisecond); err != nil {
++		panic(err)
++	}
++	time.Sleep(60 * time.Millisecond)
++
++	got, err := c.GetWithLoader("stale", func(key string) (string, time.Duration, error) {
++		return "", 0, errors.New("backend down")
++	})
++	if err != nil || got != "v1" {
++		panic("expected stale fallback value")
++	}
++	if _, err := c.Get("stale"); err == nil {
++		panic("stale key should remain inactive after failed refresh")
++	}
++	for _, key := range c.Keys() {
++		if key == "stale" {
++			panic("stale key must not appear in active keys")
++		}
++	}
++}
++`)
++}
++
++func TestSimpleCacheHandlesNonPositiveLifetimes(t *testing.T) {
++	runGeneratedCacheProgram(t, `
++package main
++
++import (
++	"time"
++
++	cache "github.com/navidrome/navidrome/utils/cache"
++)
++
++func main() {
++	c := cache.NewSimpleCache[string]()
++
++	if err := c.AddWithTTL("k", "v", 0); err == nil {
++		panic("expected non-positive AddWithTTL to fail")
++	}
++	if _, err := c.Get("k"); err == nil {
++		panic("direct non-positive lifetime must not create an active entry")
++	}
++
++	got, err := c.GetWithLoader("transient", func(key string) (string, time.Duration, error) {
++		return "v", 0, nil
++	})
++	if err != nil || got != "v" {
++		panic("expected transient loader value without persistence")
++	}
++	if _, err := c.Get("transient"); err == nil {
++		panic("loader value with non-positive lifetime must remain inactive")
++	}
++	for _, key := range c.Keys() {
++		if key == "transient" {
++			panic("transient loader value must not appear in active keys")
++		}
++	}
++}
++`)
++}
++
++func TestSimpleCacheSharesOutcomeAcrossOverlappingLoads(t *testing.T) {
++	runGeneratedCacheProgram(t, `
++package main
++
++import (
++	"errors"
++	"fmt"
++	"sync"
++	"sync/atomic"
++	"time"
++
++	cache "github.com/navidrome/navidrome/utils/cache"
++)
++
++func main() {
++	c := cache.NewSimpleCache[string]()
++
++	var seq int32
++	start := make(chan struct{})
++	loader := func(key string) (string, time.Duration, error) {
++		callID := atomic.AddInt32(&seq, 1)
++		<-start
++		return fmt.Sprintf("value-%d", callID), time.Second, nil
++	}
++
++	const workers = 8
++	var wg sync.WaitGroup
++	wg.Add(workers)
++	values := make([]string, workers)
++	errs := make([]error, workers)
++
++	for i := 0; i < workers; i++ {
++		i := i
++		go func() {
++			defer wg.Done()
++			values[i], errs[i] = c.GetWithLoader("shared", loader)
++		}()
++	}
++
++	time.Sleep(20 * time.Millisecond)
++	close(start)
++	wg.Wait()
++
++	first := values[0]
++	for i := 0; i < workers; i++ {
++		if errs[i] != nil || values[i] != first {
++			panic("expected one shared outcome across overlapping loads")
++		}
++	}
++
++	got, err := c.GetWithLoader("missing", func(key string) (string, time.Duration, error) {
++		return "", 0, errors.New("boom")
++	})
++	if err == nil || got != "" {
++		panic("expected loader failure when no value can be served")
++	}
++}
++`)
++}
++
++func runGeneratedCacheProgram(t *testing.T, generatedSource string) {
++	t.Helper()
++
++	root := repoRoot(t)
++	tmpDir := t.TempDir()
++
++	goMod := "module generated\n\ngo 1.22\n\nrequire github.com/navidrome/navidrome v0.0.0\n\nreplace github.com/navidrome/navidrome => " + root + "\n"
++	if err := os.WriteFile(filepath.Join(tmpDir, "go.mod"), []byte(goMod), 0o644); err != nil {
++		t.Fatalf("writing go.mod: %v", err)
++	}
++	if err := os.WriteFile(filepath.Join(tmpDir, "main.go"), []byte(strings.TrimSpace(generatedSource)+"\n"), 0o644); err != nil {
++		t.Fatalf("writing generated program: %v", err)
++	}
++
++	goBinary := "/usr/local/go/bin/go"
++	if _, err := os.Stat(goBinary); err != nil {
++		goBinary = "go"
++	}
++
++	cmd := exec.Command(goBinary, "run", "-mod=mod", ".")
++	cmd.Dir = tmpDir
++	cmd.Env = append(os.Environ(), "GOWORK=off")
++	output, err := cmd.CombinedOutput()
++	if err != nil {
++		t.Fatalf("generated cache program failed:\n%s", string(output))
++	}
++}
++
++func repoRoot(t *testing.T) string {
++	t.Helper()
++
++	wd, err := os.Getwd()
++	if err != nil {
++		t.Fatalf("getting working directory: %v", err)
++	}
++	return filepath.Clean(filepath.Join(wd, "..", ".."))
++}

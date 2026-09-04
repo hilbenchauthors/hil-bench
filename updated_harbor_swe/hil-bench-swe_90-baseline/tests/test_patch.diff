@@ -1,0 +1,86 @@
+diff --git a/packages/components/components/v2/phone/PhoneInput.test.tsx b/packages/components/components/v2/phone/PhoneInput.test.tsx
+index 83c4713ccf..a8ef898351 100644
+--- a/packages/components/components/v2/phone/PhoneInput.test.tsx
++++ b/packages/components/components/v2/phone/PhoneInput.test.tsx
+@@ -1,7 +1,9 @@
+ import { useState } from 'react';
+ 
+-import { fireEvent, render } from '@testing-library/react';
++import { fireEvent, render, screen } from '@testing-library/react';
+ 
++import { useMyCountry, useUserSettings } from '../../../hooks';
++import { AccountRecoverySection } from '../../../containers/recovery/AccountRecoverySection';
+ import PhoneInput from './PhoneInput';
+ import { getCountryFromNumber, getCursorPosition, getSpecificCountry } from './helper';
+ 
+@@ -28,6 +30,28 @@ jest.mock('react-virtualized', () => {
+     };
+ });
+ 
++// Mocks for AccountRecoverySection test (same file so all tests run in one Jest invocation)
++jest.mock('../../../hooks/useMyCountry', () => jest.fn());
++jest.mock('../../../hooks/useUserSettings', () => jest.fn());
++jest.mock('../../../hooks/useNotifications', () => jest.fn(() => ({ createNotification: jest.fn() })));
++jest.mock('@proton/components/hooks/useEventManager', () => jest.fn(() => ({ call: jest.fn() })));
++jest.mock('@proton/hooks', () => ({ ...jest.requireActual('@proton/hooks'), useLoading: jest.fn(() => [false, jest.fn()]) }));
++jest.mock('@proton/components/components/modalTwo/useModalTwo', () => ({
++    useModalTwoPromise: jest.fn(() => [() => null, jest.fn()]),
++}));
++jest.mock('../../../containers/recovery/email/RecoveryEmail', () => {
++    const React = jest.requireActual('react');
++    return { __esModule: true, default: () => React.createElement('div', { 'data-testid': 'recovery-email' }, 'RecoveryEmail') };
++});
++jest.mock('../../../containers/recovery/phone/RecoveryPhone', () => {
++    const React = jest.requireActual('react');
++    return { __esModule: true, default: () => React.createElement('div', { 'data-testid': 'recovery-phone' }, 'RecoveryPhone') };
++});
++jest.mock('@proton/components/components/loader/Loader', () => {
++    const React = jest.requireActual('react');
++    return { __esModule: true, default: () => React.createElement('div', { 'data-testid': 'account-loader' }, 'Loader') };
++});
++
+ interface TestCommands {
+     input?: string;
+     select?: string;
+@@ -212,4 +212,39 @@ describe('PhoneInput', () => {
+         fireEvent.change(input, { target: { value: '1' } });
+         expect(input.value).toBe('1');
+     });
+-});
++
++    it('should have no country selected when defaultCountry prop is omitted', () => {
++        const spy = jest.fn();
++        const { getByRole } = render(<PhoneInput value="" data-testid="input" onChange={spy} />);
++        const button = getByRole('button') as HTMLButtonElement;
++        expect(getCountry(button)).toBe(null);
++    });
++
++    it('should adopt defaultCountry after mount once and ignore subsequent changes', () => {
++        const spy = jest.fn();
++        const { getByRole, rerender } = render(<PhoneInput value="" data-testid="input" onChange={spy} />);
++        const button = getByRole('button') as HTMLButtonElement;
++        expect(getCountry(button)).toBe(null);
++        rerender(<PhoneInput value="" defaultCountry="US" data-testid="input" onChange={spy} />);
++        expect(getCountry(button)).toBe('United States');
++        rerender(<PhoneInput value="" defaultCountry="CH" data-testid="input" onChange={spy} />);
++        expect(getCountry(button)).toBe('United States');
++        rerender(<PhoneInput value="" defaultCountry="" data-testid="input" onChange={spy} />);
++        expect(getCountry(button)).toBe('United States');
++    });
++});
++
++describe('AccountRecoverySection', () => {
++    const mockUserSettings = { Phone: { Value: '', Reset: 0 }, Email: { Value: '', Reset: 0 } };
++
++    beforeEach(() => {
++        (useUserSettings as jest.Mock).mockReturnValue([mockUserSettings, false]);
++        (useMyCountry as jest.Mock).mockReturnValue(undefined);
++    });
++
++    it('should render recovery content and not show loader when useMyCountry returns undefined', () => {
++        render(<AccountRecoverySection />);
++        expect(screen.queryByTestId('account-loader')).not.toBeInTheDocument();
++        expect(screen.getByTestId('recovery-email')).toBeInTheDocument();
++    });
++});
++

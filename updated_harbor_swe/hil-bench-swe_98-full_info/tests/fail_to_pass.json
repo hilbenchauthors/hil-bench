@@ -1,0 +1,9 @@
+[
+  "test/units/test_controller_python_support_policy.py::test_collection_tar_member_size_limit",
+  "test/units/test_controller_python_support_policy.py::test_collection_tar_member_count_limit",
+  "test/units/test_controller_python_support_policy.py::test_collection_tar_filter_preserves_member_attributes",
+  "test/units/test_controller_python_support_policy.py::test_collection_tar_filter_rejects_path_traversal",
+  "test/units/cli/galaxy/test_collection_extract_tar.py::test_extract_tar_member_trailing_sep",
+  "test/units/cli/galaxy/test_collection_extract_tar.py::test_extract_tar_dir_exists",
+  "test/units/cli/galaxy/test_collection_extract_tar.py::test_extract_tar_dir_does_not_exist"
+]

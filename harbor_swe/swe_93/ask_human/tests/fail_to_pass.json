@@ -1,0 +1,6 @@
+[
+  "test/units/utils/test_vars.py::TestVariableUtils::test_combine_vars_replace_mixed_mapping_result_type",
+  "test/units/utils/test_vars.py::TestVariableUtils::test_varswithsources_union_with_supported_mapping_operands",
+  "test/units/utils/test_vars.py::TestVariableUtils::test_varswithsources_inplace_union_source_metadata_behavior",
+  "test/units/utils/test_vars.py::TestVariableUtils::test_varswithsources_inplace_union_return_object_contract"
+]

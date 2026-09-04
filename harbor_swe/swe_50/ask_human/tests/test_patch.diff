@@ -1,0 +1,109 @@
+diff --git a/applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts b/applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts
+new file mode 100644
+index 0000000000..26b82596df
+--- /dev/null
++++ b/applications/drive/src/app/store/_uploads/mimeTypeParser/mimeTypeParser.test.ts
+@@ -0,0 +1,103 @@
++import { mimeTypeFromFile } from './mimeTypeParser';
++import { getBrowser, getOS, isAndroid, isDesktop, isIos, isMobile } from '@proton/shared/lib/helpers/browser';
++import { SupportedMimeTypes } from '@proton/shared/lib/drive/constants';
++import { isSupportedImage } from '@proton/shared/lib/helpers/mimetype';
++
++jest.mock('@proton/shared/lib/helpers/browser');
++
++const mockGetBrowser = jest.mocked(getBrowser);
++const mockGetOS = jest.mocked(getOS);
++const mockIsDesktop = jest.mocked(isDesktop);
++const mockIsMobile = jest.mocked(isMobile);
++const mockIsAndroid = jest.mocked(isAndroid);
++const mockIsIos = jest.mocked(isIos);
++
++const JXL_MIME = 'image/jxl';
++
++describe('mimeTypeFromFile', () => {
++    test('returns File.type when present even if extension differs', async () => {
++        const fileContents = new Blob(['test'], { type: 'image/jpeg' });
++        const testFile = new File([fileContents], 'photo.jxl', { type: 'image/jpeg' });
++
++        await expect(mimeTypeFromFile(testFile)).resolves.toBe('image/jpeg');
++    });
++
++    test('returns File.type over extension for conflicting formats', async () => {
++        const fileContents = new Blob(['test'], { type: 'image/png' });
++        const testFile = new File([fileContents], 'photo.jxl', { type: 'image/png' });
++
++        await expect(mimeTypeFromFile(testFile)).resolves.toBe('image/png');
++    });
++
++    test('uses extension lookup when File.type is empty', async () => {
++        const fileContents = new Blob(['test'], { type: '' });
++        const testFile = new File([fileContents], 'photo.jxl', { type: '' });
++
++        await expect(mimeTypeFromFile(testFile)).resolves.toBe('image/jxl');
++    });
++
++    test("falls back to 'application/octet-stream' when no MIME source resolves", async () => {
++        const fileContents = new Blob(['test'], { type: '' });
++        const testFile = new File([fileContents], 'photo.unknownext', { type: '' });
++
++        await expect(mimeTypeFromFile(testFile)).resolves.toBe('application/octet-stream');
++    });
++});
++
++describe('isSupportedImage HEIC/JXL runtime gate', () => {
++    beforeEach(() => {
++        jest.resetAllMocks();
++
++        mockGetOS.mockReturnValue({ name: 'iOS', version: '17.4' });
++        mockGetBrowser.mockReturnValue({ name: 'Mobile Safari', version: '17.4', major: '17' });
++
++        mockIsDesktop.mockReturnValue(false);
++        mockIsMobile.mockReturnValue(true);
++        mockIsAndroid.mockReturnValue(false);
++        mockIsIos.mockReturnValue(true);
++    });
++
++    test('supports HEIC family and JXL on iOS Safari 17+', () => {
++        expect(isSupportedImage(SupportedMimeTypes.heic)).toBe(true);
++        expect(isSupportedImage(SupportedMimeTypes.heif)).toBe(true);
++        expect(isSupportedImage(SupportedMimeTypes.heics)).toBe(true);
++        expect(isSupportedImage(SupportedMimeTypes.heifs)).toBe(true);
++        expect(isSupportedImage(JXL_MIME)).toBe(true);
++    });
++
++    test('accepts strict numeric versions and rejects suffixed variants', () => {
++        mockGetBrowser.mockReturnValue({ name: 'Mobile Safari', version: '17.0.1', major: '17' });
++
++        expect(isSupportedImage(SupportedMimeTypes.heic)).toBe(true);
++        expect(isSupportedImage(SupportedMimeTypes.heif)).toBe(true);
++        expect(isSupportedImage(SupportedMimeTypes.heics)).toBe(true);
++        expect(isSupportedImage(SupportedMimeTypes.heifs)).toBe(true);
++        expect(isSupportedImage(JXL_MIME)).toBe(true);
++
++        mockGetBrowser.mockReturnValue({ name: 'Mobile Safari', version: '17.0b1', major: '17' });
++
++        expect(isSupportedImage(SupportedMimeTypes.heic)).toBe(false);
++        expect(isSupportedImage(SupportedMimeTypes.heif)).toBe(false);
++        expect(isSupportedImage(SupportedMimeTypes.heics)).toBe(false);
++        expect(isSupportedImage(SupportedMimeTypes.heifs)).toBe(false);
++        expect(isSupportedImage(JXL_MIME)).toBe(false);
++    });
++
++    test('does not normalize whitespace-padded versions', () => {
++        mockGetBrowser.mockReturnValue({ name: 'Mobile Safari', version: '17.4', major: '17' });
++
++        expect(isSupportedImage(SupportedMimeTypes.heic)).toBe(true);
++        expect(isSupportedImage(SupportedMimeTypes.heif)).toBe(true);
++        expect(isSupportedImage(SupportedMimeTypes.heics)).toBe(true);
++        expect(isSupportedImage(SupportedMimeTypes.heifs)).toBe(true);
++        expect(isSupportedImage(JXL_MIME)).toBe(true);
++
++        mockGetBrowser.mockReturnValue({ name: 'Mobile Safari', version: ' 17.4 ', major: '17' });
++
++        expect(isSupportedImage(SupportedMimeTypes.heic)).toBe(false);
++        expect(isSupportedImage(SupportedMimeTypes.heif)).toBe(false);
++        expect(isSupportedImage(SupportedMimeTypes.heics)).toBe(false);
++        expect(isSupportedImage(SupportedMimeTypes.heifs)).toBe(false);
++        expect(isSupportedImage(JXL_MIME)).toBe(false);
++    });
++});

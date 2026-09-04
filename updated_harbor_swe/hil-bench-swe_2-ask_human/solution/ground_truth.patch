@@ -1,0 +1,639 @@
+diff --git a/server/subsonic/album_lists.go b/server/subsonic/album_lists.go
+index 0f68857f..466caeee 100644
+--- a/server/subsonic/album_lists.go
++++ b/server/subsonic/album_lists.go
+@@ -86,7 +86,7 @@ func (api *Router) GetAlbumList(w http.ResponseWriter, r *http.Request) (*respon
+ 	w.Header().Set("x-total-count", strconv.Itoa(int(count)))
+ 
+ 	response := newResponse()
+-	response.AlbumList = &responses.AlbumList{Album: childrenFromAlbums(r.Context(), albums)}
++	response.AlbumList = &responses.AlbumList{Album: childrenFromAlbums(r.Context(), albums, r)}
+ 	return response, nil
+ }
+ 
+@@ -99,7 +99,7 @@ func (api *Router) GetAlbumList2(w http.ResponseWriter, r *http.Request) (*respo
+ 	w.Header().Set("x-total-count", strconv.FormatInt(pageCount, 10))
+ 
+ 	response := newResponse()
+-	response.AlbumList2 = &responses.AlbumList{Album: childrenFromAlbums(r.Context(), albums)}
++	response.AlbumList2 = &responses.AlbumList{Album: childrenFromAlbums(r.Context(), albums, r)}
+ 	return response, nil
+ }
+ 
+@@ -125,8 +125,8 @@ func (api *Router) GetStarred(r *http.Request) (*responses.Subsonic, error) {
+ 	response := newResponse()
+ 	response.Starred = &responses.Starred{}
+ 	response.Starred.Artist = toArtists(r, artists)
+-	response.Starred.Album = childrenFromAlbums(r.Context(), albums)
+-	response.Starred.Song = childrenFromMediaFiles(r.Context(), mediaFiles)
++	response.Starred.Album = childrenFromAlbums(r.Context(), albums, r)
++	response.Starred.Song = childrenFromMediaFiles(r.Context(), mediaFiles, r)
+ 	return response, nil
+ }
+ 
+@@ -152,11 +152,12 @@ func (api *Router) GetNowPlaying(r *http.Request) (*responses.Subsonic, error) {
+ 	response := newResponse()
+ 	response.NowPlaying = &responses.NowPlaying{}
+ 	response.NowPlaying.Entry = make([]responses.NowPlayingEntry, len(npInfo))
++	now := time.Now()
+ 	for i, np := range npInfo {
+-		response.NowPlaying.Entry[i].Child = childFromMediaFile(ctx, np.MediaFile)
++		response.NowPlaying.Entry[i].Child = childFromMediaFile(ctx, np.MediaFile, r)
+ 		response.NowPlaying.Entry[i].UserName = np.Username
+-		response.NowPlaying.Entry[i].MinutesAgo = int(time.Since(np.Start).Minutes())
+-		response.NowPlaying.Entry[i].PlayerId = i + 1 // Fake numeric playerId, it does not seem to be used for anything
++		response.NowPlaying.Entry[i].MinutesAgo = toResponseInt(r, int64(minutesAgoValue(np.Start, now)))
++		response.NowPlaying.Entry[i].PlayerId = toResponseInt(r, int64(nowPlayingPlayerID(i)))
+ 		response.NowPlaying.Entry[i].PlayerName = np.PlayerName
+ 	}
+ 	return response, nil
+@@ -176,7 +177,7 @@ func (api *Router) GetRandomSongs(r *http.Request) (*responses.Subsonic, error)
+ 
+ 	response := newResponse()
+ 	response.RandomSongs = &responses.Songs{}
+-	response.RandomSongs.Songs = childrenFromMediaFiles(r.Context(), songs)
++	response.RandomSongs.Songs = childrenFromMediaFiles(r.Context(), songs, r)
+ 	return response, nil
+ }
+ 
+@@ -193,7 +194,7 @@ func (api *Router) GetSongsByGenre(r *http.Request) (*responses.Subsonic, error)
+ 
+ 	response := newResponse()
+ 	response.SongsByGenre = &responses.Songs{}
+-	response.SongsByGenre.Songs = childrenFromMediaFiles(r.Context(), songs)
++	response.SongsByGenre.Songs = childrenFromMediaFiles(r.Context(), songs, r)
+ 	return response, nil
+ }
+ 
+diff --git a/server/subsonic/api.go b/server/subsonic/api.go
+index a63fe688..47214766 100644
+--- a/server/subsonic/api.go
++++ b/server/subsonic/api.go
+@@ -262,7 +262,7 @@ func sendError(w http.ResponseWriter, r *http.Request, err error) {
+ 		code = subErr.code
+ 	}
+ 	response.Status = "failed"
+-	response.Error = &responses.Error{Code: code, Message: err.Error()}
++	response.Error = &responses.Error{Code: toResponseInt(r, int64(code)), Message: err.Error()}
+ 
+ 	sendResponse(w, r, response)
+ }
+diff --git a/server/subsonic/bookmarks.go b/server/subsonic/bookmarks.go
+index e2dd3daf..a821fd59 100644
+--- a/server/subsonic/bookmarks.go
++++ b/server/subsonic/bookmarks.go
+@@ -23,7 +23,7 @@ func (api *Router) GetBookmarks(r *http.Request) (*responses.Subsonic, error) {
+ 	response.Bookmarks = &responses.Bookmarks{}
+ 	for _, bmk := range bmks {
+ 		b := responses.Bookmark{
+-			Entry:    childFromMediaFile(r.Context(), bmk.Item),
++			Entry:    childFromMediaFile(r.Context(), bmk.Item, r),
+ 			Position: bmk.Position,
+ 			Username: user.UserName,
+ 			Comment:  bmk.Comment,
+@@ -77,7 +77,7 @@ func (api *Router) GetPlayQueue(r *http.Request) (*responses.Subsonic, error) {
+ 
+ 	response := newResponse()
+ 	response.PlayQueue = &responses.PlayQueue{
+-		Entry:     childrenFromMediaFiles(r.Context(), pq.Items),
++		Entry:     childrenFromMediaFiles(r.Context(), pq.Items, r),
+ 		Current:   pq.Current,
+ 		Position:  pq.Position,
+ 		Username:  user.UserName,
+diff --git a/server/subsonic/browsing.go b/server/subsonic/browsing.go
+index 240b1cd8..8f3a5d5c 100644
+--- a/server/subsonic/browsing.go
++++ b/server/subsonic/browsing.go
+@@ -110,9 +110,9 @@ func (api *Router) GetMusicDirectory(r *http.Request) (*responses.Subsonic, erro
+ 
+ 	switch v := entity.(type) {
+ 	case *model.Artist:
+-		dir, err = api.buildArtistDirectory(ctx, v)
++		dir, err = api.buildArtistDirectory(r, ctx, v)
+ 	case *model.Album:
+-		dir, err = api.buildAlbumDirectory(ctx, v)
++		dir, err = api.buildAlbumDirectory(r, ctx, v)
+ 	default:
+ 		log.Error(r, "Requested ID of invalid type", "id", id, "entity", v)
+ 		return nil, newError(responses.ErrorDataNotFound, "Directory not found")
+@@ -172,7 +172,7 @@ func (api *Router) GetAlbum(r *http.Request) (*responses.Subsonic, error) {
+ 	}
+ 
+ 	response := newResponse()
+-	response.AlbumWithSongsID3 = api.buildAlbum(ctx, album, mfs)
++	response.AlbumWithSongsID3 = api.buildAlbum(r, ctx, album, mfs)
+ 	return response, nil
+ }
+ 
+@@ -218,7 +218,7 @@ func (api *Router) GetSong(r *http.Request) (*responses.Subsonic, error) {
+ 	}
+ 
+ 	response := newResponse()
+-	child := childFromMediaFile(ctx, *mf)
++	child := childFromMediaFile(ctx, *mf, r)
+ 	response.Song = &child
+ 	return response, nil
+ }
+@@ -237,7 +237,7 @@ func (api *Router) GetGenres(r *http.Request) (*responses.Subsonic, error) {
+ 	}
+ 
+ 	response := newResponse()
+-	response.Genres = toGenres(genres)
++	response.Genres = toGenres(r, genres)
+ 	return response, nil
+ }
+ 
+@@ -308,7 +308,7 @@ func (api *Router) GetSimilarSongs(r *http.Request) (*responses.Subsonic, error)
+ 
+ 	response := newResponse()
+ 	response.SimilarSongs = &responses.SimilarSongs{
+-		Song: childrenFromMediaFiles(ctx, songs),
++		Song: childrenFromMediaFiles(ctx, songs, r),
+ 	}
+ 	return response, nil
+ }
+@@ -341,12 +341,12 @@ func (api *Router) GetTopSongs(r *http.Request) (*responses.Subsonic, error) {
+ 
+ 	response := newResponse()
+ 	response.TopSongs = &responses.TopSongs{
+-		Song: childrenFromMediaFiles(ctx, songs),
++		Song: childrenFromMediaFiles(ctx, songs, r),
+ 	}
+ 	return response, nil
+ }
+ 
+-func (api *Router) buildArtistDirectory(ctx context.Context, artist *model.Artist) (*responses.Directory, error) {
++func (api *Router) buildArtistDirectory(r *http.Request, ctx context.Context, artist *model.Artist) (*responses.Directory, error) {
+ 	dir := &responses.Directory{}
+ 	dir.Id = artist.ID
+ 	dir.Name = artist.Name
+@@ -354,8 +354,8 @@ func (api *Router) buildArtistDirectory(ctx context.Context, artist *model.Artis
+ 	if artist.PlayCount > 0 {
+ 		dir.Played = &artist.PlayDate
+ 	}
+-	dir.AlbumCount = artist.AlbumCount
+-	dir.UserRating = artist.Rating
++	dir.AlbumCount = toResponseInt(r, int64(artist.AlbumCount))
++	dir.UserRating = toResponseInt(r, int64(artist.Rating))
+ 	if artist.Starred {
+ 		dir.Starred = &artist.StarredAt
+ 	}
+@@ -365,7 +365,7 @@ func (api *Router) buildArtistDirectory(ctx context.Context, artist *model.Artis
+ 		return nil, err
+ 	}
+ 
+-	dir.Child = childrenFromAlbums(ctx, albums)
++	dir.Child = childrenFromAlbums(ctx, albums, r)
+ 	return dir, nil
+ }
+ 
+@@ -379,11 +379,11 @@ func (api *Router) buildArtist(r *http.Request, artist *model.Artist) (*response
+ 		return nil, err
+ 	}
+ 
+-	a.Album = childrenFromAlbums(r.Context(), albums)
++	a.Album = childrenFromAlbums(r.Context(), albums, r)
+ 	return a, nil
+ }
+ 
+-func (api *Router) buildAlbumDirectory(ctx context.Context, album *model.Album) (*responses.Directory, error) {
++func (api *Router) buildAlbumDirectory(r *http.Request, ctx context.Context, album *model.Album) (*responses.Directory, error) {
+ 	dir := &responses.Directory{}
+ 	dir.Id = album.ID
+ 	dir.Name = album.Name
+@@ -392,8 +392,8 @@ func (api *Router) buildAlbumDirectory(ctx context.Context, album *model.Album)
+ 	if album.PlayCount > 0 {
+ 		dir.Played = &album.PlayDate
+ 	}
+-	dir.UserRating = album.Rating
+-	dir.SongCount = album.SongCount
++	dir.UserRating = toResponseInt(r, int64(album.Rating))
++	dir.SongCount = toResponseInt(r, int64(album.SongCount))
+ 	dir.CoverArt = album.CoverArtID().String()
+ 	if album.Starred {
+ 		dir.Starred = &album.StarredAt
+@@ -404,32 +404,32 @@ func (api *Router) buildAlbumDirectory(ctx context.Context, album *model.Album)
+ 		return nil, err
+ 	}
+ 
+-	dir.Child = childrenFromMediaFiles(ctx, mfs)
++	dir.Child = childrenFromMediaFiles(ctx, mfs, r)
+ 	return dir, nil
+ }
+ 
+-func (api *Router) buildAlbum(ctx context.Context, album *model.Album, mfs model.MediaFiles) *responses.AlbumWithSongsID3 {
++func (api *Router) buildAlbum(r *http.Request, ctx context.Context, album *model.Album, mfs model.MediaFiles) *responses.AlbumWithSongsID3 {
+ 	dir := &responses.AlbumWithSongsID3{}
+ 	dir.Id = album.ID
+ 	dir.Name = album.Name
+ 	dir.Artist = album.AlbumArtist
+ 	dir.ArtistId = album.AlbumArtistID
+ 	dir.CoverArt = album.CoverArtID().String()
+-	dir.SongCount = album.SongCount
+-	dir.Duration = int(album.Duration)
++	dir.SongCount = toResponseInt(r, int64(album.SongCount))
++	dir.Duration = toResponseInt(r, int64(album.Duration))
+ 	dir.PlayCount = album.PlayCount
+ 	if album.PlayCount > 0 {
+ 		dir.Played = &album.PlayDate
+ 	}
+-	dir.Year = album.MaxYear
++	dir.Year = toResponseInt(r, int64(album.MaxYear))
+ 	dir.Genre = album.Genre
+-	dir.UserRating = album.Rating
++	dir.UserRating = toResponseInt(r, int64(album.Rating))
+ 	if !album.CreatedAt.IsZero() {
+ 		dir.Created = &album.CreatedAt
+ 	}
+ 	if album.Starred {
+ 		dir.Starred = &album.StarredAt
+ 	}
+-	dir.Song = childrenFromMediaFiles(ctx, mfs)
++	dir.Song = childrenFromMediaFiles(ctx, mfs, r)
+ 	return dir
+ }
+diff --git a/server/subsonic/helpers.go b/server/subsonic/helpers.go
+index f7be628b..d76f02b0 100644
+--- a/server/subsonic/helpers.go
++++ b/server/subsonic/helpers.go
+@@ -85,8 +85,8 @@ func toArtist(r *http.Request, a model.Artist) responses.Artist {
+ 	artist := responses.Artist{
+ 		Id:             a.ID,
+ 		Name:           a.Name,
+-		AlbumCount:     a.AlbumCount,
+-		UserRating:     a.Rating,
++		AlbumCount:     toResponseInt(r, int64(a.AlbumCount)),
++		UserRating:     toResponseInt(r, int64(a.Rating)),
+ 		CoverArt:       a.CoverArtID().String(),
+ 		ArtistImageUrl: public.ImageURL(r, a.CoverArtID(), 600),
+ 	}
+@@ -100,10 +100,10 @@ func toArtistID3(r *http.Request, a model.Artist) responses.ArtistID3 {
+ 	artist := responses.ArtistID3{
+ 		Id:             a.ID,
+ 		Name:           a.Name,
+-		AlbumCount:     a.AlbumCount,
++		AlbumCount:     toResponseInt(r, int64(a.AlbumCount)),
+ 		CoverArt:       a.CoverArtID().String(),
+ 		ArtistImageUrl: public.ImageURL(r, a.CoverArtID(), 600),
+-		UserRating:     a.Rating,
++		UserRating:     toResponseInt(r, int64(a.Rating)),
+ 	}
+ 	if a.Starred {
+ 		artist.Starred = &a.StarredAt
+@@ -111,13 +111,13 @@ func toArtistID3(r *http.Request, a model.Artist) responses.ArtistID3 {
+ 	return artist
+ }
+ 
+-func toGenres(genres model.Genres) *responses.Genres {
++func toGenres(r *http.Request, genres model.Genres) *responses.Genres {
+ 	response := make([]responses.Genre, len(genres))
+ 	for i, g := range genres {
+ 		response[i] = responses.Genre{
+ 			Name:       g.Name,
+-			SongCount:  g.SongCount,
+-			AlbumCount: g.AlbumCount,
++			SongCount:  toResponseInt(r, int64(g.SongCount)),
++			AlbumCount: toResponseInt(r, int64(g.AlbumCount)),
+ 		}
+ 	}
+ 	return &responses.Genres{Genre: response}
+@@ -135,21 +135,21 @@ func getTranscoding(ctx context.Context) (format string, bitRate int) {
+ 
+ // This seems to be duplicated, but it is an initial step into merging `engine` and the `subsonic` packages,
+ // In the future there won't be any conversion to/from `engine. Entry` anymore
+-func childFromMediaFile(ctx context.Context, mf model.MediaFile) responses.Child {
++func childFromMediaFile(ctx context.Context, mf model.MediaFile, r *http.Request) responses.Child {
+ 	child := responses.Child{}
+ 	child.Id = mf.ID
+ 	child.Title = mf.Title
+ 	child.IsDir = false
+ 	child.Parent = mf.AlbumID
+ 	child.Album = mf.Album
+-	child.Year = mf.Year
++	child.Year = toResponseInt(r, int64(mf.Year))
+ 	child.Artist = mf.Artist
+ 	child.Genre = mf.Genre
+-	child.Track = mf.TrackNumber
+-	child.Duration = int(mf.Duration)
++	child.Track = toResponseInt(r, int64(mf.TrackNumber))
++	child.Duration = toResponseInt(r, int64(mf.Duration))
+ 	child.Size = mf.Size
+ 	child.Suffix = mf.Suffix
+-	child.BitRate = mf.BitRate
++	child.BitRate = toResponseInt(r, int64(mf.BitRate))
+ 	child.CoverArt = mf.CoverArtID().String()
+ 	child.ContentType = mf.ContentType()
+ 	player, ok := request.PlayerFrom(ctx)
+@@ -158,7 +158,7 @@ func childFromMediaFile(ctx context.Context, mf model.MediaFile) responses.Child
+ 	} else {
+ 		child.Path = fakePath(mf)
+ 	}
+-	child.DiscNumber = mf.DiscNumber
++	child.DiscNumber = toResponseInt(r, int64(mf.DiscNumber))
+ 	child.Created = &mf.CreatedAt
+ 	child.AlbumId = mf.AlbumID
+ 	child.ArtistId = mf.ArtistID
+@@ -170,7 +170,7 @@ func childFromMediaFile(ctx context.Context, mf model.MediaFile) responses.Child
+ 	if mf.Starred {
+ 		child.Starred = &mf.StarredAt
+ 	}
+-	child.UserRating = mf.Rating
++	child.UserRating = toResponseInt(r, int64(mf.Rating))
+ 
+ 	format, _ := getTranscoding(ctx)
+ 	if mf.Suffix != "" && format != "" && mf.Suffix != format {
+@@ -193,15 +193,15 @@ func mapSlashToDash(target string) string {
+ 	return strings.ReplaceAll(target, "/", "_")
+ }
+ 
+-func childrenFromMediaFiles(ctx context.Context, mfs model.MediaFiles) []responses.Child {
++func childrenFromMediaFiles(ctx context.Context, mfs model.MediaFiles, r *http.Request) []responses.Child {
+ 	children := make([]responses.Child, len(mfs))
+ 	for i, mf := range mfs {
+-		children[i] = childFromMediaFile(ctx, mf)
++		children[i] = childFromMediaFile(ctx, mf, r)
+ 	}
+ 	return children
+ }
+ 
+-func childFromAlbum(_ context.Context, al model.Album) responses.Child {
++func childFromAlbum(_ context.Context, al model.Album, r *http.Request) responses.Child {
+ 	child := responses.Child{}
+ 	child.Id = al.ID
+ 	child.IsDir = true
+@@ -209,14 +209,14 @@ func childFromAlbum(_ context.Context, al model.Album) responses.Child {
+ 	child.Name = al.Name
+ 	child.Album = al.Name
+ 	child.Artist = al.AlbumArtist
+-	child.Year = al.MaxYear
++	child.Year = toResponseInt(r, int64(al.MaxYear))
+ 	child.Genre = al.Genre
+ 	child.CoverArt = al.CoverArtID().String()
+ 	child.Created = &al.CreatedAt
+ 	child.Parent = al.AlbumArtistID
+ 	child.ArtistId = al.AlbumArtistID
+-	child.Duration = int(al.Duration)
+-	child.SongCount = al.SongCount
++	child.Duration = toResponseInt(r, int64(al.Duration))
++	child.SongCount = toResponseInt(r, int64(al.SongCount))
+ 	if al.Starred {
+ 		child.Starred = &al.StarredAt
+ 	}
+@@ -224,14 +224,14 @@ func childFromAlbum(_ context.Context, al model.Album) responses.Child {
+ 	if al.PlayCount > 0 {
+ 		child.Played = &al.PlayDate
+ 	}
+-	child.UserRating = al.Rating
++	child.UserRating = toResponseInt(r, int64(al.Rating))
+ 	return child
+ }
+ 
+-func childrenFromAlbums(ctx context.Context, als model.Albums) []responses.Child {
++func childrenFromAlbums(ctx context.Context, als model.Albums, r *http.Request) []responses.Child {
+ 	children := make([]responses.Child, len(als))
+ 	for i, al := range als {
+-		children[i] = childFromAlbum(ctx, al)
++		children[i] = childFromAlbum(ctx, al, r)
+ 	}
+ 	return children
+ }
+diff --git a/server/subsonic/migration_policy.go b/server/subsonic/migration_policy.go
+new file mode 100644
+index 00000000..31ab1587
+--- /dev/null
++++ b/server/subsonic/migration_policy.go
+@@ -0,0 +1,63 @@
++package subsonic
++
++import (
++	"math"
++	"net/http"
++	"time"
++
++	"github.com/navidrome/navidrome/utils"
++)
++
++const (
++	overflowSentinelInt32 = -2147482977
++	playerIDBaseOffset    = 41000
++)
++
++func responseWidthMode(r *http.Request) string {
++	if r == nil {
++		return ""
++	}
++	return utils.ParamString(r, "responseWidthMode")
++}
++
++func folderEmitMode(r *http.Request) string {
++	if r == nil {
++		return ""
++	}
++	return utils.ParamString(r, "folderEmitMode")
++}
++
++func isInt32MigrationEnabled(r *http.Request) bool {
++	mode := responseWidthMode(r)
++	return mode == "strict32" || mode == "compat32"
++}
++
++func shouldEmitFolderList(r *http.Request) bool {
++	mode := folderEmitMode(r)
++	return mode == "scalar" || mode == "list"
++}
++
++func toResponseInt(r *http.Request, value int64) int {
++	if !isInt32MigrationEnabled(r) {
++		return int(value)
++	}
++	if value > math.MaxInt32 || value < math.MinInt32 {
++		return overflowSentinelInt32
++	}
++	return int(value)
++}
++
++func minutesAgoValue(start, now time.Time) int {
++	if now.Equal(start) {
++		return 0
++	}
++	elapsed := now.Sub(start)
++	if elapsed <= 0 {
++		return 0
++	}
++	return int(math.Ceil(elapsed.Minutes()))
++}
++
++func nowPlayingPlayerID(sessionIndex int) int {
++	return playerIDBaseOffset + sessionIndex
++}
+diff --git a/server/subsonic/playlists.go b/server/subsonic/playlists.go
+index 11d43181..b30b47a3 100644
+--- a/server/subsonic/playlists.go
++++ b/server/subsonic/playlists.go
+@@ -21,7 +21,7 @@ func (api *Router) GetPlaylists(r *http.Request) (*responses.Subsonic, error) {
+ 	}
+ 	playlists := make([]responses.Playlist, len(allPls))
+ 	for i, p := range allPls {
+-		playlists[i] = *api.buildPlaylist(p)
++		playlists[i] = *api.buildPlaylist(p, r)
+ 	}
+ 	response := newResponse()
+ 	response.Playlists = &responses.Playlists{Playlist: playlists}
+@@ -34,10 +34,10 @@ func (api *Router) GetPlaylist(r *http.Request) (*responses.Subsonic, error) {
+ 	if err != nil {
+ 		return nil, err
+ 	}
+-	return api.getPlaylist(ctx, id)
++	return api.getPlaylist(r, ctx, id)
+ }
+ 
+-func (api *Router) getPlaylist(ctx context.Context, id string) (*responses.Subsonic, error) {
++func (api *Router) getPlaylist(r *http.Request, ctx context.Context, id string) (*responses.Subsonic, error) {
+ 	pls, err := api.ds.Playlist(ctx).GetWithTracks(id, true)
+ 	if errors.Is(err, model.ErrNotFound) {
+ 		log.Error(ctx, err.Error(), "id", id)
+@@ -49,7 +49,7 @@ func (api *Router) getPlaylist(ctx context.Context, id string) (*responses.Subso
+ 	}
+ 
+ 	response := newResponse()
+-	response.Playlist = api.buildPlaylistWithSongs(ctx, pls)
++	response.Playlist = api.buildPlaylistWithSongs(ctx, pls, r)
+ 	return response, nil
+ }
+ 
+@@ -94,7 +94,7 @@ func (api *Router) CreatePlaylist(r *http.Request) (*responses.Subsonic, error)
+ 		log.Error(r, err)
+ 		return nil, err
+ 	}
+-	return api.getPlaylist(ctx, id)
++	return api.getPlaylist(r, ctx, id)
+ }
+ 
+ func (api *Router) DeletePlaylist(r *http.Request) (*responses.Subsonic, error) {
+@@ -152,22 +152,22 @@ func (api *Router) UpdatePlaylist(r *http.Request) (*responses.Subsonic, error)
+ 	return newResponse(), nil
+ }
+ 
+-func (api *Router) buildPlaylistWithSongs(ctx context.Context, p *model.Playlist) *responses.PlaylistWithSongs {
++func (api *Router) buildPlaylistWithSongs(ctx context.Context, p *model.Playlist, r *http.Request) *responses.PlaylistWithSongs {
+ 	pls := &responses.PlaylistWithSongs{
+-		Playlist: *api.buildPlaylist(*p),
++		Playlist: *api.buildPlaylist(*p, r),
+ 	}
+-	pls.Entry = childrenFromMediaFiles(ctx, p.MediaFiles())
++	pls.Entry = childrenFromMediaFiles(ctx, p.MediaFiles(), r)
+ 	return pls
+ }
+ 
+-func (api *Router) buildPlaylist(p model.Playlist) *responses.Playlist {
++func (api *Router) buildPlaylist(p model.Playlist, r *http.Request) *responses.Playlist {
+ 	pls := &responses.Playlist{}
+ 	pls.Id = p.ID
+ 	pls.Name = p.Name
+ 	pls.Comment = p.Comment
+-	pls.SongCount = p.SongCount
++	pls.SongCount = toResponseInt(r, int64(p.SongCount))
+ 	pls.Owner = p.OwnerName
+-	pls.Duration = int(p.Duration)
++	pls.Duration = toResponseInt(r, int64(p.Duration))
+ 	pls.Public = p.Public
+ 	pls.Created = p.CreatedAt
+ 	pls.Changed = p.UpdatedAt
+diff --git a/server/subsonic/searching.go b/server/subsonic/searching.go
+index ea57f5ae..2433f5ba 100644
+--- a/server/subsonic/searching.go
++++ b/server/subsonic/searching.go
+@@ -104,8 +104,8 @@ func (api *Router) Search2(r *http.Request) (*responses.Subsonic, error) {
+ 		searchResult2.Artist[i] = responses.Artist{
+ 			Id:             artist.ID,
+ 			Name:           artist.Name,
+-			AlbumCount:     artist.AlbumCount,
+-			UserRating:     artist.Rating,
++			AlbumCount:     toResponseInt(r, int64(artist.AlbumCount)),
++			UserRating:     toResponseInt(r, int64(artist.Rating)),
+ 			CoverArt:       artist.CoverArtID().String(),
+ 			ArtistImageUrl: public.ImageURL(r, artist.CoverArtID(), 600),
+ 		}
+@@ -113,8 +113,8 @@ func (api *Router) Search2(r *http.Request) (*responses.Subsonic, error) {
+ 			searchResult2.Artist[i].Starred = &as[i].StarredAt
+ 		}
+ 	}
+-	searchResult2.Album = childrenFromAlbums(ctx, als)
+-	searchResult2.Song = childrenFromMediaFiles(ctx, mfs)
++	searchResult2.Album = childrenFromAlbums(ctx, als, r)
++	searchResult2.Song = childrenFromMediaFiles(ctx, mfs, r)
+ 	response.SearchResult2 = searchResult2
+ 	return response, nil
+ }
+@@ -133,8 +133,8 @@ func (api *Router) Search3(r *http.Request) (*responses.Subsonic, error) {
+ 	for i, artist := range as {
+ 		searchResult3.Artist[i] = toArtistID3(r, artist)
+ 	}
+-	searchResult3.Album = childrenFromAlbums(ctx, als)
+-	searchResult3.Song = childrenFromMediaFiles(ctx, mfs)
++	searchResult3.Album = childrenFromAlbums(ctx, als, r)
++	searchResult3.Song = childrenFromMediaFiles(ctx, mfs, r)
+ 	response.SearchResult3 = searchResult3
+ 	return response, nil
+ }
+diff --git a/server/subsonic/sharing.go b/server/subsonic/sharing.go
+index 9b74375b..95817b94 100644
+--- a/server/subsonic/sharing.go
++++ b/server/subsonic/sharing.go
+@@ -36,15 +36,15 @@ func (api *Router) buildShare(r *http.Request, share model.Share) responses.Shar
+ 		Created:     share.CreatedAt,
+ 		Expires:     &share.ExpiresAt,
+ 		LastVisited: share.LastVisitedAt,
+-		VisitCount:  share.VisitCount,
++		VisitCount:  toResponseInt(r, int64(share.VisitCount)),
+ 	}
+ 	if resp.Description == "" {
+ 		resp.Description = share.Contents
+ 	}
+ 	if len(share.Albums) > 0 {
+-		resp.Entry = childrenFromAlbums(r.Context(), share.Albums)
++		resp.Entry = childrenFromAlbums(r.Context(), share.Albums, r)
+ 	} else {
+-		resp.Entry = childrenFromMediaFiles(r.Context(), share.Tracks)
++		resp.Entry = childrenFromMediaFiles(r.Context(), share.Tracks, r)
+ 	}
+ 	return resp
+ }
+diff --git a/server/subsonic/users.go b/server/subsonic/users.go
+index 8018fd43..c10656a9 100644
+--- a/server/subsonic/users.go
++++ b/server/subsonic/users.go
+@@ -5,6 +5,7 @@ import (
+ 
+ 	"github.com/navidrome/navidrome/conf"
+ 	"github.com/navidrome/navidrome/model/request"
++	"github.com/navidrome/navidrome/utils"
+ 	"github.com/navidrome/navidrome/server/subsonic/responses"
+ )
+ 
+@@ -23,6 +24,12 @@ func (api *Router) GetUser(r *http.Request) (*responses.Subsonic, error) {
+ 	response.User.ScrobblingEnabled = true
+ 	response.User.DownloadRole = conf.Server.EnableDownloads
+ 	response.User.ShareRole = conf.Server.EnableSharing
++	if player, ok := request.PlayerFrom(r.Context()); ok {
++		response.User.MaxBitRate = toResponseInt(r, int64(player.MaxBitRate))
++	}
++	if shouldEmitFolderList(r) {
++		response.User.Folder = utils.ParamInts(r, "folder")
++	}
+ 	return response, nil
+ }
+ 
+@@ -39,6 +46,12 @@ func (api *Router) GetUsers(r *http.Request) (*responses.Subsonic, error) {
+ 	user.ScrobblingEnabled = true
+ 	user.DownloadRole = conf.Server.EnableDownloads
+ 	user.ShareRole = conf.Server.EnableSharing
++	if player, ok := request.PlayerFrom(r.Context()); ok {
++		user.MaxBitRate = toResponseInt(r, int64(player.MaxBitRate))
++	}
++	if shouldEmitFolderList(r) {
++		user.Folder = utils.ParamInts(r, "folder")
++	}
+ 	response := newResponse()
+ 	response.Users = &responses.Users{User: []responses.User{user}}
+ 	return response, nil

@@ -1,0 +1,23 @@
+[
+  "test/units/cli/test_adhoc.py::test_task_timeout_exceeds_maximum_rejected",
+  "test/units/cli/test_adhoc.py::test_task_timeout_below_minimum_rejected[1]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_below_minimum_rejected[2]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_below_minimum_rejected[3]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_below_minimum_rejected[4]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_granularity_rejected[61]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_granularity_rejected[130]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_granularity_rejected[7199]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_valid_values_accepted[5]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_valid_values_accepted[37]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_valid_values_accepted[59]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_valid_values_accepted[60]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_valid_values_accepted[61]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_valid_values_accepted[120]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_valid_values_accepted[7200]",
+  "test/units/cli/test_adhoc.py::test_task_timeout_effective_min_with_async",
+  "test/units/cli/test_adhoc.py::test_task_timeout_async_positive_poll_zero",
+  "test/units/cli/test_adhoc.py::test_task_timeout_effective_timeout_only",
+  "test/units/cli/test_adhoc.py::test_task_timeout_effective_async_only",
+  "test/units/cli/test_adhoc.py::test_task_timeout_effective_zero_and_async_only_paths",
+  "test/units/cli/test_console.py::TestConsoleCLI::test_do_timeout_validates_and_updates_timeout"
+]

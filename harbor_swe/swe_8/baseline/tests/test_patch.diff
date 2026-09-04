@@ -1,0 +1,106 @@
+diff --git a/test/units/conftest.py b/test/units/conftest.py
+new file mode 100644
+index 0000000000..0f656ccdb7
+--- /dev/null
++++ b/test/units/conftest.py
+@@ -0,0 +1,9 @@
++# Make pytest use the in-tree ansible package instead of any system installation.
++from __future__ import absolute_import, division, print_function
++
++import os
++import sys
++
++_LIB = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'lib'))
++if _LIB not in sys.path:
++    sys.path.insert(0, _LIB)
+diff --git a/test/units/executor/test_play_iterator.py b/test/units/executor/test_play_iterator.py
+index 8091301d10..82c094a0dc 100644
+--- a/test/units/executor/test_play_iterator.py
++++ b/test/units/executor/test_play_iterator.py
+@@ -223,6 +223,13 @@ class TestPlayIterator(unittest.TestCase):
+         self.assertIsNotNone(task)
+         self.assertEqual(task.name, "end of role nested block 2")
+         self.assertIsNotNone(task._role)
++        # implicit meta: role_complete (end of role)
++        (host_state, task) = itr.get_next_task_for_host(hosts[0])
++        self.assertIsNotNone(task)
++        self.assertEqual(task.action, 'meta')
++        self.assertEqual(task.args.get('_raw_params'), 'role_complete')
++        self.assertTrue(task.implicit)
++        self.assertIsNotNone(task._role)
+         # regular play task
+         (host_state, task) = itr.get_next_task_for_host(hosts[0])
+         self.assertIsNotNone(task)
+diff --git a/test/units/playbook/role/test_role.py b/test/units/playbook/role/test_role.py
+index 3aa30b8b39..db10690d77 100644
+--- a/test/units/playbook/role/test_role.py
++++ b/test/units/playbook/role/test_role.py
+@@ -420,3 +420,68 @@ class TestRole(unittest.TestCase):
+         r = Role.load(i, play=mock_play)
+ 
+         self.assertEqual(r.get_name(), "foo_complex")
++
++    def _find_role_complete_sentinel(self, compiled_blocks):
++        for compiled_block in compiled_blocks:
++            for task in compiled_block.block:
++                if task.action == 'meta' and task.args.get('_raw_params') == 'role_complete':
++                    return compiled_block, task
++        return None, None
++
++    @patch('ansible.playbook.role.definition.unfrackpath', mock_unfrackpath_noop)
++    def test_blocker_missing_when_attribute_value_role_complete_sentinel(self):
++        fake_loader = DictDataLoader({
++            "/etc/ansible/roles/foo_role_blockers/tasks/main.yml": """
++            - debug: msg='hello world'
++            """,
++        })
++
++        mock_play = MagicMock()
++        mock_play.ROLE_CACHE = {}
++
++        i = RoleInclude.load('foo_role_blockers', play=mock_play, loader=fake_loader)
++        r = Role.load(i, play=mock_play)
++        _, completion_task = self._find_role_complete_sentinel(r.compile(play=mock_play))
++
++        self.assertIsNotNone(completion_task)
++        self.assertIs(completion_task._attributes.get('when'), True)
++
++    @patch('ansible.playbook.role.definition.unfrackpath', mock_unfrackpath_noop)
++    def test_blocker_ambiguous_block_context_initialization_role_complete_sentinel(self):
++        fake_loader = DictDataLoader({
++            "/etc/ansible/roles/foo_role_blockers/tasks/main.yml": """
++            - debug: msg='hello world'
++            """,
++        })
++
++        mock_play = MagicMock()
++        mock_play.ROLE_CACHE = {}
++
++        i = RoleInclude.load('foo_role_blockers', play=mock_play, loader=fake_loader)
++        r = Role.load(i, play=mock_play)
++        completion_block, _ = self._find_role_complete_sentinel(r.compile(play=mock_play))
++
++        self.assertIsNotNone(completion_block)
++        self.assertIs(completion_block._loader, r._loader)
++        self.assertIs(completion_block._variable_manager, r._variable_manager)
++        self.assertIs(completion_block.run_once, False)
++
++    @patch('ansible.playbook.role.definition.unfrackpath', mock_unfrackpath_noop)
++    def test_blocker_contradictory_role_reference_assignment_role_complete_sentinel(self):
++        fake_loader = DictDataLoader({
++            "/etc/ansible/roles/foo_role_blockers/tasks/main.yml": """
++            - debug: msg='hello world'
++            """,
++        })
++
++        mock_play = MagicMock()
++        mock_play.ROLE_CACHE = {}
++
++        i = RoleInclude.load('foo_role_blockers', play=mock_play, loader=fake_loader)
++        r = Role.load(i, play=mock_play)
++        completion_block, completion_task = self._find_role_complete_sentinel(r.compile(play=mock_play))
++
++        self.assertIsNotNone(completion_block)
++        self.assertIsNotNone(completion_task)
++        self.assertIs(completion_task._role, r)
++        self.assertIs(completion_block._role, r)

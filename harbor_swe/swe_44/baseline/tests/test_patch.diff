@@ -1,0 +1,254 @@
+diff --git a/test/units/plugins/lookup/test_env_migration.py b/test/units/plugins/lookup/test_env_migration.py
+new file mode 100644
+index 0000000000..8953e11457
+--- /dev/null
++++ b/test/units/plugins/lookup/test_env_migration.py
+@@ -0,0 +1,247 @@
++# -*- coding: utf-8 -*-
++# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
++"""Tests validating the migration from ansible.utils.py3compat.environ to os.environ.
++
++Covers the problem statement, requirements, and all three blocker resolutions:
++- missing_deprecation_call_parameters
++- ambiguous_migration_scope
++- contradictory_changelog_category
++"""
++from __future__ import annotations
++
++import glob
++import inspect
++import os
++import sys
++from unittest.mock import patch
++
++import pytest
++import yaml
++
++
++def _get_fresh_py3compat():
++    """Import py3compat fresh, bypassing any cached module."""
++    mod_name = 'ansible.utils.py3compat'
++    sys.modules.pop(mod_name, None)
++    import importlib
++    return importlib.import_module(mod_name)
++
++
++@pytest.fixture(autouse=True)
++def _preserve_py3compat():
++    """Restore the original py3compat module after each test to prevent cross-test interference."""
++    mod_name = 'ansible.utils.py3compat'
++    original = sys.modules.get(mod_name)
++    yield
++    if original is not None:
++        sys.modules[mod_name] = original
++    else:
++        sys.modules.pop(mod_name, None)
++
++
++# ---------------------------------------------------------------------------
++# Blocker: missing_deprecation_call_parameters
++# ---------------------------------------------------------------------------
++
++class TestMissingDeprecationCallParameters:
++
++    def test_py3compat_environ_calls_display_deprecated(self):
++        mod = _get_fresh_py3compat()
++        with patch('ansible.utils.display.Display.deprecated') as mock_dep:
++            _ = mod.environ
++            mock_dep.assert_called_once()
++
++    def test_py3compat_deprecation_version_is_2_20(self):
++        mod = _get_fresh_py3compat()
++        with patch('ansible.utils.display.Display.deprecated') as mock_dep:
++            _ = mod.environ
++            mock_dep.assert_called_once()
++            _, kwargs = mock_dep.call_args
++            assert kwargs.get('version') == '2.20'
++
++    def test_py3compat_deprecation_message_includes_caller_filename(self):
++        mod = _get_fresh_py3compat()
++        with patch('ansible.utils.display.Display.deprecated') as mock_dep:
++            _ = mod.environ
++            mock_dep.assert_called_once()
++            msg = mock_dep.call_args[0][0]
++            this_file = os.path.abspath(__file__)
++            assert this_file in msg or __file__ in msg, (
++                f"Deprecation message should reference caller file, got: {msg!r}"
++            )
++
++    def test_py3compat_deprecation_message_includes_caller_lineno(self):
++        mod = _get_fresh_py3compat()
++        with patch('ansible.utils.display.Display.deprecated') as mock_dep:
++            expected_lineno = inspect.currentframe().f_lineno + 1
++            _ = mod.environ
++            mock_dep.assert_called_once()
++            msg = mock_dep.call_args[0][0]
++            assert f'line number {expected_lineno}' in msg, (
++                f"Expected 'line number {expected_lineno}' in message, got: {msg!r}"
++            )
++
++    def test_py3compat_deprecation_message_format(self):
++        mod = _get_fresh_py3compat()
++        with patch('ansible.utils.display.Display.deprecated') as mock_dep:
++            _ = mod.environ
++            mock_dep.assert_called_once()
++            msg = mock_dep.call_args[0][0]
++            assert msg.startswith(
++                'ansible.utils.py3compat.environ is deprecated in favor of os.environ.'
++            ), f"Wrong message prefix: {msg!r}"
++
++
++# ---------------------------------------------------------------------------
++# Blocker: ambiguous_migration_scope
++# ---------------------------------------------------------------------------
++
++class TestAmbiguousMigrationScope:
++
++    def test_env_lookup_migrated_off_py3compat(self):
++        """env.py must be migrated — no py3compat import or usage."""
++        import ansible.plugins.lookup.env
++        env_src = inspect.getsource(ansible.plugins.lookup.env)
++        assert 'from ansible.utils import py3compat' not in env_src
++        assert 'py3compat.environ' not in env_src
++
++    def test_manager_migrated_off_py3compat(self):
++        """manager.py must also be migrated — no py3compat import or usage."""
++        import ansible.config.manager
++        mgr_src = inspect.getsource(ansible.config.manager)
++        assert 'from ansible.utils import py3compat' not in mgr_src
++        assert 'py3compat.environ' not in mgr_src
++
++    def test_manager_uses_os_environ_in_loop_entries(self):
++        """manager.py should now use os.environ in _loop_entries call."""
++        import ansible.config.manager
++        mgr_src = inspect.getsource(ansible.config.manager)
++        assert '_loop_entries(os.environ,' in mgr_src
++
++    def test_migration_scope_excludes_junit(self):
++        """env.py must be migrated but junit.py callback must NOT be migrated."""
++        import ansible.plugins.lookup.env
++        env_src = inspect.getsource(ansible.plugins.lookup.env)
++        assert 'py3compat' not in env_src, "env.py should be migrated off py3compat"
++        import ansible.plugins.callback.junit
++        junit_src = inspect.getsource(ansible.plugins.callback.junit)
++        assert 'py3compat.environ' in junit_src, "junit.py should still use py3compat"
++
++
++# ---------------------------------------------------------------------------
++# Core env lookup migration (problem statement / requirements)
++# ---------------------------------------------------------------------------
++
++# ---------------------------------------------------------------------------
++# py3compat.environ return value: avoidance of duplicated values
++# ---------------------------------------------------------------------------
++
++class TestEnvironReturnValue:
++
++    def test_py3compat_environ_returns_dict(self):
++        mod = _get_fresh_py3compat()
++        result = mod.environ
++        assert isinstance(result, dict), "py3compat.environ must return a dict"
++
++    def test_py3compat_environ_no_duplicate_values(self):
++        """Returned dict must not contain duplicate values (each value at most once).
++        Requirement: resolve to os.environ filtering duplicates in it before returning.
++        Implementation may use set(os.environ.values()) or a seen set to achieve this."""
++        mod = _get_fresh_py3compat()
++        result = mod.environ
++        values = list(result.values())
++        assert len(values) == len(set(values)), (
++            "py3compat.environ must filter duplicate values; "
++            "requirement: resolve to os.environ filtering duplicates in it before returning"
++        )
++
++    def test_py3compat_environ_uses_os_environ_and_avoids_duplicate_values(self):
++        """Implementation must build return from os.environ and avoid duplicate values."""
++        import ansible.utils.py3compat as mod
++        src = inspect.getsource(mod)
++        assert "os.environ.items()" in src, (
++            "py3compat must build return value from os.environ.items()"
++        )
++        assert "set(" in src and ("values_seen" in src or "os.environ.values()" in src), (
++            "Return value must use a set to avoid duplicate values"
++        )
++
++
++# ---------------------------------------------------------------------------
++# Display lazy import and try/except implementation details
++# ---------------------------------------------------------------------------
++
++class TestDisplayLazyAndTryExceptImplementation:
++
++    @staticmethod
++    def _get_py3compat_source():
++        import ansible.utils.py3compat as mod
++        return inspect.getsource(mod)
++
++    def test_display_none_initialized_as_module_level_sentinel(self):
++        """display = None must be initialized as a module-level sentinel."""
++        src = self._get_py3compat_source()
++        assert "display = None" in src, (
++            "Module must define 'display = None' as a module-level sentinel"
++        )
++        # Should appear before __getattr__ (at module level, not inside a function)
++        before_getattr = src.split("def __getattr__")[0]
++        assert "display = None" in before_getattr, (
++            "'display = None' must be at module level, not inside __getattr__"
++        )
++
++    def test_lazy_display_uses_global_display_if_none_pattern(self):
++        """Display import and instantiation must use 'global display; if display is None: ...' pattern."""
++        src = self._get_py3compat_source()
++        assert "global display" in src, (
++            "Implementation must use 'global display' for lazy Display handling"
++        )
++        assert "if display is None:" in src, (
++            "Implementation must use 'if display is None:' for lazy instantiation"
++        )
++        # Lazy import should be inside that block
++        assert "from ansible.utils.display import Display" in src, (
++            "Display must be imported inside the lazy block"
++        )
++        assert "display = Display()" in src, (
++            "Display() must be instantiated and assigned to display inside the lazy block"
++        )
++
++    def test_display_init_and_deprecated_in_single_try_except(self):
++        """Display init and deprecated() call must be wrapped in a single try/except for bootstrap circular imports."""
++        src = self._get_py3compat_source()
++        # Find the try block that contains both Display and deprecated
++        try_start = src.find("try:")
++        assert try_start != -1, "Module must use a try block for Display/deprecated"
++        try_block = src[try_start:]
++        # Single try - we expect one "try:" and one "except" for this block (allow nested structure)
++        assert "display.deprecated(" in try_block, (
++            "display.deprecated() must be inside the same try block as Display init"
++        )
++        assert "Display()" in try_block or "display = Display()" in try_block, (
++            "Display() instantiation must be in the same try block as deprecated()"
++        )
++        assert "from ansible.utils.display import Display" in try_block, (
++            "Display import must be inside the same try block as deprecated()"
++        )
++        # There must be an except that catches (e.g. Exception) for bootstrap
++        assert "except Exception:" in src or "except BaseException:" in src, (
++            "try block must have except Exception (or BaseException) to handle bootstrap circular imports"
++        )
++
++
++# ---------------------------------------------------------------------------
++# Core env lookup migration (problem statement / requirements)
++# ---------------------------------------------------------------------------
++
++class TestEnvLookupMigration:
++
++    def test_env_lookup_source_no_py3compat_import(self):
++        import ansible.plugins.lookup.env
++        src = inspect.getsource(ansible.plugins.lookup.env)
++        assert 'from ansible.utils import py3compat' not in src
++
++    def test_env_lookup_source_uses_os_environ_get(self):
++        import ansible.plugins.lookup.env
++        src = inspect.getsource(ansible.plugins.lookup.env)
++        assert 'os.environ.get(' in src
+\ No newline at end of file

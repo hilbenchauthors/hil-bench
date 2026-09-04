@@ -1,0 +1,11 @@
+[
+  "TestBooleanEvaluationResponse_FlagKey_FieldNumber",
+  "TestVariantEvaluationResponse_FlagKey_FieldNumber",
+  "TestBoolean_FlagKey_UsesStoreFlagKey",
+  "TestBoolean_FlagKey_SetInInternalHelper",
+  "TestVariant_FlagKey_SetInInternalHelper",
+  "TestVariant_FlagKey_OmittedOnFlagDisabledPath",
+  "TestBatch_FlagKey_SetInInternalHelpers",
+  "TestObstructionComments_Preserved",
+  "TestFieldRegistry_CanonicalOverridePresent"
+]

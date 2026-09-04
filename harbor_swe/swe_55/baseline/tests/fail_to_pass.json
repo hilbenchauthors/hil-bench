@@ -1,0 +1,7 @@
+[
+  "TestGetAuthStoreReturnsMemoryStoreWhenNoDBRequired",
+  "TestCleanup",
+  "TestAuthenticationSetDefaultsSkipsCleanupForNonDBMethods",
+  "TestValidateRejectsCleanupScheduleForNonDBMethods",
+  "TestShouldRunCleanupReturnsFalseForNonDBMethod"
+]

@@ -1,0 +1,82 @@
+diff --git a/internal/server/evaluation/legacy_evaluator_test.go b/internal/server/evaluation/legacy_evaluator_test.go
+index e0fec51f..308665e8 100644
+--- a/internal/server/evaluation/legacy_evaluator_test.go
++++ b/internal/server/evaluation/legacy_evaluator_test.go
+@@ -198,6 +198,77 @@ func Test_matchesString(t *testing.T) {
+ 			value:     "nope",
+ 			wantMatch: true,
+ 		},
++		// contains-strings (positive substring operator)
++		{
++			name: "blocker_positive_operator_contains_strings_match",
++			constraint: storage.EvaluationConstraint{
++				Property: "foo",
++				Operator: "contains-strings",
++				Value:    "bar",
++			},
++			value:     "foobarbaz",
++			wantMatch: true,
++		},
++		{
++			name: "blocker_positive_operator_contains_strings_no_match",
++			constraint: storage.EvaluationConstraint{
++				Property: "foo",
++				Operator: "contains-strings",
++				Value:    "bar",
++			},
++			value: "foobaz",
++		},
++		// not-contains-strings (negative substring operator)
++		{
++			name: "blocker_negative_operator_not_contains_strings_match",
++			constraint: storage.EvaluationConstraint{
++				Property: "foo",
++				Operator: "not-contains-strings",
++				Value:    "bar",
++			},
++			value:     "foobaz",
++			wantMatch: true,
++		},
++		{
++			name: "blocker_negative_operator_not_contains_strings_no_match",
++			constraint: storage.EvaluationConstraint{
++				Property: "foo",
++				Operator: "not-contains-strings",
++				Value:    "bar",
++			},
++			value: "foobarbaz",
++		},
++		// case-insensitive substring (blocker: conflicting_case_sensitivity_requirement)
++		{
++			name: "blocker_case_insensitive_contains_strings_match",
++			constraint: storage.EvaluationConstraint{
++				Property: "foo",
++				Operator: "contains-strings",
++				Value:    "Bar",
++			},
++			value:     "foobar",
++			wantMatch: true,
++		},
++		// empty evaluated value (blocker: ambiguous_entity_id_contains_behavior)
++		{
++			name: "blocker_empty_value_contains_strings_no_match",
++			constraint: storage.EvaluationConstraint{
++				Property: "foo",
++				Operator: "contains-strings",
++				Value:    "bar",
++			},
++			value: "",
++		},
++		{
++			name: "blocker_empty_value_not_contains_strings_match",
++			constraint: storage.EvaluationConstraint{
++				Property: "foo",
++				Operator: "not-contains-strings",
++				Value:    "bar",
++			},
++			value:     "",
++			wantMatch: true,
++		},
+ 	}
+ 	for _, tt := range tests {
+ 		var (

@@ -1,0 +1,115 @@
+diff --git a/test/units/modules/test_async_wrapper.py b/test/units/modules/test_async_wrapper.py
+index 762fc2fb0b..31840628e8 100644
+--- a/test/units/modules/test_async_wrapper.py
++++ b/test/units/modules/test_async_wrapper.py
+@@ -8,6 +8,7 @@ import os
+ import json
+ import shutil
+ import tempfile
++import io
+ 
+ import pytest
+ 
+@@ -55,3 +56,102 @@ class TestAsyncWrapper:
+ 
+         assert jres.get('rc') == 0
+         assert jres.get('stderr') == 'stderr stuff'
++
++    def test_inline_diagnostic_cap_is_tail_preserving(self, monkeypatch):
++        fake_stdout = io.StringIO()
++        monkeypatch.setattr(async_wrapper.sys, 'stdout', fake_stdout)
++
++        stderr_payload = ''.join('%05d|' % idx for idx in range(4000))
++        exception_payload = ''.join('e%05d#' % idx for idx in range(4000))
++
++        with pytest.raises(SystemExit):
++            async_wrapper.end({'failed': 1, 'stderr': stderr_payload, 'exception': exception_payload}, 9)
++
++        emitted = json.loads(fake_stdout.getvalue().strip())
++
++        for field_name, original in (('stderr', stderr_payload), ('exception', exception_payload)):
++            value = emitted[field_name]
++            assert value.startswith('[truncated_head_bytes=')
++
++            marker, retained = value.split('] ', 1)
++            dropped = int(marker[len('[truncated_head_bytes='):])
++            assert dropped > 0
++
++            escaped_field_bytes = len(json.dumps(value)[1:-1].encode('utf-8'))
++            assert escaped_field_bytes == 15360
++            assert retained.encode('utf-8') == original.encode('utf-8')[dropped:]
++
++    def test_jwrite_keeps_latest_record_and_appends_history(self, monkeypatch):
++        workdir = tempfile.mkdtemp()
++        path = os.path.join(workdir, 'job')
++        monkeypatch.setattr(async_wrapper, 'job_path', path)
++        monkeypatch.setattr(async_wrapper, 'job_id', 'jid-canonical')
++
++        async_wrapper.jwrite({'started': 1, 'finished': 0, 'ansible_job_id': 'jid-1'})
++        async_wrapper.jwrite({'failed': 1, 'finished': 1, 'ansible_job_id': 'jid-spoofed', 'stderr': 'err'})
++
++        with open(path, 'r') as f:
++            latest = json.loads(f.read())
++
++        with open(path + '.history', 'r') as f:
++            events = [json.loads(line) for line in f.read().splitlines() if line.strip()]
++
++        shutil.rmtree(workdir)
++
++        assert latest['ansible_job_id'] == 'jid-canonical'
++        assert latest['finished'] == 1
++        assert latest['failed'] == 1
++        assert 'events' not in latest
++        assert [event['event'] for event in events] == ['started', 'failed']
++        assert all(event['ansible_job_id'] == 'jid-canonical' for event in events)
++
++    def test_end_emits_single_json_and_exits(self, monkeypatch):
++        fake_stdout = io.StringIO()
++        monkeypatch.setattr(async_wrapper.sys, 'stdout', fake_stdout)
++
++        exact_cap_payload = 'x' * 15360
++        with pytest.raises(SystemExit) as exit_info:
++            async_wrapper.end({'failed': 1, 'stderr': exact_cap_payload}, 7)
++
++        output = fake_stdout.getvalue().strip()
++        emitted = json.loads(output)
++
++        assert exit_info.value.code == 7
++        assert emitted['failed'] == 1
++        assert emitted['stderr'] == exact_cap_payload
++        assert not emitted['stderr'].startswith('[truncated_head_bytes=')
++        assert len(json.dumps(emitted['stderr'])[1:-1].encode('utf-8')) == 15360
++
++    def test_jwrite_derives_timeout_event(self, monkeypatch):
++        workdir = tempfile.mkdtemp()
++        path = os.path.join(workdir, 'job')
++        monkeypatch.setattr(async_wrapper, 'job_path', path)
++        monkeypatch.setattr(async_wrapper, 'job_id', 'jid-canonical')
++
++        async_wrapper.jwrite({'started': 1, 'finished': 0, 'ansible_job_id': 'jid-canonical'})
++        async_wrapper.jwrite({'finished': 1, 'timed_out': 1, 'failed': 1, 'ansible_job_id': 'jid-canonical'})
++
++        with open(path + '.history', 'r') as f:
++            events = [json.loads(line) for line in f.read().splitlines() if line.strip()]
++
++        shutil.rmtree(workdir)
++
++        assert [e['event'] for e in events] == ['started', 'timeout']
++        assert all(e['ansible_job_id'] == 'jid-canonical' for e in events)
++
++    def test_jwrite_derives_finished_event(self, monkeypatch):
++        workdir = tempfile.mkdtemp()
++        path = os.path.join(workdir, 'job')
++        monkeypatch.setattr(async_wrapper, 'job_path', path)
++        monkeypatch.setattr(async_wrapper, 'job_id', 'jid-canonical')
++
++        async_wrapper.jwrite({'started': 1, 'finished': 0, 'ansible_job_id': 'jid-canonical'})
++        async_wrapper.jwrite({'finished': 1, 'ansible_job_id': 'jid-canonical'})
++
++        with open(path + '.history', 'r') as f:
++            events = [json.loads(line) for line in f.read().splitlines() if line.strip()]
++
++        shutil.rmtree(workdir)
++
++        assert [e['event'] for e in events] == ['started', 'finished']
++        assert all(e['ansible_job_id'] == 'jid-canonical' for e in events)

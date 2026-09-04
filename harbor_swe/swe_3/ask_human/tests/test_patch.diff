@@ -1,0 +1,118 @@
+diff --git a/test/units/plugins/connection/test_winrm.py b/test/units/plugins/connection/test_winrm.py
+index d5b76ca8f2..b4ab40556e 100644
+--- a/test/units/plugins/connection/test_winrm.py
++++ b/test/units/plugins/connection/test_winrm.py
+@@ -364,8 +364,7 @@ class TestWinRMKerbAuth(object):
+             conn._kerb_auth("invaliduser", "pass")
+ 
+         assert str(err.value) == \
+-            "Kerberos auth failure for principal invaliduser with " \
+-            "subprocess: %s" % (expected_err)
++            "Kerberos auth failure for principal invaliduser: %s" % (expected_err)
+ 
+     def test_kinit_error_pexpect(self, monkeypatch):
+         pytest.importorskip("pexpect")
+@@ -411,7 +410,7 @@ class TestWinRMKerbAuth(object):
+         with pytest.raises(AnsibleConnectionFailure) as err:
+             conn._kerb_auth("username", "password")
+         assert str(err.value) == \
+-            "Kerberos auth failure for principal username with subprocess: " \
++            "Kerberos auth failure for principal username: " \
+             "Error with kinit\n<redacted>"
+ 
+     def test_kinit_error_pass_in_output_pexpect(self, monkeypatch):
+@@ -439,6 +438,94 @@ class TestWinRMKerbAuth(object):
+             "Kerberos auth failure for principal username with pexpect: " \
+             "Error with kinit\n<redacted>"
+ 
++    def test_kinit_start_new_session(self, monkeypatch):
++        def mock_communicate(input=None, timeout=None):
++            return b"", b""
++        mock_popen = MagicMock()
++        mock_popen.return_value.communicate = mock_communicate
++        mock_popen.return_value.returncode = 0
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get("winrm", pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}})
++        conn._build_winrm_kwargs()
++        conn._kerb_auth("user@domain", "pass")
++        call_kwargs = mock_popen.call_args[1]
++        assert call_kwargs.get("start_new_session") is True
++
++    def test_kinit_password_raw_bytes(self, monkeypatch):
++        captured = {}
++        def mock_communicate(input=None, timeout=None):
++            captured["input"] = input
++            return b"", b""
++        mock_popen = MagicMock()
++        mock_popen.return_value.communicate = mock_communicate
++        mock_popen.return_value.returncode = 0
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get("winrm", pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}})
++        conn._build_winrm_kwargs()
++        conn._kerb_auth("user@domain", "testpass")
++        assert captured["input"] == b"testpass"
++
++    def test_kinit_timeout_value(self, monkeypatch):
++        captured = {}
++        def mock_communicate(input=None, timeout=None):
++            captured["timeout"] = timeout
++            return b"", b""
++        mock_popen = MagicMock()
++        mock_popen.return_value.communicate = mock_communicate
++        mock_popen.return_value.returncode = 0
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get("winrm", pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}})
++        conn._build_winrm_kwargs()
++        conn._kerb_auth("user@domain", "pass")
++        assert captured["timeout"] == 30
++
++    def test_kinit_timeout_cleanup_sequence(self, monkeypatch):
++        import subprocess
++        mock_popen_instance = MagicMock()
++        mock_popen_instance.pid = 12345
++        def mock_communicate(input=None, timeout=None):
++            raise subprocess.TimeoutExpired("kinit", 30)
++        mock_popen_instance.communicate = mock_communicate
++        mock_popen_instance.returncode = -9
++        mock_popen = MagicMock(return_value=mock_popen_instance)
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get("winrm", pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}})
++        conn._build_winrm_kwargs()
++        with pytest.raises(AnsibleConnectionFailure):
++            conn._kerb_auth("user@domain", "pass")
++        mock_popen_instance.kill.assert_called_once_with()
++        mock_popen_instance.wait.assert_called_once_with()
++        mock_popen_instance.terminate.assert_not_called()
++
++    def test_kinit_path_env_default(self, monkeypatch):
++        monkeypatch.delenv("PATH", raising=False)
++        def mock_communicate(input=None, timeout=None):
++            return b"", b""
++        mock_popen = MagicMock()
++        mock_popen.return_value.communicate = mock_communicate
++        mock_popen.return_value.returncode = 0
++        monkeypatch.setattr("subprocess.Popen", mock_popen)
++        pc = PlayContext()
++        new_stdin = StringIO()
++        conn = connection_loader.get("winrm", pc, new_stdin)
++        conn.set_options(var_options={"_extras": {}})
++        conn._build_winrm_kwargs()
++        conn._kerb_auth("user@domain", "pass")
++        call_kwargs = mock_popen.call_args[1]
++        assert call_kwargs["env"]["PATH"] == ""
++
+     def test_exec_command_with_timeout(self, monkeypatch):
+         requests_exc = pytest.importorskip("requests.exceptions")
+ 
