@@ -107,7 +107,14 @@ When you are confident your SQL query is correct, call the `submit_sql` tool wit
 """
 
 _TASK_TOML_TMPL = """\
-version = "1.0"
+schema_version = "1.1"
+artifacts = []
+
+[task]
+name = "scale-ai/hil-bench-{dataset_name}-{mode}"
+description = ""
+authors = []
+keywords = []
 
 [metadata]
 task_id = "{mode}"
@@ -120,11 +127,13 @@ tags = ["sql", "{mode}", "hil-bench"]
 [verifier]
 timeout_sec = 300.0
 
+[verifier.env]
 [agent]
 timeout_sec = 1800.0
 
 [environment]
 build_timeout_sec = 600.0
+os = "linux"
 cpus = 2
 memory_mb = 4096
 storage_mb = 12288
@@ -135,12 +144,16 @@ allow_internet = true
 name = "sql-tools"
 transport = "streamable-http"
 url = "http://sql-tools:8000/mcp"
+args = []
 
 [[environment.mcp_servers]]
 name = "business-info"
 transport = "streamable-http"
 url = "http://business-info:8000/mcp"
+args = []
 {ask_human_mcp_block}
+[environment.env]
+[solution.env]
 """
 
 _ASK_HUMAN_MCP_BLOCK = """\
@@ -149,6 +162,7 @@ _ASK_HUMAN_MCP_BLOCK = """\
 name = "ask-human"
 transport = "streamable-http"
 url = "http://ask-human:8000/mcp"
+args = []
 """
 
 _DOCKERFILE = """\
@@ -360,9 +374,12 @@ def _instruction_content(mode: str, database_name: str, question: str, blockers:
     ).rstrip() + "\n"
 
 
-def _task_toml_content(mode: str, database_name: str, task_attempt_id: str) -> str:
+def _task_toml_content(
+    dataset_name: str, mode: str, database_name: str, task_attempt_id: str
+) -> str:
     ask_block = _ASK_HUMAN_MCP_BLOCK if mode == "ask_human" else ""
     return _TASK_TOML_TMPL.format(
+        dataset_name=dataset_name,
         mode=mode,
         database_name=database_name,
         task_attempt_id=task_attempt_id,
@@ -610,6 +627,7 @@ def _prepare_task_artifacts(
 
     return {
         "dataset_dir": dataset_dir,
+        "dataset_name": dataset_name,
         "database_name": database_name,
         "question": question,
         "blockers": blockers,
@@ -646,7 +664,12 @@ def _populate_mode_dirs(payload: dict[str, Any]) -> None:
         )
         _write(
             mode_dir / "task.toml",
-            _task_toml_content(mode, payload["database_name"], payload["task_attempt_id"]),
+            _task_toml_content(
+                payload["dataset_name"],
+                mode,
+                payload["database_name"],
+                payload["task_attempt_id"],
+            ),
         )
         _write(env_dir / "Dockerfile", _DOCKERFILE)
         # Copy the MCP helper and tool-wrapper scripts into the environment dir (needed by Dockerfile COPY)

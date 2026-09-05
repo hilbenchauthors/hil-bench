@@ -15,9 +15,34 @@ Examples:
 from __future__ import annotations
 
 import json
+import os
 import sys
 import urllib.request
 import urllib.error
+
+INITIALIZE_TIMEOUT_SECONDS = 30.0
+DEFAULT_TOOL_CALL_TIMEOUT_SECONDS = 60.0
+DEFAULT_EXECUTE_SQL_TIMEOUT_SECONDS = 1230.0
+
+
+def _positive_timeout_from_env(name: str, default: float) -> float:
+    try:
+        value = float(os.environ.get(name, str(default)))
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
+def _tool_call_timeout(tool_name: str) -> float:
+    if tool_name == "execute_sql":
+        return _positive_timeout_from_env(
+            "EXECUTE_SQL_CLIENT_TIMEOUT_SECONDS",
+            DEFAULT_EXECUTE_SQL_TIMEOUT_SECONDS,
+        )
+    return _positive_timeout_from_env(
+        "MCP_TOOL_CALL_TIMEOUT_SECONDS",
+        DEFAULT_TOOL_CALL_TIMEOUT_SECONDS,
+    )
 
 
 def call_mcp_tool(base_url: str, tool_name: str, arguments: dict) -> str:
@@ -40,7 +65,7 @@ def call_mcp_tool(base_url: str, tool_name: str, arguments: dict) -> str:
 
     req = urllib.request.Request(base_url, data=init_payload, headers=headers_base, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=INITIALIZE_TIMEOUT_SECONDS) as resp:
             session_id = resp.headers.get("Mcp-Session-Id")
             _body = resp.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
@@ -62,7 +87,7 @@ def call_mcp_tool(base_url: str, tool_name: str, arguments: dict) -> str:
 
     req2 = urllib.request.Request(base_url, data=call_payload, headers=call_headers, method="POST")
     try:
-        with urllib.request.urlopen(req2, timeout=60) as resp2:
+        with urllib.request.urlopen(req2, timeout=_tool_call_timeout(tool_name)) as resp2:
             raw = resp2.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8", errors="replace")
