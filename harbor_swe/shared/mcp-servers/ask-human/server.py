@@ -194,10 +194,13 @@ def _call_litellm(prompt: str, use_proxy: bool) -> str:
     elif user := (os.getenv("LITELLM_USER") or "").strip():
         completion_kwargs = {"user": user}
     model = os.getenv("ASK_HUMAN_MODEL", "openai/gpt-4o")
+    # Claude Sonnet 5 rejects temperature instead of silently ignoring it.
+    # Preserve the historical low-temperature setting for every other judge.
+    if "claude-sonnet-5" not in model.lower():
+        completion_kwargs["temperature"] = 0.05
     resp = litellm.completion(
         model=model,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.05,
         timeout=90,
         num_retries=0,
         **completion_kwargs,
