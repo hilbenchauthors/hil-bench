@@ -9,7 +9,7 @@ services:
       - ask-human-metrics:/harbor_shared
 
   ask-human:
-    image: public.ecr.aws/b2z8n5q1/hil-bench@sha256:404080274967f4d3807ce25566caa5ad0249e5a8046d12c9a48593b2a4b58de5
+    image: public.ecr.aws/b2z8n5q1/hil-bench@sha256:702628a98d6d00f8ee5975d88d91826ca0759f33a7883f55c8bb2483f5205e5b
     pull_policy: missing
     volumes:
       - ${CONTEXT_DIR:-.}/ask-human-data:/ask-human-data:ro
