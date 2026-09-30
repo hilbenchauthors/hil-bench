@@ -47,7 +47,7 @@ args = []
 
 [environment.env]
 ASK_HUMAN_BACKEND = "${ASK_HUMAN_BACKEND:-litellm_proxy}"
-ASK_HUMAN_MODEL = "${ASK_HUMAN_MODEL:-openai/gpt-5.6}"
+ASK_HUMAN_MODEL = "${ASK_HUMAN_MODEL:-gpt-4.1-mini}"
 LITELLM_API_KEY = "${LITELLM_API_KEY:-}"
 LITELLM_BASE_URL = "${LITELLM_BASE_URL:-}"
 LITELLM_USER = "${LITELLM_USER:-}"
