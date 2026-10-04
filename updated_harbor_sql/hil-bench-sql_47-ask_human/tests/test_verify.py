@@ -212,7 +212,11 @@ def main():
     ask_metrics = get_ask_human_metrics()
 
     reward = {
+        "reward": solve,
         "solve": solve,
+        "n_questions": ask_metrics["n_questions"],
+        "n_blockers": ask_metrics["n_blockers"],
+        "blockers_resolved": ask_metrics["blockers_resolved"],
         "precision": ask_metrics["precision"],
         "recall": ask_metrics["recall"],
         "f1": ask_metrics["f1"],
