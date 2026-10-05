@@ -80,6 +80,7 @@ def write_reward(value: int) -> None:
 
 
 def write_reward_json(data: dict) -> None:
+    data.setdefault("reward", data.get("resolved", 0))
     reward_json_path = reward_path.parent / "reward.json"
     reward_json_path.write_text(json.dumps(data, indent=2))
     log(f"reward.json: {data}")
