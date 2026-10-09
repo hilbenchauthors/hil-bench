@@ -110,7 +110,7 @@ uv run hil sql /path/to/sql_task_dir \
 
 Harbor supports three modes for every task: `baseline`, `ask_human`, `full_info`.
 
-- Runnable standalone tasks (this repo): `updated_harbor_sql/hil-bench-sql_<i>-<mode>` and `updated_harbor_swe/hil-bench-swe_<j>-<mode>`
+- Runnable standalone tasks (this repo): `harbor_sql/hil-bench-sql_<i>-<mode>` and `harbor_swe/hil-bench-swe_<j>-<mode>`
 - Registry layout (published): one dataset `scale-ai/hil-bench` containing all SQL+SWE mode tasks
 
 ```bash
@@ -119,9 +119,9 @@ uv tool install harbor
 harbor auth login
 
 
-harbor run -p updated_harbor_sql/hil-bench-sql_3-baseline \
+harbor run -p harbor_sql/hil-bench-sql_3-baseline \
   -a claude-code -m anthropic/claude-opus-4-1
-harbor run -p updated_harbor_swe/hil-bench-swe_5-ask_human \
+harbor run -p harbor_swe/hil-bench-swe_5-ask_human \
   -a claude-code -m anthropic/claude-opus-4-1
 ```
 
