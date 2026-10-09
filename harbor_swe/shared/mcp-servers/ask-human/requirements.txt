@@ -1,3 +1,0 @@
-fastmcp==2.12.2
-litellm>=1.75.5,<1.76.0
-pydantic==2.11.7

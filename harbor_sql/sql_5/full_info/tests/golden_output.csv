@@ -1,2 +1,0 @@
-COUNT(DISTINCT u.Id)
-3

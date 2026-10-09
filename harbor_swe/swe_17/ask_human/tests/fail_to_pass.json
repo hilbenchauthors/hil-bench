@@ -1,8 +1,0 @@
-[
-  "TestLoadMaintainsBackwardCompatibleEntryPoint",
-  "TestLoadWithContextNilContextUsesDefaultPolicy",
-  "TestLoadWithContextTypedNilContextUsesDefaultPolicy",
-  "TestLoadAppliesDefaultTimeoutWhenContextHasNoDeadline",
-  "TestLoadReturnsContextErrorWhenDeadlineExceeded",
-  "TestLoadReturnsContextErrorWhenCanceled"
-]

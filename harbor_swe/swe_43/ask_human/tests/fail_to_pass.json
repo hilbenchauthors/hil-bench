@@ -1,7 +1,0 @@
-[
-  "TestBatchEvaluate_DisabledValue",
-  "TestBatchEvaluate_DisabledDuration",
-  "TestBatchEvaluate_SharedTimestamp",
-  "TestBatchEvaluate_EntryIdFormat",
-  "TestBatchEvaluate_PartialOnHardError"
-]

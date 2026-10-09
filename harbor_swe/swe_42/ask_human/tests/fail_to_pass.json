@@ -1,7 +1,0 @@
-[
-  "TestBlocker1MinPasswordAuth",
-  "TestBlocker2MaxTokenLength",
-  "TestBlocker3ConcurrentLimit",
-  "TestBlocker4WriteAfterScanNoDBCounts",
-  "TestBlocker5MetricsDetailLevel"
-]

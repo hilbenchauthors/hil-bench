@@ -1,5 +1,0 @@
-[
-  "TestAuthenticatePasswordSuccessRefreshesActivityState",
-  "TestAuthenticateTokenSaltMinimumIsSix",
-  "TestAuthenticateLookupFailureRejectsPlaceholderState"
-]
