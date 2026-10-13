@@ -13,7 +13,7 @@ database_name = "codebase_community"
 task_attempt_id = "6977cf5464c4667b98edc503_69a5b8e06bccf351879256ca"
 tags = [ "sql", "full_info", "hil-bench",]
 [verifier]
-timeout_sec = 300.0
+timeout_sec = 1380.0
 
 [verifier.env]
 [agent]

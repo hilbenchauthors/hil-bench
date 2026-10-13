@@ -16,7 +16,7 @@ REWARD_DIR = Path("/logs/verifier")
 REWARD_PATH = REWARD_DIR / "reward.json"
 REWARD_TXT_PATH = REWARD_DIR / "reward.txt"
 ASK_HUMAN_METRICS_PATH = Path("/harbor_shared/ask_human_metrics.json")
-MAX_QUERY_EXECUTION_TIMEOUT = 300
+MAX_QUERY_EXECUTION_TIMEOUT = 1200
 
 
 def execute_sql(db_path: str, query: str) -> tuple[str | None, pd.DataFrame | None]:

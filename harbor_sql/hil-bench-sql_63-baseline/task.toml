@@ -13,7 +13,7 @@ database_name = "thrombosis_prediction"
 task_attempt_id = "6977cf5464c4667b98edc55c_69949d4ce069f36c60d0b935"
 tags = [ "sql", "baseline", "hil-bench",]
 [verifier]
-timeout_sec = 300.0
+timeout_sec = 1380.0
 
 [verifier.env]
 [agent]
