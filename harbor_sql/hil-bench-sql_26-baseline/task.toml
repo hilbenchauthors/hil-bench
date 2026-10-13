@@ -13,7 +13,7 @@ database_name = "toxicology"
 task_attempt_id = "6977cf5464c4667b98edc566_699962b37fa69b92ea8050d8"
 tags = [ "sql", "baseline", "hil-bench",]
 [verifier]
-timeout_sec = 300.0
+timeout_sec = 1380.0
 
 [verifier.env]
 [agent]

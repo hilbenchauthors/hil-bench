@@ -13,7 +13,7 @@ database_name = "formula_1"
 task_attempt_id = "696569af5646d08e6c31adcc_6990b952d01e8e64bf5a47e6"
 tags = [ "sql", "baseline", "hil-bench",]
 [verifier]
-timeout_sec = 300.0
+timeout_sec = 1380.0
 
 [verifier.env]
 [agent]

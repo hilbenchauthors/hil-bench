@@ -13,7 +13,7 @@ database_name = "card_games"
 task_attempt_id = "6977cf5464c4667b98edc4f3_698ce8da694bbf837f4dc530"
 tags = [ "sql", "baseline", "hil-bench",]
 [verifier]
-timeout_sec = 300.0
+timeout_sec = 1380.0
 
 [verifier.env]
 [agent]

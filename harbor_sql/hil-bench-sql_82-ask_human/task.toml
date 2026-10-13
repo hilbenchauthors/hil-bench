@@ -13,7 +13,7 @@ database_name = "european_football_2"
 task_attempt_id = "696829c70f4798851d68c580_698aa3e616988e13601dad7d"
 tags = [ "sql", "ask_human", "hil-bench",]
 [verifier]
-timeout_sec = 300.0
+timeout_sec = 1380.0
 
 [verifier.env]
 [agent]

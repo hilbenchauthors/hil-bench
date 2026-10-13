@@ -12,1203 +12,1203 @@ name = "Tu Trinh tu.trinh@scale.com"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_0-ask_human"
-digest = "sha256:f21af7ed0af645fd1cf216c7f780361d9a3fa742266d1d61473413ccc1ebff38"
+digest = "sha256:b32c4f83344f44e2197f3e1554baab35d9cf4ff77e24081ed9462573e4a75699"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_0-baseline"
-digest = "sha256:44da647cc0a04817d8c3307fb509e5a241dc195779525568a7841bbf1714ecec"
+digest = "sha256:80cb9ac1ebe51dd3e54fe699f0761b86fa2a8071704045571f422e62bb997489"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_0-full_info"
-digest = "sha256:89d5d4bd35e10b84a0182ed9b12fcd2b0d98cf1942865af2b2b81b051df64b71"
+digest = "sha256:b05c90b80a9946a426edb25c00e8c7c4e7c3b5c0932365abb75dcf32bdfa2526"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_1-ask_human"
-digest = "sha256:864fb1fde0702a1d549dc87e50d3fd1a782494515914bcbc8301f0ba976669fb"
+digest = "sha256:9aa5393e077bf1e82266aca68a68a3f0ddaf436196cefb1d06f9b4844db0effe"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_1-baseline"
-digest = "sha256:5a10e8fc16cdc879758d853d60dcf764e80e632c8894d4f4aaac62bf5e90f804"
+digest = "sha256:9c5c13c2befdc67fe5c9c866782fbfd010775a142759c74f033b96bf8d2dee69"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_1-full_info"
-digest = "sha256:e0f6ec13dcd8562b22bd841a41081f9a7aa02a39905c01204e83d62b5068c315"
+digest = "sha256:9945ff52c338f35084c72794ebc0db11424cfa0dda13f408478d11140974b19a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_10-ask_human"
-digest = "sha256:aa411767cfc6164d5b20eb0551626ab98e644204ad05a8bc4e15206033f0a32b"
+digest = "sha256:bd2f5a9f3e07908031a4cb019cf6b57ce703fc66b53a50cb3b70c096a8936698"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_10-baseline"
-digest = "sha256:dafa8ed3c9672f283edfa1f7bb85e68bb3e4f3e623cc446124089fbbd8d9f6f7"
+digest = "sha256:0e07885684529be160128bef767f4052337e5b1ddcbd52daa9d5541fbbded405"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_10-full_info"
-digest = "sha256:0d04c4b6c4765d9a2f14c4beb90543e3e776291cb4b8d92478fde1f97b537666"
+digest = "sha256:b24495df2fb8e650c2d5d356656e106afb83da627c49dd01995f06cb30136ea9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_11-ask_human"
-digest = "sha256:66c5795d36a36c8d1eeaf6b372b176794e4177d06d0c9fc5a0f29db1cdfc8c60"
+digest = "sha256:290bdea6677ed1ba353bf27b3b8b5a74f21c1f2f3d33367c4fcdc9ac0631b90e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_11-baseline"
-digest = "sha256:3b9850ec73fba711bedee37cc133a0bd1fbd271860cc644dfdbe98d0a0e600c4"
+digest = "sha256:2a06f854aa3fcd10f8420301eeade1c901e5518dd9a00a46b6bb81a06a2a8faf"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_11-full_info"
-digest = "sha256:dbc3ed16d9b83a8547054b3945c623668352d41ec685056eee0904fd1ce6f709"
+digest = "sha256:16caabaacd5948da50c513c1c409de53b6ad9e52456c41ba56c5a57671b54e82"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_12-ask_human"
-digest = "sha256:d6b8dc6d49ee2012859ecdc03d2613e60297f84753004e76dd07e20cce3d766c"
+digest = "sha256:386a893ad4026877d332d3f6b7fa7030cd402556b4f38718cdcb4c52611ca6b9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_12-baseline"
-digest = "sha256:c3b370ca6e0871a3ecc5d46a65cba879b5962bf366ff4b1347e0c97b8431301b"
+digest = "sha256:7aeddaeae22a091e69c65ea01e76ca9814be3858451b7b61b46f9c3ca46399c4"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_12-full_info"
-digest = "sha256:1948b237d90cce94a8243f53e3646b705a00871b86cef5c5ab50b6f297382c4e"
+digest = "sha256:d39ff3355d8a797a102988db2012ff2b1e2bd30b94ebcea779217217517f61e9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_13-ask_human"
-digest = "sha256:2e0caef294ce6019699656d92589970dcf17b7c65c9bc988138f29a897dc73be"
+digest = "sha256:8dca9c71f02b6df540631e869ff7b86069a230fbd72988cffe3f82903413496b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_13-baseline"
-digest = "sha256:3db35215d800fa3a32c13ab323bd710deb2f4baa166d4eac29d8dfca11a4013a"
+digest = "sha256:4cde8e4064de9838dfddbf7ea414a956836ed61a4af7395b6b79f72b838daeaf"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_13-full_info"
-digest = "sha256:fb7ec887b179a643bfa0367bdc489035d7673b08f1cbdccb0014ac84cdb1f458"
+digest = "sha256:f95a10c668b5bcbe1fa99e3f0e32b8ca27ed3e750564a0a27e8f992d1fbbf7a9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_14-ask_human"
-digest = "sha256:b539e30f194c1842d711a5ebf1f68d077f1c922d7a6fdb81ff13fbde7c45d284"
+digest = "sha256:b04928489893d3b44b3036bba21ebb655d9cdda8d0f326aa1b86876b4d8c1a84"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_14-baseline"
-digest = "sha256:8af8e9f143c54aac754e18ca7f2455902615db5917280e8f0133c0eee20bf9ad"
+digest = "sha256:c77893676288dd86f064cc0a2559bc8a62c92945b33e0a2ece9db5034044b94f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_14-full_info"
-digest = "sha256:b2fa8e1a5ee7bda0768b40c9b8c0911b9aa7792b6af82df0a9ae5de04f02231e"
+digest = "sha256:3643a5432167581348445fae528f1e5186ead11ce0f24d37a4a48328dd9d9863"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_15-ask_human"
-digest = "sha256:eb4fcedea33c93080c6d4bb8a492b336e1957c0d6b11d1779776c9e3d074613f"
+digest = "sha256:98ec2f8913d4c4dede619dbbf94dd442d2e5b7366b4fc11f060ce778c3385df9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_15-baseline"
-digest = "sha256:054243c090aa71c03bffe33fd95e54427b7596903e27a8df8c69f03b14cd1a48"
+digest = "sha256:94b1afc20bc01dcd13f41d938cbd1857aa722f66595568697aea9d40fa80ac1e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_15-full_info"
-digest = "sha256:575680dcab1a572ddfa2a5a1078dad3547b28ba9240e91d48b7b1dcd94773789"
+digest = "sha256:ccfbafbf01daad480b23ce260302fe59b7afc884056165e7f26b1f7448cc0214"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_16-ask_human"
-digest = "sha256:c52b41970df61eed067c0bb4ffc9bdc661e97941066724398482066605a8b646"
+digest = "sha256:4ccb017ee84ded0a0881b1606e18bdde3dee578a80742493c87f60cf2f7d9310"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_16-baseline"
-digest = "sha256:f1df7c056215d2bb06c0a6c152205c1afc0574e11288144f27800a3a04bd86e8"
+digest = "sha256:c697f93d3c94e29b07770b30e65da2826d39c227506589b25a2f6a030f5ae26e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_16-full_info"
-digest = "sha256:cb8da59444cd17aedce11cb7be54ca68d1defe0c2e6d6d34b27ed068d2eba840"
+digest = "sha256:5fb040c39da5cc90f641c4bb5486efeadb21addabc96c4b722334b5a825d188e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_17-ask_human"
-digest = "sha256:b565e697f87d921f3d9514fdaf0759a71e6298a5660bb6fdf0c160b3196bd0f6"
+digest = "sha256:5578114186eb4314a0f0e6ce3be724ac49128c39782cea9019c9cd97404fd66e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_17-baseline"
-digest = "sha256:26e0f3a419c272ee6426558892ea19522bc3a178483b774a944210d8cc424f09"
+digest = "sha256:e4e394c4cd2e79df797ff22df167b2e494251a388d463d0944acc9af9b1b51c7"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_17-full_info"
-digest = "sha256:24ccace7a41b3c72beb2f6c1f289bbb21fd6c8dca94d694d9416cc63840e3b5f"
+digest = "sha256:93c1aa082ca84d84a959c5f8ca39445f29a5be89d76ab389f8e1287d77a2dfd9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_18-ask_human"
-digest = "sha256:8a44cc25cd7f961eb3ff2eb0abadd63409db5007f0befc9ae126ffcf435490c8"
+digest = "sha256:0f8cd89dc3a982d8c1e1d20d8dfe56ed6a006381f075d3b7ee78d1864f2d7dab"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_18-baseline"
-digest = "sha256:5c25ef511abe259b096b0859fc295f2b6802b9c3b6effdc3f8942cbf524f8c75"
+digest = "sha256:bbef0c36bb19660d3e45110e77c3d40f5975fb35c385b330917f3653fa3e2bb0"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_18-full_info"
-digest = "sha256:65918b7b786b88fca7d2fc2d72f4a4ebb84c717f11a3e68c5b6e0e9241b82091"
+digest = "sha256:0965e97ce94e589902c9762ca301b9d25bb249259ac5d6f03d162d8d7b87822b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_19-ask_human"
-digest = "sha256:c77821309c32cffaba8081d765f4ef760709f0141ec1cae655951e98f366f490"
+digest = "sha256:25b27baf59d607fc6d40374e6e4999df9702ea3c3179254127664e522ff3d7be"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_19-baseline"
-digest = "sha256:b9ef9d5abf23da30aff7959ded5f37659e794c35ad6b86b5b8a67396a2fd465a"
+digest = "sha256:02ca9e6f63001e55091ab71124c043f252685abdbb1fc12e4f374583d109fa0d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_19-full_info"
-digest = "sha256:1d1aade273e365b25c5396c512d570b2ebc270e5b4c078735245ab91650fccf1"
+digest = "sha256:db39595f6b31f79cec3c717034e0bfad7806f85cb7497e90c35c08fed4973f10"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_2-ask_human"
-digest = "sha256:bd8349b503e4c40651d1bee41fa83a7fe5fe0e98052b8ff38bb57eb0028f1b2c"
+digest = "sha256:ddc019857e816680cb57732f24b03eebd16c4e210617d29ee6c15c316e6c55da"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_2-baseline"
-digest = "sha256:1fcbc5af7f979ed96b44da188f121d0fd2a268820d8c18e04009c54f7caf3466"
+digest = "sha256:c52da665d493f3f60419833e3c83b6228711d65891f9cd3860ad4eda5c9c0e0c"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_2-full_info"
-digest = "sha256:052b08a62f4eb8fba3afb07a5c81320b82b21c0351542d0e8d90c52ea1c24fae"
+digest = "sha256:9a0d8d035c38f798aa031b18373496ead64287cf03c99448d587ab9debba8dbf"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_20-ask_human"
-digest = "sha256:a7f1c8d5b2ece85625688d7c5c590692452b363d7f499ccbb124f7c9d744d8a2"
+digest = "sha256:64cb5b9fcd1a7d76b9ab881ea7327706ed877864c40838eddb952ef19ecddbe9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_20-baseline"
-digest = "sha256:0bc503e982e719c4ffa0f761896bc4bc10e530d9ec0bded737283de1663b637b"
+digest = "sha256:693c7c7df9ca7f1613224d563261a4782cf18c4e1ca94b6b12b97b729c8fb668"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_20-full_info"
-digest = "sha256:5dc334544b273c3d4546694f6d3e88baab6eadcadae07cc158dcf754d690a767"
+digest = "sha256:f2da12cff12c4447ddc47d7644ac275f023167677d3265d174acfa201d985efe"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_21-ask_human"
-digest = "sha256:a9164c177c47052650ff95cd1c0973c69dcfd71ac0342af628a2cedbdcc1c2a2"
+digest = "sha256:94c27ccc6561174faaa9607e57660d46aef049d0094e71606a60d6c28c4e8fa4"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_21-baseline"
-digest = "sha256:afbc99fed3891565d25cf8ca8d66071cd7c9a209fef52c11050a0e019e5605dd"
+digest = "sha256:189999447e6a9496282c1e1a5c1d1ab973f301f804d4a6ddba8104726dd07d74"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_21-full_info"
-digest = "sha256:b5f5077e74b0cc911b3679d8319cba10f715103444e0a01587393161aa7506d0"
+digest = "sha256:cefcfad96c0828f2d1307dbc724281a0565a4d2ab9feb79471b289487e96c63c"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_22-ask_human"
-digest = "sha256:29aabdee50d34622fe6c8c686e2d8427433fa23a83e27b6ce654ca62e305faea"
+digest = "sha256:8756536e15667fdd568633f9b3273165f079f5445e54a8a8d6327b09edc1e5a1"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_22-baseline"
-digest = "sha256:6680b316ab6ed016ee5469bb0532539d31865c95865dc3b919ad058ab1ae64c8"
+digest = "sha256:0d308abfa7db9e088dc531814c9bcecf47eb5071971bb2b151e4846b3afd5b21"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_22-full_info"
-digest = "sha256:696640b1e58088bf53da1a363ae865f9a3100755ad2c71ae8fab49b05207a3d0"
+digest = "sha256:eae513851b15acb0845be232f8fec038f1165a1477e7271a00c63e0d2460d376"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_23-ask_human"
-digest = "sha256:63cde98d8a04c9afdc81b392eacdc00fab816cee9dc4d0e4d19868b1a25178a7"
+digest = "sha256:4f800d0da071cfc5b9d06607d821f4269830162b8b4a365bdd66d68e69811fe8"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_23-baseline"
-digest = "sha256:d88d4b01f8a2f6de0699f9ae7038f82c28a3eb5c9e947f8af37171b88a8c63ac"
+digest = "sha256:45bb7f1d29cbc422996b40f5c314a12a628f47674b82f891c61539aa3a7f2d69"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_23-full_info"
-digest = "sha256:df4630340fe1ed20dae635d08d7ae118b008ca4ed699635453447724bd73cae4"
+digest = "sha256:a783f786b7b05df77f8cbf7105fdeab946217570affbeec779fc17afd6ed6179"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_24-ask_human"
-digest = "sha256:31c630658033773353b956cedd7ec996b9ccecc17355cdcaccd6c52181ad24cd"
+digest = "sha256:024b4e21945403efdd14db950a3ef51a578ebd8f416e6228840c8e778f0f2723"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_24-baseline"
-digest = "sha256:153d549c62186a21c63dec0691d5e6522ef2be9977499b1ad3975634687022aa"
+digest = "sha256:99d0f6090e9d5c67199bc5441240fa6dd85b3c4ec53f5489be1300566cb4cc00"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_24-full_info"
-digest = "sha256:2d2e00837efeffe1148dea04b98290eae8dc7a16d8aae263dc18b6362208e202"
+digest = "sha256:fe1e2c0686b16200e97866fb9c295ef04c28cea304413889e8c9d0bb54480e19"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_25-ask_human"
-digest = "sha256:036630c7463437a10e4d32578aab933344827fc7d097ce448d55cb69990c8f0d"
+digest = "sha256:5a14e95ef21693e8627fc6cb46ef11d7a18587447aba0a9816a386ac9d4aa47f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_25-baseline"
-digest = "sha256:2d065bf8d2ebe038aba2b8a33b82f206fc72ced12735f95b9583dc13d7db4fcc"
+digest = "sha256:243fb841dd4ef840281c10028c0ad247733a4a6296a8d2629879f976cfb7ad5f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_25-full_info"
-digest = "sha256:1d8d42ea8d3fbf721a86af9aa5a8e2388fa07c1bbaa1fde1e2aedbbc73d0a76f"
+digest = "sha256:73fade4a4f3e85184470c92cbe8f6c0729bc165a3ee320b5609225f81edcf465"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_26-ask_human"
-digest = "sha256:5735ac847e87182427602ee3df74933376d596e15a499c475f25e97fb5990d68"
+digest = "sha256:1534e06e6bea71fe57d4ddb208396f4196aeb0ec989024f781893c89134ac384"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_26-baseline"
-digest = "sha256:771a6754fe0845da5217ee310cbd9a46c64c0d9246b7fc3c32ff57789870e331"
+digest = "sha256:e38dae66f34d2e3e6d4ad29b85a95146ef834673a118cfb6b0265dd331551932"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_26-full_info"
-digest = "sha256:16d6835d9a684fcb1a7af24657ccc0e015854f7624960b32c0b7c234d3ffefa9"
+digest = "sha256:ea016ef15c94dbe481c48e56ed1189ea1f2fbef3ac0899807dd7f5cbcc0bfed7"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_27-ask_human"
-digest = "sha256:ac9e8ae4390bbadbbcf4f8e43838d68aa5f0af21f43d933745d199b91e45d16f"
+digest = "sha256:0f89ecffb16634f497b4ab665207d1fe9cd0ceab8f4575a44b9b083a295c27e0"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_27-baseline"
-digest = "sha256:56643e589c04b02ba7b49fcfece56e84df0f5099e627e631e4796dea699a4c78"
+digest = "sha256:6b628dc3ab2abc0eb70a5268b9d233799d11b4e7c315718e23e204adbeceabfb"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_27-full_info"
-digest = "sha256:1a25f3cd666d323afe1494ebed6cdb9e87680acec39fdcb35e5cbf093feedd8c"
+digest = "sha256:2a2cc1937d10b647b0bace3eb5db87db29245425d0807e6f069ceef96fadc76f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_28-ask_human"
-digest = "sha256:539c7273ccea659f37e08b7f419e4d539dba9fbe798711166a2f1d7038012912"
+digest = "sha256:fd26f429f2583b8fe7f35c62483172b5783a07dbe5c640340a5b0860fe321488"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_28-baseline"
-digest = "sha256:7a11a8478e0a47ced5ba9b517bed12c6a34b1b293b679ec5efc36de7f7cb44b3"
+digest = "sha256:e4f803abf3e31965d502683e8bf04dfc873e07e042ac851403096dee8e90edef"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_28-full_info"
-digest = "sha256:a3772520af7e14ef020520efef03342f76521ec8b938e0479e0b109f887f6a24"
+digest = "sha256:b44030bf5a5ad53813992ce18eb201f789a12717f8178aef5fb10f522d99ea71"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_29-ask_human"
-digest = "sha256:fbd750e0056f509389300fb5b9c853dbf595522edf360f461686bfb0fd996894"
+digest = "sha256:0346fddb22697f04bb1fc77d0e1e65613b7947d80b384e8f9cc5626812a1831f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_29-baseline"
-digest = "sha256:0c666ca3d88719d3e59d0b4cbf836ea6bf8d9d7e05a7de37d3abd95d330a6587"
+digest = "sha256:66e9112eb508febb698bcc8379f14a954ada2c71e4c9577b63ee440d0e27d822"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_29-full_info"
-digest = "sha256:e3c232da61d9653803e026ba086db22afc232c87c725d24c2c9042d35d50122d"
+digest = "sha256:29452fe0448943b38113c3b57693c3b6015b84594a0949e0e06bd6828bc63914"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_3-ask_human"
-digest = "sha256:9649b74617301fb13c3443509be7da4cfc2a1afdfd2c95847e62f5e13c0d25f9"
+digest = "sha256:449b8810f4bec2367da7935ea3876070c95b1459b354ab92621c751b10e3d870"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_3-baseline"
-digest = "sha256:2aceef56b4eb282aa62161b662e35023beaf828135f5b92a4778ca2e224cd7a5"
+digest = "sha256:02302d61bfa1f1c9fd19125245abbe4981702016b7e5707b96891ca1ff61c465"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_3-full_info"
-digest = "sha256:8d0397462f8f064fbe430f427b6edc48a513d76c4c9bad2e4e60abc16e005e1a"
+digest = "sha256:7fedf34350e4d6e877d53ba7e103c5866ce6879dc6d31f037c15df56d5cff253"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_30-ask_human"
-digest = "sha256:8ca035c241a1c7642ae421f0d38f3f9c6fe83f9b1089a4282b9c46f66472082c"
+digest = "sha256:8dea422070505b44befafd7a1d9326c0d436276c0fd71a8565f718f53f54820d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_30-baseline"
-digest = "sha256:c1ef20759e470a7fe4125cf63ba4adbb16645b20cdcb4156a727d7b9bfa86589"
+digest = "sha256:628dfe0b16fff1ee5ddfc20d27446eb5bbcf0344c4bbe7c9d17c73632a93d86f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_30-full_info"
-digest = "sha256:94ba36853abd1f3c87bf6c925bb699c942546d0e88e7eca5d4cbeaff81e9dbba"
+digest = "sha256:ca7e1526f1cec6f3e44a94f905a2efdb34572a01df33cc8dd26daa03a20564e2"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_31-ask_human"
-digest = "sha256:10f8b22b46666e71131f0d7f0ae7b80aa2b2dcec5e2091313f00a49ad9d36ccc"
+digest = "sha256:573fd19de5087c4288121117bb5ed2c9e1b69216f398b174a43f63b15083dfcf"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_31-baseline"
-digest = "sha256:e1d0670fff74227429e8ded4a7d5f4cdad751417755364d4e9913be0b8c2ad72"
+digest = "sha256:e280831ec8b87b11780e99e62245e4dc28dc71433d1a1b995f6a633161520841"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_31-full_info"
-digest = "sha256:d897eb7465b750b35a2b7461a2b8a01adf7e676834956077f7412ae26fb7bd8c"
+digest = "sha256:e41bc5cdf8f00b0539aaa35701ddbd5bcb959035b413545ac1f81db47bf4a0dc"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_32-ask_human"
-digest = "sha256:ba01c75abe48f59f5c4d2cfd26060ac16c3b4742c63f5c84d5af1f8430a89241"
+digest = "sha256:238d904ccda20f99ccf47563821fac68990183f2e0be88012691d58897a68177"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_32-baseline"
-digest = "sha256:a44b263aa493c0ee40846bfcf34ed9f87b026cb821aa08de3b0b7c76d9350147"
+digest = "sha256:ea53e2e343626d86f57e400d44cb165e31c89e81a073a0a7b0f698f6b3f31c9f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_32-full_info"
-digest = "sha256:54077fc6113e510226ccaeef0938c6b18a620933ab37b833c120d9a7bbb10031"
+digest = "sha256:543c2c529fc62a015a7be76fdd4ec5a52f6c7263ac21b730dcf843673a335c33"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_33-ask_human"
-digest = "sha256:ebee5ec8488cbe8b907a753d3539949f0422be7d3674ac31048c5d82c39104b2"
+digest = "sha256:1f09cdfb56711fd1a8235a62c1f4c4e9aa8a3f1385bfe72d5c988e5c11af8252"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_33-baseline"
-digest = "sha256:9ceac59a329f7d02d1e8ffb1fe000a4909f83d439f682260a8be5fe29b5c18cf"
+digest = "sha256:00cdd386983d215cb6b3df836f4fe9973bd1432c48b1b0d7da1f7509181bd191"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_33-full_info"
-digest = "sha256:168e6d87f241ccdbf9b21f104aac23df5efb79d9b38f08fa25e42a541d9ec6be"
+digest = "sha256:efe39c601ff56de52445092a71f1b277ba5c3111f510209dcd9d86da117a7eca"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_34-ask_human"
-digest = "sha256:5f7d0bdc67c8148fec73a361d8f2a9d8444e6a22393eb0b091e9adf8ba7426cc"
+digest = "sha256:a3fd3470aa62da657555dd745f75a43c7dd65832b4406f97eba81f3d4da204e2"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_34-baseline"
-digest = "sha256:7c90955536d526420a4c0217b7fd49442d750c2ba3d9c356dc62840f02e4e7d9"
+digest = "sha256:41836825d359476b4c39d72836ed926ee82a753d1d7c06d83fe832ee994e7ce7"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_34-full_info"
-digest = "sha256:49a81a20971f4286c4845a409af71a556139bea77f6f3d61126738b96f631f6b"
+digest = "sha256:c57bb4997f35e38921e8fdcc8df7644cc3dcb822ae31a20d7fe496773c5546ee"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_35-ask_human"
-digest = "sha256:23ad0baa3a3a0312ff98944fffd03b8f6b16810220c00e950507efe0ebe2f372"
+digest = "sha256:5c0c74f412626b5f7022044c91c9a39631ee9ebceab49f7d5b646f70c1e9a9b9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_35-baseline"
-digest = "sha256:34deb0e63e88fe9c36e136197175e8df1539ee09f291adf6b5abc1a3d57daafd"
+digest = "sha256:fea37331b3657cd10f65151e2e08edafd3ac429ed8424c4f71ec91fe903f21d3"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_35-full_info"
-digest = "sha256:ea92933b7eff48503356a258d732f2032c36042ac6e0e5947dcd01d07044e524"
+digest = "sha256:6ef1b99e706f84531ff55a540b7b80bcf014af2f267b082837d44d7e8c7a68a2"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_36-ask_human"
-digest = "sha256:5e0ed398075d5dd18ca07b0cc701e66fe3a7de5df766dbc00faaee76bed28956"
+digest = "sha256:b3825715cefad23326bad8e3da3dc7a49b1da388993b76985ed587dba13c8486"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_36-baseline"
-digest = "sha256:95be491504b22f3ec8567142de16791eb234dd5352710e97ed4a9eac5b619ee3"
+digest = "sha256:45e916dc78e3cb79457db1ea462b74dfe2ba421c630d5aaafcf227cf91a70425"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_36-full_info"
-digest = "sha256:a9849a342cdb002b6dee110d874b67b7ec25a4235540825d1db11f2d788fff18"
+digest = "sha256:4eec1d01ff70101bf8822bdeba2fd69a8e51b3c6b39a07e9343e16c9dcfeca4e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_37-ask_human"
-digest = "sha256:735592f25153572d2b7b3c5296c855dc0749705a1d73fafbc3aad0a9e731ce6c"
+digest = "sha256:90217a6e43de9cccc4218e43b63093613469646429c12f62cef190e9af31da47"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_37-baseline"
-digest = "sha256:573a47e3b29f275c17c1c32177419d5b7d3379fd2242bc671bee09fc0c570bba"
+digest = "sha256:b1d7b5bf3ae8cfec44f51a14361eb9eab6b2d477cb8720aa97902e523e1f2285"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_37-full_info"
-digest = "sha256:3b4fe7d7a72fc07a7d556c5e4b884a88e591eccf88a8cc12ae51413163ac2fac"
+digest = "sha256:82c9bb6725d59c6e41a8ca6971f1c9a350a423cc9aa23380b07dea43277c4f69"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_38-ask_human"
-digest = "sha256:46d0fc7a5eb26dfc7b282ec9fbf08a8de76f977d21f310a46219903c6807bea7"
+digest = "sha256:6bf942633424da48e42d7f6d523f23ad3a6fdd9c067b99385f00f19ee42cde00"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_38-baseline"
-digest = "sha256:5c74b0a7789e478d95fe0dbe5d268c88f4f9df836bece6df7fe60f12611950db"
+digest = "sha256:f953a4683dbeb5eaf1a29ee9f412b07feb5267826e567a661813a3bbf0812a09"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_38-full_info"
-digest = "sha256:aea85d945508ed783089f9b29e01847eab80d57b4dc3677fb6a408e6aa1e4df0"
+digest = "sha256:090548d9cb8767b4d844ea91ef9018bbab35886d253137c92a62efa78e039d38"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_39-ask_human"
-digest = "sha256:2e52bd5a3e5b4f99c4a26bc792e1176d1432554df9728fafa1a5196c12488b0f"
+digest = "sha256:40df892adaf4e6b4644cc49990a7eaf8e439b0ffcb36e9001dd3e6672c2647c8"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_39-baseline"
-digest = "sha256:9324e508e7253a73ffade34a99099a3e79c21786526effda9f231625f4b81273"
+digest = "sha256:4e9958247391efa375dda568b1e3f65dcf555da2287055ca90c9bd4fd566cf73"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_39-full_info"
-digest = "sha256:463f4036b02e3519067b18245708cabe57be2874dfa839cd1fa3b9e7a4560300"
+digest = "sha256:ef0647f8c4bc6b2f29399b7dcd2bc4189af81e5ad4183c9d4af6cf769d25addb"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_4-ask_human"
-digest = "sha256:983412427e7557c7894d8966298e5371ced4447a9a1106560cb968dcd04c500a"
+digest = "sha256:187fbfbc3f906b4772d4c2d79a84579dd04a02c2bca79c38a6beb33134a28e16"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_4-baseline"
-digest = "sha256:88a5f8d05b20c84ae9d0e4a1b8ccc82a31795d8ca3815d7139193d2c90223580"
+digest = "sha256:8d6e57c9c2191a054d3a9ba50962614809035de566b1aed1c493288d23296e0b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_4-full_info"
-digest = "sha256:be17c664d3d6c89808ea3b034d1c2a0f65e7f6899dc9c080b695961c0e5317ce"
+digest = "sha256:b131955e6533eafcfcd949cc9d234bfaacefe927dd99685959d7bf43536c519d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_40-ask_human"
-digest = "sha256:81a8357a20cef4dec72e4fcd4eaadb2a2df80956d3a74359f734e51b5d84ed98"
+digest = "sha256:ee43a24fceb6919ba61ad73d82c1f0d81df72fceca11d9f7e78b7d90e7b910db"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_40-baseline"
-digest = "sha256:ec6456e46902217b9434e794e5b5adbe9d39516f0d9d755473967cd26a8c0ef4"
+digest = "sha256:c18f66290a4bfd526e9dbd43f7e2c484e8fa5c6deb2b1de087f60f76448375f5"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_40-full_info"
-digest = "sha256:92c025b7fb2aead81208ea00d0ca00656f6c4a698427f1226c45ae112a7ded49"
+digest = "sha256:9874cc07c571da6f8df1af8d9ccf89aba26f81e0d3caa07bed779d2c903c638e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_41-ask_human"
-digest = "sha256:c0c1eeee689e506a5d7f57e2a34cb3bdcaaa3c863453bb0ce6a2796d5278bd4d"
+digest = "sha256:514b26853712e7bcc66ffb1192120f30a2ef82b7a2e1a83c7cb28ff8c0af7848"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_41-baseline"
-digest = "sha256:f86c20a25d70a0342383667837603d1f1c573d4de7a36317fdeabfefa58e57be"
+digest = "sha256:c804e80fd36a0f391044b492bf88cf70bd86ca5eab62de7cfde4086318f78f28"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_41-full_info"
-digest = "sha256:7b007dd5a203dfcb4de61359c1660e98f6bdb0f3fac783cb8cdf8c7925e32b7b"
+digest = "sha256:bf18c247dda3e701390fab8dedad5130d7017686812568e0b9641f4b80c26f60"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_42-ask_human"
-digest = "sha256:cbd298e5389a6413bcb712d94268329d45b7c53eef37994498fe7aeabaaff2ec"
+digest = "sha256:1ff30a6e9afca42d89ce7cc271d9069da4c25a391405761b3e88fab19c04901a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_42-baseline"
-digest = "sha256:8b0c3f86fadb3ae4ca0b21b304f6d7d31c2bbf29e2943ad6ceb6f1cc93692ce7"
+digest = "sha256:98dae0787f7fb79c4db605d5e6de75d4e18638e1cc492d87b7972fb5e01f0616"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_42-full_info"
-digest = "sha256:4dd376c6236f70a4f43ed3216e76cc190f1f39c601c0df8ed525f08d050046c8"
+digest = "sha256:1b8fb5e358579516a3fc77f0be5aa87c28f1c74b742ff376ed77df8a2fabec9d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_43-ask_human"
-digest = "sha256:e4829cff3060dca06e8bdfdbe8d3817c79d0bb9fcb068053170327978d284b4d"
+digest = "sha256:28033e87a0b8c6e6f8350ef4038cc9d33dcc816bccaab3a3c4284bf960af6931"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_43-baseline"
-digest = "sha256:c2e43160a2a0b8dad25414f104e882d2fc346bdcb04c1408c1cfb0d98355471a"
+digest = "sha256:9b82b656e8ac4b724444bafd1572d5e076798c31578a0eecc45bc046199d1b2a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_43-full_info"
-digest = "sha256:6d423d46ffbe6b956d0222a8e8cffc6afce48ad8b1d9971f0b5028f4a2ac28f9"
+digest = "sha256:f446eb127fc6d49a43ebe28eca1e177c7e1253467cd4a33bd7039765fe694191"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_44-ask_human"
-digest = "sha256:41779866d3fa7c3071703ece39457f054c5877a7de90af60a210d9a63e9229c0"
+digest = "sha256:c486d7661a9497d63996dee0cd7c5de268a52221c87db7d84bc2eb77641d967a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_44-baseline"
-digest = "sha256:1120433989f0a36a1a374ee6a2310bc9743b9986aa760e15b849782679678d83"
+digest = "sha256:a1b6199852b3b5747c17d476d4165f94b4ee9ef8001c913776fc3411cf660255"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_44-full_info"
-digest = "sha256:24cdf2fc2c9414fa8da41bc42cf383391463152047bb04471be5c0b45d1bc5ab"
+digest = "sha256:817ce85c5ea607e78f4a75bc9448fdd915ff592bba6d494673fadc1c182e67d7"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_45-ask_human"
-digest = "sha256:396f538aef44ecd278cd3bc724335aa6c3b1e8e3b460d9a66bd83934d6c6bcec"
+digest = "sha256:7206dff8dee33d85a38aabdfea1ca3b179d0a0d3cd6d3a8ce13c49953d47b71b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_45-baseline"
-digest = "sha256:1802fa2533bf7d3a5bcd192f6d586599609f64afa324ab6b037ebaa6bfdca3cf"
+digest = "sha256:7962877e8fd3c1eb3c9f1bc3b4a4e051c2220f30cea44561c45752ff78c8cf10"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_45-full_info"
-digest = "sha256:c9d7f6618347814dd2bbcb07c572bb8dca810a953332512df7318b38b829502d"
+digest = "sha256:f9680daf1a240350971ca1af45be579ae1998b5a1488e4223ac8d7600a739341"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_46-ask_human"
-digest = "sha256:5e1118c21b58f10c0158bcec305f832b0a40dd851cc7dbf41e7d49bad666299e"
+digest = "sha256:b02dcc3a2221105c233977064481f52e2e10a68f56d2dce05838a0372eab35b5"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_46-baseline"
-digest = "sha256:b0c13b9c605bea0a82e616687300005a05414f3470292ee19f92c34cd55b37e7"
+digest = "sha256:933758144a7a08affe12f2adfbef76c943bd2083b5587c6569bc8ccf38ce376b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_46-full_info"
-digest = "sha256:bfd88944941929a2642fd4a62e68ead5c02c358bfb1360e1798d5173287be5a3"
+digest = "sha256:3a3043c9fa85cb772b446a2b14abfc756ba98d64f793e5c3307c6995d9e427ba"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_47-ask_human"
-digest = "sha256:6288c68844b2a210ff1bff47ed88072e7ac50031e98978c27e940fd1a04c15cf"
+digest = "sha256:9a9fb8d0ca95cdbd03b917f04478e677dbe4f3fff60400ac5385bb1d55a8061c"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_47-baseline"
-digest = "sha256:1f028544a32dfaa0a837606dc5dfd07f0d038f9f9d724624cfbb84c2e52af12c"
+digest = "sha256:84bfdb6afe80853a8e2d98dc72d4809294a525c879f0132fe54e88edbcd4fac2"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_47-full_info"
-digest = "sha256:fca1f5b3230bb7f32812c44287a0b4f1b5a01058d2aec36baa784502108b26f0"
+digest = "sha256:7ec92a01fa579681029aef61ce060c062eae0be1129045d15ff981d02d080c65"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_48-ask_human"
-digest = "sha256:314b6b029af8725eb970af51d7027f7d512153f950482d18cb4b8f04a657f8e3"
+digest = "sha256:24281a10c08d24ec8ac07827c24e442d893cf3c2f24d7c755d2b8b6e2159cda6"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_48-baseline"
-digest = "sha256:11b2d285a584c870b1e60d46c3a3b2504abc689bee14f5bff57b54449c93384f"
+digest = "sha256:9ecb206f4eff6fdc07d12a7c34267691844eee78b70fa0d25719aa01137e6546"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_48-full_info"
-digest = "sha256:ad0c9321e23720f0087cf42f1d82c4efe467df21df266f77b89b6acb44e87edb"
+digest = "sha256:694b1d6db43eaa466bf3ec13787e10598d40111a5078577605b60d11c30b0338"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_49-ask_human"
-digest = "sha256:440776123ff18dbe3c1778034301d468aad5064afc0768e3edd1f98baf8795be"
+digest = "sha256:6c339b09bb3d56bca28099f1943632246839a56e26d9424aa4ff0767d5a41178"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_49-baseline"
-digest = "sha256:f7871f6ec3d5e66ddfbe968179bc1d8fd446fd3aeb9b4ca36bd10801e83675d0"
+digest = "sha256:b6aaa504decc5f88f449e840106d5b1068293cc0e463f10d03f452ef4491fa1d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_49-full_info"
-digest = "sha256:bcb19bf28452268c7f1429be27101b89d82f1a16712140a013143b576413beff"
+digest = "sha256:849cdcf17ea1f74a0ebca02b269e0a3cc942a1b3ae130ac30ba14a209dcb382a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_5-ask_human"
-digest = "sha256:179e1c8a020a250fcf4a10aa8da2157d6d4c2c72d5b9cd2819e82ac19403c7e1"
+digest = "sha256:4e8b3c9aadd0a29da3a2c9a9857d842ad74d65dd8e8ab43df4e5874e31b3c3d5"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_5-baseline"
-digest = "sha256:d07b3e142a2f0e07d39bd535dc2ae0edb383b1a50573f058c5dcb1ad52d7477a"
+digest = "sha256:2e9f8405fdb251095f35099d2e2bc372d014cc4b8933b28787e178e165c796d4"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_5-full_info"
-digest = "sha256:f556abe84cb3b8112d4c68a13080358582dc3fc39e9b6cfbe4bd2d927fb8ff3e"
+digest = "sha256:1ada1e40c089cf618ace4bf4f39fbf05f6d1d2a59d794350a32e34483d475857"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_50-ask_human"
-digest = "sha256:13574a080d11a8be8c34c13bbfd7cbe6f9dbde8ea01bdcb199e3153fa21fbcb2"
+digest = "sha256:c42d0c47085b0f6d54889f3b4a3e723ce0c4168485679c3757252e8c1d239da2"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_50-baseline"
-digest = "sha256:aec3ec84215ba9926f208848422cbff51bb3ebe7ba721f12ccc10c4352446efd"
+digest = "sha256:b56cea38a14762d1ea410024ca39a7a876aa308c113bd30fb37054c5283d4680"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_50-full_info"
-digest = "sha256:f50a408bef00bafd9e0aa3dcd2e4f34b554a806665bcec12a67ff13fb4d98472"
+digest = "sha256:72d79f00fb004f023238e4b336a4bb1c3bf08ef84957fb65f54c45a041d2215e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_51-ask_human"
-digest = "sha256:11ef67e85ba90156475fda781fba7868ab373f4e74d5cd7d7ab24d98f1122a1d"
+digest = "sha256:72e45659e905aa2d76a479a14b5621ac1a2000dc0f71867463352cf12172b895"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_51-baseline"
-digest = "sha256:4822873688766c693c74472b0a2ef5d1e79ae0224d1b08c421ed9ed36b4b8f6a"
+digest = "sha256:2697b84f98aa78ad3ae6760d19119dd1fa16a2af10e5cc3e6cc2cbd3df615eb0"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_51-full_info"
-digest = "sha256:819fdacf47443494a06723024cdad2552066c9c686d8cc465a4a55d7bac0479b"
+digest = "sha256:3f73043153f01a910dafd0374b4d36e6be97635753d0bae1f6704ace02d62e4a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_52-ask_human"
-digest = "sha256:4698a21884508ba3b3f9678549a5c88d027c7ef6531d8268f7cae025a19d96dd"
+digest = "sha256:f9e54ace9b1965ad71001a800bde7cfed90bd09781c67c501b2f285c5f5ccbc6"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_52-baseline"
-digest = "sha256:39b117f775ff55971dc37f0e85196852c9580dede4d59341fb576cff448e4e0e"
+digest = "sha256:a601252356eac74337f3d9e55d829d2f043263acfbdc8859b2257b065a13b8b0"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_52-full_info"
-digest = "sha256:f78181f39a69b225c5b2dbd20f5d582e0c3e37dedf750bf398d523a5d1c63129"
+digest = "sha256:777cfa88b7c8ff4bd3846d69259ee3b5a39b20d6e4028b370947fc40310870ca"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_53-ask_human"
-digest = "sha256:4690d203b088699a7243d9d5eb3313605643bcc35a75aea315ba840f9a6a6284"
+digest = "sha256:e5d881a90fc9b8d6a3334b39016d98e5ee3ec9937ee595d398dbba1f41784735"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_53-baseline"
-digest = "sha256:59afb3c94a851a8c596e2d61cfa96b230a11daa1dbe78cb4ea5826b716f9a5c9"
+digest = "sha256:c67df3e99e639d8e4c9b53da59f38442f72b1aba053237cbe169e9bf418c663a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_53-full_info"
-digest = "sha256:85ddfc48543fcc6c1a5d84af47e2f10cd431f105a5ba83ddb69e8d2109c8539c"
+digest = "sha256:504ece3b092d5295df47699e5c8f606c51928b75a62a2cb9919c8d957fb7702f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_54-ask_human"
-digest = "sha256:8ad8083d6dc6610899c9d3d92b4a224558484b6a94c319c7ce50f925bef2f862"
+digest = "sha256:b8954a1b68be9a19e2c706af98833d01f2111d2db17c6330881a6497897a66a4"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_54-baseline"
-digest = "sha256:3b7b8098f9986f61388d305521c4600536b6b736ceb95f6db2f6ab9a4130dae7"
+digest = "sha256:e4a54297c4582412a4d00dc7dacc9e6caf5458327e786f9e666b014aa96bac77"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_54-full_info"
-digest = "sha256:4a59b5311256e62a370f8829f9c165553035c44527c980d3df9f67943e9c0310"
+digest = "sha256:955f7e34a7fae6c01746022b6a8f6eb3c78e9f3dd5aff814ece937cab1db04e9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_55-ask_human"
-digest = "sha256:f8beac0841efc1b1948fe46ab4a008372d838c698105d70d2be72e14d05b6d7b"
+digest = "sha256:dfcc5dfac3e08eb4a95025933ac0d43cb792203db08d937b21d2419a9edaa9dd"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_55-baseline"
-digest = "sha256:3209e0b16be83d5f04452a0c2324d06d54a0862ef9988c8bf72345b33437cc89"
+digest = "sha256:f288059c4ec7fe54303cdb0059b4d6e16cd6d8fed5e06580a9edc4374648bf1b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_55-full_info"
-digest = "sha256:f42d917dc53016c62a0b1554e47342313ca00d4c4f4b14bf840c16b3ce3bad04"
+digest = "sha256:9846f3f33f6a99d1f3a75c990f711688b851593b9d948a026bb6e70a4a0ca4f1"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_56-ask_human"
-digest = "sha256:2a6019e1431c211179a487b96be74343a14178b984f264aead5076a95c0eda5e"
+digest = "sha256:165b1d93ea61b799213222f65f6e7dcccdb9bcd42e8cd64b986e6f6ea5fa4502"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_56-baseline"
-digest = "sha256:312ca7c8e9b53f5817586824c47b182f82e52d6c1177b1708eda3401da40640f"
+digest = "sha256:019ec14a797449aea1f6306f9bd25b18670646af8a00c219c001f48ad58eb707"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_56-full_info"
-digest = "sha256:35762f7f449eb56c29c4c0202af5ce0c8e9b757217d6caf0c14326c8fd66852b"
+digest = "sha256:3e0ec7575921657b094fb484a009514a05b249f112c31b71283559fcf68c7c53"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_57-ask_human"
-digest = "sha256:935e2a48c6c421b588b2fb28f5d023a83f69635e08850749ff659f6bde76ac83"
+digest = "sha256:a07c1ab236043fc54e8d72c62306264e73dcd99b48c63284035ecfcffa713d66"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_57-baseline"
-digest = "sha256:55fa8a480e11564259397e14a5ab60975993da35b5c90f0f2274b046f598e9a5"
+digest = "sha256:62362cac7813aaeb2e01308a8794dd105eb37158adc0994fabb18dbbfe8374a9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_57-full_info"
-digest = "sha256:021271ab6067992ee3a91d7978ebffd6b5b8aa578c0ebef96c8d4ed911e2d251"
+digest = "sha256:fc86af3fbb5badca41e2554ed3f5e92cd6be5e26a124d51985cec0fd80782281"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_58-ask_human"
-digest = "sha256:6009a931dbf30a947acc4582790d02bc0b88a5c2b8192d4657f77e4e8468c9e4"
+digest = "sha256:9340b4860e4f04f300ba45abed95e77baaee6198e7888d54074e73a10e032fdc"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_58-baseline"
-digest = "sha256:47240586ae1f5dae8cbed8a77afffb63631fb5664932c9472a81920ec860ec84"
+digest = "sha256:9accb444447d82cca0d2347bde63593ed080d53b70313699c3c7262ad9c2e17f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_58-full_info"
-digest = "sha256:8112a5438917aa54768517c0a9665ad1826db5490bd60ccbf504dd2f34e05a92"
+digest = "sha256:3fa71b7d812e305f69135215a08d9b7deea1108f1fa8930c6bebf7ca09a62e32"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_59-ask_human"
-digest = "sha256:5a619a6382c174c93953c3cc1594e2e4c2cc79e5675850aef0cc6da5299b0a4e"
+digest = "sha256:38381b7f9d0ece45098663d5e99b3eb0887c4acbb8caf4db3b2f665b2d72f265"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_59-baseline"
-digest = "sha256:6f43dea6906ad9e1bda29a928582f54738465ce6a1b88bf8da16ba3f0e0c6dd7"
+digest = "sha256:58364ab1e2d5bfbe85b86f37233904c519eba6a92f2b983a00d9b9ca07952fa2"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_59-full_info"
-digest = "sha256:e9fd89766a64f33a9f4b9e53c0a9801d8a17307f5cc59a84b592534f9b712fe6"
+digest = "sha256:37e955a824e83ae8a9ab7ad95be01ab0b4e093751c3ca336e334cd4ee7c3b687"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_6-ask_human"
-digest = "sha256:8cfacc97c9878882b283a6cdf6d24493766dae534af54d8cb746d35e4d502e40"
+digest = "sha256:06e6f1ffbfd6915f8e25c16acb4ba978481d9ce763ff2726fcab7a042997e4bd"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_6-baseline"
-digest = "sha256:86673971384c6c6d452155359de6d522f25a77671bf0070184bff0696e0f92dc"
+digest = "sha256:927d88bff99b35768d56d1dc4aa9b3bcf434653b503d88942e002c1a0cc3ea54"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_6-full_info"
-digest = "sha256:d603602a7fc7c796ce53fe850992da6239a6fcd4902f8c6f3a73bcc8a7070db6"
+digest = "sha256:ed57c1d1a08a58f58b04ecbc352d31cf752afdb73df8dd439c8e9f8356d7dc9d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_60-ask_human"
-digest = "sha256:08d730f0bbf8adc02ed7e77f40b2b363d95d79c8aaa128544cdb31b39d8a2655"
+digest = "sha256:a9dc512114f1a82672c2104e55983fde577f823fd232f2499f5313ab8e3d1945"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_60-baseline"
-digest = "sha256:eff6ec1a9dadbad7d6929abba96f04d0020c8d45c4f1e6807c4b739d024df272"
+digest = "sha256:65f118a29aba1a816cb8581075e546218dd3acaf0cb30da79fab1cb10ce5f166"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_60-full_info"
-digest = "sha256:093635b51abad198b8a92799dce22d61b0de850bc25d5fed1f34e28fafec8499"
+digest = "sha256:82dc74fef9fdb65fe18b6574bbd5ccdc745b08a80d6a9272e9ac16fbb74743c9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_61-ask_human"
-digest = "sha256:b0d6a5ce9a1027bb3dcdf5f2063e4ca510070bcc96e4ca7d7e0062fd5a341673"
+digest = "sha256:0a62b624da67fee35ed5c3524d439817227fbfe3ec62a361fcfe4c3f6ec2db20"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_61-baseline"
-digest = "sha256:cf621a018bb9a0efcefa3867defdbadd2364af765854e15f83ce72c2759edd3f"
+digest = "sha256:4427d7462689b9a668b6a6794789ff21b8f7f6bfec617519bce05de03967dc86"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_61-full_info"
-digest = "sha256:d1f430a9d798ccd8f1925759323d222af60dc52939e5ccb6a0327e5bda431444"
+digest = "sha256:9749d0ea4790919890234f2f8372ec15281fd310f34ea807b7ab521b586eb7a2"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_62-ask_human"
-digest = "sha256:1df107749e9594fd651377a7cdf2f5aa19650b8f2d9b9199cb7847a0eeac44eb"
+digest = "sha256:c5ba084e8a3fff4d2f7e0045622f1ebfcf17a92514cc1abb335736dd266df05b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_62-baseline"
-digest = "sha256:b1771b338eb143c3971e4529d75e1f5df5f2dd39fda521c524f546b37c0a9bb4"
+digest = "sha256:3ad95f67cc6bb7040551d8a37c9a5d9561a0bd26d7ca68c4b4e616c2961ad3b3"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_62-full_info"
-digest = "sha256:0573cee6bb12b2db415e860469efb98bf083aca5986f72743e78103a11a8f603"
+digest = "sha256:cfc40f1e9334ef5964421bae83bfbb4776b1a364bded5cec2db503b35d55c31a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_63-ask_human"
-digest = "sha256:0e77614ea92df95b79b406644369846a61d260a7d9103b278939fe76add6b474"
+digest = "sha256:417254cfafcf8c13150eae15ebf5f59451d80b2df79f9aa4d1084865b83ba014"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_63-baseline"
-digest = "sha256:6130f86b2baf883dd4398ef88f3f8632236d1cb339c14875242f00284129bc0c"
+digest = "sha256:20d7d886816740c3560dce84a8b6919027690c48a0a8e0d74284df638a899dfe"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_63-full_info"
-digest = "sha256:ddf14ab930a0fda9101accc9b65fb2bc93b0078ce7bfb17ff99b1a326a6a1974"
+digest = "sha256:1556c966ecf2cc598d33e9012eda01391a1eef651a672ecccec0c4f1853cfa43"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_64-ask_human"
-digest = "sha256:7bfc276ba3af4f36bec6a80a771a0d9229e42031e989df130b5f76d09da39d48"
+digest = "sha256:a845ebd972be581ae15997b9cbeb1b112aa34f475627b3a6811e0422fd401fd5"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_64-baseline"
-digest = "sha256:03bcd70ba449f92a641ac2e5eacc38692660ab910a5a2422ad62e9820ed98fb9"
+digest = "sha256:ccf61e216f47426971b118e94384f12049807798fe1d525384d02da0089a5b03"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_64-full_info"
-digest = "sha256:7ac1cb56023e31926f69ad83852aad67dc953c0b334e269a7fa34efede5c4ecb"
+digest = "sha256:53a9e29b2cab758ab030c3cba225721d9773187bf69efbcf761d52f77f9a3d9d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_65-ask_human"
-digest = "sha256:6a3822c6c5c2cb2da8471cef95fb914bbc5c35782edc74b64d1a707961b401ee"
+digest = "sha256:11ddf7ab7ed508626b9bf032c7e74b6c335117d1d9cbc3ef17127ae0f505a065"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_65-baseline"
-digest = "sha256:c16e666ecd6787921dda9bcb7d7c2d23c56a2f09cf1470725a1bcc85df2da8f0"
+digest = "sha256:abfa82150fbc325a37e88c3314f74717b9873902cb05b763c8e590ce2cebadd9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_65-full_info"
-digest = "sha256:ce560e02aba947c89d7181e71741068fa8c5d01c14d4496d9f926d2571decf5a"
+digest = "sha256:dd420d6d008153d26ab9487900912ce739c8d84cb9c575a963648aca04937797"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_66-ask_human"
-digest = "sha256:15dbbf17f4e13e0048e9b9cbe9c53dcdc934807c63d9d751c1fda8bb8db013fb"
+digest = "sha256:476d6f595d487ed13b2ee05c10207b513613cf6d5a1b05ee9c2d6f7b93249c85"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_66-baseline"
-digest = "sha256:a67d13aad21ae0b515fa6c61c4dd6752277de479edacd1d0ee97ec7abac4f4ec"
+digest = "sha256:ce368124eda26dc5d89ce1f93841c49ae5e9d0594d55ca5207ceeaa7ed3b15fa"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_66-full_info"
-digest = "sha256:ca5c05a4fe4b9712cbff6bd681954055c3ff5c895f8bded17706fc5ed0e8a45b"
+digest = "sha256:e572f305fb54e853f44aaafd25da9c17692b7c051fb39278226383dfc8654ad0"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_67-ask_human"
-digest = "sha256:313f14563be855ea9f204272c9e38b12ef7053c8aed85999a89d0d90aaeedbd5"
+digest = "sha256:86d80786f0eda80e550388258ab191b91db0cc5f0d66e9c854f6bd224f47ccad"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_67-baseline"
-digest = "sha256:821478fa76e7c319c35b1d67a7ceae2570177650b782da07b0655019170106c7"
+digest = "sha256:0a82a85f6dce4d5f9f90869f4b27e9ba640778fc301678423f5353562b970567"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_67-full_info"
-digest = "sha256:0e1407320faf8eed0a4856f8c9dd4ce465a3f531fc0a0b73fa4a800b92216c67"
+digest = "sha256:7bd98f3a6a75338083e940de29b62efb896ffad1a4906bae3de0a086b238b24b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_68-ask_human"
-digest = "sha256:989afe59c7e906bd7f0d806b2a0f9945158d8046b32a89eda8bedcacc75ab3ca"
+digest = "sha256:6634544c7c2c933cca264f0fed1a96af28086a95eefb9854b4778c391604e38f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_68-baseline"
-digest = "sha256:365e2f77a75269e88605815bf4656e5d88938e17722686ed6ee3e33295125084"
+digest = "sha256:fa1c335ae0345e4a150c2b7b2d57e77f8fca0e64a6e0cc7fc305ab6e9b1a530a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_68-full_info"
-digest = "sha256:f716ecbb67387dc62062656b0308fb105bbccdc7972a7e77fba12ab15db17932"
+digest = "sha256:3c1f7cd81e27a8b455285f9b30816c0e145500844c87f09356b88b60398509ae"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_69-ask_human"
-digest = "sha256:918d3e83355ed8d09fe2207d9247d964fdb82ef84163661c7243d5e328ad112e"
+digest = "sha256:bd92a9729ff55d80fa03a85ef81f32b972d59ef7d7d18708bd331b03e8dafe44"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_69-baseline"
-digest = "sha256:9e59053b5e352880692b67a471ff70294b2881f7a7fd82dd8683a3697b94a9a7"
+digest = "sha256:9fb16483876498f7324c00862e9ddff75503e80ee8511e0bc2fc5cf494542a05"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_69-full_info"
-digest = "sha256:24be8d4af31713bc65cfeb6a974f96911d07f5a084ea919dbeb9aa16aa1ad85d"
+digest = "sha256:a676bb40867ba6711dee4b94f928d757706aae5913f6dc204f9c9a9da19f4006"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_7-ask_human"
-digest = "sha256:6650af46825396f229941d1d5dacad81aeeeb4758efdc56c77e99b7be4c27cbe"
+digest = "sha256:724e4c40fce751ffacbd25c6b5908bcf8c503e74e6984b4b9575375c70ed8a24"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_7-baseline"
-digest = "sha256:9053b4502e365a2d55ba71e88e1fa4cf1a7f346dcc37653c9c3b3d8c86be9918"
+digest = "sha256:226de8bc70cee614a26264b834428dc94cc0f5f626e631b565e009c1a4554467"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_7-full_info"
-digest = "sha256:f6169a697b29ad3492e1fbfe9794becbeadce2d41f2d2c62e3824755d493143a"
+digest = "sha256:66306c5e37e5af6882f19b99df9db48a5dc0d1197c5943b640cdb657e751c9f9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_70-ask_human"
-digest = "sha256:dac76fe0c0f3bd69f6418a80e20852973bc124a118f94fa9cc39ae33ad5b5b84"
+digest = "sha256:3d43239bf7cb66019ed68af6f358ca87a6087110eedeef8fad658c285276a673"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_70-baseline"
-digest = "sha256:270738b14c96461628a40338ba8cb019f2880d398c11f8eae4fb2eede33daca7"
+digest = "sha256:7028d7d080fa471c48523bef2bae723576ccad4fc10a80413902675db79b6c1a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_70-full_info"
-digest = "sha256:69eba66761b93fa70910b0c83a1ce4c749d3aca4b6358e22d4f14dd806e431ba"
+digest = "sha256:a268ed1fbbb395dbd59d2f84a4bdd1522431ce0ff6ccac635836b89828ca6800"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_71-ask_human"
-digest = "sha256:e75857e08ab047f95eea09efd1656079f4e76476f337a15d178eb5e1b54e2572"
+digest = "sha256:c78723da2ccfa13e9249c9ae485216a508099be3f6e1ba1043ada89951322abe"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_71-baseline"
-digest = "sha256:16530a264a1975e78b7e4ac8102f1d9d5328ea305f8767c33cf0ba533b2f3fb4"
+digest = "sha256:39b8090ab2736e04ce97f9f0445706b2acc6815635da9d32ad2479e60a5fd3e6"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_71-full_info"
-digest = "sha256:cfa448cd2595c56511020c34d83e0888e5ae5109bb62aa94764c6e2f3938e1ea"
+digest = "sha256:0450ad601ab70649dca5135fd5c1038922e3a8ced71397a72f8cd644eecd55f1"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_72-ask_human"
-digest = "sha256:66f6d5150b216b4d2edb65264d87471a9f60f83dec82f5484a899e6176fbff55"
+digest = "sha256:acfc5cce585b9638cb8a6e7471a8dcfd3a657d9872e21b61079404781bb4da63"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_72-baseline"
-digest = "sha256:af20eb3e4e1db59cef80f9329564b3ac8c42155245df24648f22550404b3733c"
+digest = "sha256:f039d89bf49a45ef4bfd4fa7717dca210287ea7b5c7f592582590f513e5f8e15"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_72-full_info"
-digest = "sha256:801d93b6f88f6a3ae05671cc0999859d37b068fafaa3944539cb5809e7d8ea78"
+digest = "sha256:c5e90177aa158531bd3e34450eabf720ef991601ed74c46d8746293bef915936"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_73-ask_human"
-digest = "sha256:92a9574678590e616b2c13df3641765071bcfeaaf5ec9b3f175e584966b66e48"
+digest = "sha256:64aa1a69a07108d473b728a1f3327833b557fca40626af94f5ab6fff09216c72"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_73-baseline"
-digest = "sha256:bbbe64c239dc0436f7569116a5112889313df67105f554356e33edaeceef0b35"
+digest = "sha256:f197636bc003601ca69ff7a6c1d0f9459fdbca9096a4e22c4c350cd012b4f6b7"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_73-full_info"
-digest = "sha256:fdebe42b39e8a2db02c9e3626acc02b9d6f32b04e4301826e176bc5fa3a6b48c"
+digest = "sha256:c477a1e5fbfa1ae5046740514da4e65b40d25a5c735324c5cc07b497239bc7b2"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_74-ask_human"
-digest = "sha256:e63b979c12fb27173319eb6f48c277bbe594c2d8d14c5f4c0c027689dae3f53d"
+digest = "sha256:d911ad844fb344cbe89017a7e5302b0e09a859d75cb65e998afd60fa0d9f0005"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_74-baseline"
-digest = "sha256:023ada1607fd875f8f2e80332aba7a4a76211100dd077f2db2ebc1569bcf3b4c"
+digest = "sha256:5ea5b64970e4fb9dacf95ae9d0aad39944c3c263b254c493aca381dd12b44acc"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_74-full_info"
-digest = "sha256:db48491660ea57463a3b65112aab39143bf28f181e503bb0c5667190c9b234c3"
+digest = "sha256:cfe31f3f06ef499ea55cc21ef6db5d8f008179e8f5afe10f5cc2842db2d06c3a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_75-ask_human"
-digest = "sha256:5213efcf6e9ba383f7d543b9c98b26ef7fdec88c66655bf1e24147a7b4d690cf"
+digest = "sha256:a6f70344a8bbeb8cefde96a2339c6f5006209f0569b17fea24023ddd2ccfb76b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_75-baseline"
-digest = "sha256:6639e2a80fd7ce55349bc4dcde3ed2074182fe94aa0f6e453ab12fe6314a2a31"
+digest = "sha256:6ea4c295520c4aab36200af62b1497842978d6c204b26793eeb90f5c1439d618"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_75-full_info"
-digest = "sha256:69788cf6a44b4ab2860ebd61157dff485ea239d97d7e053bffd4db3b5924513b"
+digest = "sha256:14b83b51215920a222d27c468bdc5b6aec3daf5116b872327694421141268d2f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_76-ask_human"
-digest = "sha256:cff9eaefcee17cd59dde3f9ba0970cdfde18ce0517f14057ca7c89287cd237d2"
+digest = "sha256:3f5a84e93d33c8d4e51f9eb8c312025d1c974c1a9b29653de5119a69e8fb1bc8"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_76-baseline"
-digest = "sha256:88d21b9946ed24ea11fa069924d7affa2d6c18a6115c7c29cbfcd989a83d263b"
+digest = "sha256:eb4cad3e8c4efa2070dcda51eadb30ffd2d7a7cdab44e7fd7606427911bb93ae"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_76-full_info"
-digest = "sha256:60aa951e895aca1a01aa82be6939486f7e2f63644b5f284421c6695b3be0c6e4"
+digest = "sha256:c5d95b57ff01049306ff86b1b3391238d1ac86c6dda72397c763cf02011ba70e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_77-ask_human"
-digest = "sha256:76a96bd946c8c86f9893cea2b4a3efdc232c254d1fa5f125223686368af08cb8"
+digest = "sha256:da665c8ff0023e346cfa6e817e5ac87c29edac717e3984545a438f9d17c88a95"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_77-baseline"
-digest = "sha256:baaf97ba386693f83c1e06b0fe1d3df86e8a8204a618e30ac5347ce3cbcc11ff"
+digest = "sha256:f18938801ed046b140269cef9141b606b4c602b70abc6df3739ae8c0eb1520ca"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_77-full_info"
-digest = "sha256:01054a1301706b472377ac9e009ea5dc07590e75187eded4369a85b63988905d"
+digest = "sha256:1f8f66c226d1fd2bc3083d735cd4c99bc6f38f1ce5baf74b50ea86ca67671173"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_78-ask_human"
-digest = "sha256:645b31967d6b6b973caae7b2b09d370197ac6e32dd18cdbd9f978e8c26bb9851"
+digest = "sha256:9170e90f8779fc28958405ebbba8ba3b8dbd57aed868c511a477142d056779f9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_78-baseline"
-digest = "sha256:493b3e05fce626cd891ba3f9351bea3533f3dc8e70d80e9457a96a374448ae4d"
+digest = "sha256:bad70522cf7764f030ddcc5a756a1e55bbbf940d01ccb22c248ee0a0e747b672"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_78-full_info"
-digest = "sha256:b95c89786988d0a6ac9ef0a6b0db021b77c535c7735a720dc4ab72435ca6ca3d"
+digest = "sha256:8421d1a1f31dea2d33529ede8bf43366925341252c298d9c014ff0407d567de3"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_79-ask_human"
-digest = "sha256:00ddd6dab8b0d9343f3d42e2f7d129a8a9be7773bfd7c36f52c91651737265f2"
+digest = "sha256:546e7fbeb4bb2d54112795569236b390778a3641fa9cca8e2468caaaf556b72d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_79-baseline"
-digest = "sha256:ef9b204b436ed54c3cef1f0f7f71aea39f39ebd870b63ec6da072a101ce12d2a"
+digest = "sha256:55db68d73bd8cd33b5ddbf2a781f9d368d6ce0ab6a997787e6651899a0b1537d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_79-full_info"
-digest = "sha256:831682f0006ee4a54e5f11e2cea4cc06e5da943b7feddfe5ec94c2d43aafd7fa"
+digest = "sha256:ba3e04190537596f49bee304733df0c391a7b68400cf77baa0cf6cd75800ee86"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_8-ask_human"
-digest = "sha256:22d0a73a698534a3067bd3d4246cb55d660e72a78b0c9a0ff899298871ebba0e"
+digest = "sha256:26b757b9aefe96f26a8fb3f22a0e78c1ca953d243e321755803d82d88ea04df8"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_8-baseline"
-digest = "sha256:5ea2e76c2cad46a98d0bd90de07557260b85faba49281e500a9469dd16abe715"
+digest = "sha256:01e91150d8f2989fa53e7e3461a759cd6c9bc18796c13a886dd8955386d3dad4"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_8-full_info"
-digest = "sha256:3af06c6f3ba5a7f5fb5904ab5dec9fcf62b067b523907191eb54318426e1dbf6"
+digest = "sha256:fda04bac5697e10214e939c01761192a8eb975d574deb702eb7f7e3dafc58c48"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_80-ask_human"
-digest = "sha256:4f76d8a7a3ef665aefe8ce775bdae2f44dfa7e4d7b64cf69353544607208fbf2"
+digest = "sha256:826c5007068a30bed1c13ab64798e4e6a85b4729dd74b3afc05617abb6b716a9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_80-baseline"
-digest = "sha256:5f3e733ec631d7f46698015687079a011b624720a4a672bac8f34edc8c442e56"
+digest = "sha256:19a83948f49df3c1a6ff57ba111c3f91e76ded557c8325352933cccfcbfea247"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_80-full_info"
-digest = "sha256:c3ed81501ff3986a6b919b448e6fbc303073ed3fa2293f055ff3061dbe469063"
+digest = "sha256:3f809d69f7c097cdc61ec727b09ba903e8fad6b14783e001dc0bb7d8c720b020"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_81-ask_human"
-digest = "sha256:31a3642163a441bd174a512ad67b8839bc68c1ee2995247f7d747cb94eaec391"
+digest = "sha256:544268633be34f2c06481c0658c62d2ea08228fe4f28ce312ecd9f05bad7da78"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_81-baseline"
-digest = "sha256:6dee924182770fe77cda0d097d61e2dd5985d7632662026d753350e5d19829fe"
+digest = "sha256:4621bd6d45a9762f60bd1c808ed1dce511b25d4c977ec814724a7b8fa3b8043e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_81-full_info"
-digest = "sha256:9769e002ee3c3092c69e6de78e08704e49b6b56ec391561682be43be20fe9b4d"
+digest = "sha256:a19a6dc238d5d9c264cde03f4c21f8edf0d3d7046e32f2dda257a2714e8df851"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_82-ask_human"
-digest = "sha256:f2c07dac07434c76b94c38f46b093beff45b3a9128b53a1c0f752eab2b58a092"
+digest = "sha256:24eb0309c3b608dbca1963d6f4bf05d33bd19293b4a0a7111defa525db08e206"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_82-baseline"
-digest = "sha256:27f1a01f49a128a8b7674cab10eff01a226dbd2efa1c269d12924a2927107fce"
+digest = "sha256:69d3b8b465b1fa2825e03374ab2cd83157157ff250e517d9d1c75b0a85714e04"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_82-full_info"
-digest = "sha256:863f70215750b492c2a435738b5e8d79ea83940ae0f26efba145d47327ac16f5"
+digest = "sha256:443922906291673bc5461c3f4f0275195c1c7364e4b1426b2a6fd213dac368f8"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_83-ask_human"
-digest = "sha256:519ec7fcb06402ebd8caeaf6a963729a077634dbcca41e41dc7c9b9eeb805f47"
+digest = "sha256:7fea6a162b340a1989a45afa82c60a8a4a6efd8a3e1bfd96e74610bddde7880a"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_83-baseline"
-digest = "sha256:b89642a47558e5304f1313c1ba5dcd69f9b230ee0d0d62e1bcf9589702ca32f2"
+digest = "sha256:5f26d4ac8daf4195558989630624a5fab103d632c3fe0d0bafb53f0eb1d92337"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_83-full_info"
-digest = "sha256:30c4a35d97987533415fdfe9d1e24727c0544939c4546517b27ce66710c62a94"
+digest = "sha256:43d340f2c4fd40b551669c1f6e08d6382bc5d0afb1b553dc9c77bcb389e4a4f9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_84-ask_human"
-digest = "sha256:926f771d042932e7751590ecda204dd5ebdcb5d2523663508563dce44ddc6fb5"
+digest = "sha256:cedbbaab4421f2ac866d1cc084f4d235e9b06cacb28120cc0cb6b930b0eedd18"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_84-baseline"
-digest = "sha256:8fd35c23d8bb90f9501bc0fd36a8d75f4e7d1369bd9728691cce7178c386561f"
+digest = "sha256:880308ffe1d987a5daacfb1a6aa99da55efbb8551683b638b1140a5ddcfb6730"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_84-full_info"
-digest = "sha256:6cf7927cf2706613c6cbe4a1209730c812398607eda51ed92040624fbc3c42ad"
+digest = "sha256:27adb8a49aa995047981020d062f68b7b531b900a21147b585040e7dd5553f7e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_85-ask_human"
-digest = "sha256:8cab2ec4c2a76352b8b8029e9999b760ff884caa3d10d07cd7c4b7580088aa07"
+digest = "sha256:704cf375e0b92c7b2ca522dbd86b420e23d182e090548612e9a4456b64a74f5b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_85-baseline"
-digest = "sha256:b1a6194521c946b49ce996fa896a19ce1fb4ac5c941de076823a163376e8a005"
+digest = "sha256:1ca723b425712c76e519f098fdd5ec4c87e7e912d77463adcee7e5ffc34746dc"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_85-full_info"
-digest = "sha256:e6d0d7efeae00ff8eb25c1cc3febf3a837d5fa17d0fa2a1b9a0b6e61976c6389"
+digest = "sha256:e18017405e580b8b77905682cfb7ea7ad750a4314623a957fe943bf0d52ee6b4"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_86-ask_human"
-digest = "sha256:0ce5e832fab25f76ac637563a57421790d9f285fdc6370c9547456e77c931e5d"
+digest = "sha256:3b60229d8277a5703a42fe1528d92ed6798f13baa35a3c471fffd9c4721d4006"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_86-baseline"
-digest = "sha256:b872b225db0ddc423ddbca386433911d41fed6ec8dc3e6d5f94d9e4684f59e89"
+digest = "sha256:8008b7150cff57b066ecc28b2e366e7b43d68c5af431e1ab9dff112dab682035"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_86-full_info"
-digest = "sha256:dff0091a59289f433c2fb4ff1b3be6774675b7a9f777d8fd42c445db18a10eb2"
+digest = "sha256:c5075e62f360fefa9548c2f6e4d80ced2756e4b2755734b31d0edcafd9260d39"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_87-ask_human"
-digest = "sha256:0eb945ecaf1e63e6d3b5edbb695f486bfb29a1bd4ffb0791558a6577a4e86228"
+digest = "sha256:7245ddf952b1c313149e8378eeaa3e7f6afada675be3f50d6cb4b7b8a0eb6539"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_87-baseline"
-digest = "sha256:34d011ea8a14200ce6d92c51c33887cee7d798913106017d58a3322e760ce496"
+digest = "sha256:df23ba95afea0a58264dc757106216b1eded13977951bfc39e5b1714752b8cad"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_87-full_info"
-digest = "sha256:8f2a0111eac7ef0cb900c79fbf7aff6a4da77e92aee9c5b073cda24cf7a5a1a8"
+digest = "sha256:df1a1a743f17a73962aa38226cc92198fbd7289b81f8be9935cb50eaed35b1c5"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_88-ask_human"
-digest = "sha256:382843d5967bd3b2a1dfecaff6544f8d7e7d30b0e50abf4aac33c7bc4c3d395d"
+digest = "sha256:f5e05fec5d36876ae716f86b84495e6b32b35cab0df14a931a6c35235ce37011"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_88-baseline"
-digest = "sha256:63745f7a50854ffc8b73d61611ea59fa2b8fef1098e4eb2af63eddf45c908f1b"
+digest = "sha256:ab0e0b715eff062c3767f022978ca5bf5ac34fc1f8feee7c5432e543c65ff595"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_88-full_info"
-digest = "sha256:fa1568948c681653124d37a2e2bcebb7dc10986047204705f597d994569ff217"
+digest = "sha256:5f5bf5e6dc0324ad534aef70bebc93ee6c8264f18f7bab65af3c71bfd5993772"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_89-ask_human"
-digest = "sha256:b016ccbc5a96f38ceb5720ad94b40dcff877def412e677dc95b3d42af157f763"
+digest = "sha256:546aaea7b6034d99506a09055503217dbcb105f25c021b44f90ef4881052de70"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_89-baseline"
-digest = "sha256:3b1fb67452656c6a30654061e524cccf745d419f2307b0b209a636b8f08ddc0f"
+digest = "sha256:71fb3ae21890d974821d5c068d9cb2a3f7c4a82f5da2e3de6a56008ef2381110"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_89-full_info"
-digest = "sha256:330d67c19ce2cafad75d785f54f8fb85d704b749bf23080d06cb476d5708bcde"
+digest = "sha256:602b37994da626853eeab7819e04b752815e6eabecac58f019bc8dd2669a45f6"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_9-ask_human"
-digest = "sha256:16b2ceff84b18e7b52b5e75cd24a506f46a42078173c23ddd68722b06f9e2c92"
+digest = "sha256:07d61ec201d1bf62b50a5d2ca3576acd6569b4de3351acd53feb2190c78985e6"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_9-baseline"
-digest = "sha256:5f732f8349899b71363f174de5eb74d3620fc6159b029900132cee619f56e708"
+digest = "sha256:db11685efbf99694127a002b34290b1c51e7c18bcf6f6eb29deffa2ab5397e67"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_9-full_info"
-digest = "sha256:97feae6bee3b837a274117e7331e66676185e4e27d5e059d1fba31cd83a646a9"
+digest = "sha256:1131e9aff446eeae423d8e68274e5b1b74b56a473a784cde83dd9fe2996aa652"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_90-ask_human"
-digest = "sha256:bf45c4b7bbda4f500df504241a58e9b3645939066aed600a5ca1253e2fddf5ac"
+digest = "sha256:950ecaeb06d3f3e9a7167af565a843429888445a840bc51dba4a55167f3755d8"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_90-baseline"
-digest = "sha256:d32c74d940de774c8321769f962cfe0c406034f8419b15a7d222a6d87bce726f"
+digest = "sha256:42f642c9d8013fba17f97093c03e840e5192c541b65b5dcf2206c359afad5cff"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_90-full_info"
-digest = "sha256:8dd7b783f8a512fe4de1a6b297686eeb555a8b4eec9517a29aabd2d9c651263a"
+digest = "sha256:8e90d1d244b5726beefd644a8c148f6d1ad05539850c383b8d3c90df0298a9e0"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_91-ask_human"
-digest = "sha256:69cd0257122fc8a6b13a1181b617a177227186e8ccee185004ca8df7a5038bf9"
+digest = "sha256:6746ef3f166c63037d7f4cf365f7c7c6fa45e0efeb44eca481181ca601d91511"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_91-baseline"
-digest = "sha256:bbf6e20c914252105e2a6dd6881f3f66e14e5c108291461e358497aa76e0eeb4"
+digest = "sha256:333d03a7299a0adcb7f264c5aa5bda8801e298dce4ac149ec8f9742b5ed34594"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_91-full_info"
-digest = "sha256:679c9830a62112decbceae6c6b1034aae5061436fa11e1c43c7befbaa488731b"
+digest = "sha256:0737e08f1951ef4ae07ad0115cf5bc35125d382cf93ce209038a2cbbb0fe6ce9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_92-ask_human"
-digest = "sha256:be79492f73b487fd74f8ef79e27838c124bafec8f69c3b2f27de017fd09e5634"
+digest = "sha256:66d74b3ad94d393742e30386d3d5407f06f9f9db202aca2b14df366a82294088"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_92-baseline"
-digest = "sha256:ec10cd3aa27772f013b20180c26f704084689389b5d2f44f0ee1aa3c7d5d2fb8"
+digest = "sha256:b1c7069d52fa8dbb419bf5468133775702c86b2641218a676f4bb5b3ab6247e3"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_92-full_info"
-digest = "sha256:70b620f19b96605f3d6812d051ec3fbc0086eb095b563bdd153f7fc59af58698"
+digest = "sha256:6e1d038f88002ae54fb906c0cdbfbb884204ca4b471c8e003f094a37fa28cfa2"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_93-ask_human"
-digest = "sha256:e06175c79988f8d388da326624da6cea99c9099285f28e5bf8705c64a70ff67b"
+digest = "sha256:7ba818e895427c8292991e91bcdd2fb9d7c40ac2c7e7786ff512367d23ebc24d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_93-baseline"
-digest = "sha256:3c888ee6e7e3cb3079d8358b15924b4b12f994639465327d348a46ef9fc8f544"
+digest = "sha256:3fa1f6d03df5955f0b14c0a2729d1c4b5a113fce0c6b39a174d167fd93b3d49e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_93-full_info"
-digest = "sha256:cdcfa2f9e1aeaeedd7ff7cb5c2f8689924c594b825dc147852b316dc20670833"
+digest = "sha256:e36863e4b1048dfad364a7be6131cef9cba2587b8819c5bf733c8cc7eca2b0e7"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_94-ask_human"
-digest = "sha256:2a0c9ef52d973dbf655debb1742ffcf79d938556986cda0ce461885a35549284"
+digest = "sha256:6394d4b940b47997d173856244a3cb7b0b85de116560769e98907560a73d47eb"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_94-baseline"
-digest = "sha256:579fc385abe82159ac6e683e503a207eea6d2a8d12140078d4bd5f91f62a6057"
+digest = "sha256:fe28ef45bf26319ddd15d1508620ffaac47d847c8bcd4d90d305932a431c10ba"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_94-full_info"
-digest = "sha256:9007783bf2a82e2a56177bc68a401cdab3c42b8511b59169c73c08bdb8dff2d4"
+digest = "sha256:801bfb548a98cc2c9818f4ef8b98102a1fd25c1395d4af65249362ea1841cb42"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_95-ask_human"
-digest = "sha256:c7cf2eb4aed1d64d0e518a81cb66c051571c82d87aa1833aa3dfa7c03b520c6c"
+digest = "sha256:8fef996611d4bbb8b3c4874049a78cb605c70ee57838ff02a6e26fed2f40134b"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_95-baseline"
-digest = "sha256:576ba213208ab824346e5ce1585a1f5d5061dcfb3bb1477678eef2cdf5a5d243"
+digest = "sha256:1f15ad4b60f39a71d220ca167092a13742fb98c5cc62ac3e0e28ac68f8a0e52d"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_95-full_info"
-digest = "sha256:659ba7018297fa090cc755b7693c0b9ebd4d415226aeb3c64cb3d46800ee5cab"
+digest = "sha256:d97d283e012d3bc3947742e79a11e394fa03992f12e61a8c4eb25b75d2c9d9e4"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_96-ask_human"
-digest = "sha256:32bc3342cacbc7ea3ad1730ce5e6f5c62cff81ce06dd27b3814a229eccc40ef1"
+digest = "sha256:f1bbcb9f2fd57627c3ad1aaabdd510c9efbbbae41ecbbeae7684eef83dea794e"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_96-baseline"
-digest = "sha256:67accc1f3eecabb3bda619356de57e753fecb57651e009ec83d512e0edb8c7d5"
+digest = "sha256:c429a59bf8f296a46135dd45bc265f0d8876d70d5ea800a86e79c248a7631487"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_96-full_info"
-digest = "sha256:d1ce808b8dcef4afe2bbd12093d90971ca528ba657750633c37593841ed91203"
+digest = "sha256:ab55eb2a63fcb5271ada4875e127992e3a0d431d956c87fdb1149d24b2d74ef9"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_97-ask_human"
-digest = "sha256:15dbf5c891a372260225ebb588470d7a6d2a4424ea620849e90c6b7d60fff7f8"
+digest = "sha256:ca57cfb312005ecde8da2a6029cdd4b960a1000cf8ea4bc86e54dadbbcc9cea0"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_97-baseline"
-digest = "sha256:3ad4baee04ed938f3462744cd1a16942e362c84923fa94521b63444632466a55"
+digest = "sha256:ac54a1d31fa2994e2e4aa3eff6eb0b809b36b6afdb452b9135b9f66aae675f4f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_97-full_info"
-digest = "sha256:d7a05b1a5b7f2ef2d6e60186525a38f08b212e7b7584b2dfb1eab890f1c72054"
+digest = "sha256:58c94f73bd47411ee6ef630c876a28a73bb17c9ade65eb0d0f2e6d045212037f"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_98-ask_human"
-digest = "sha256:f6274e11dec264f7f025220e559b7a0f6755db978f46595970d35c7eff703096"
+digest = "sha256:373432b44232cdd429d911ee296da1a50792210cb53616309c4e0374b421adec"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_98-baseline"
-digest = "sha256:ecab25d176d18e4b6b9499e6f2acad991bb579b190112e62039cac13479f0089"
+digest = "sha256:c9f8d9221dbc9290ec1ba059465aa0035759a562fb9153437694447802595588"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_98-full_info"
-digest = "sha256:630f03b2813e77b8981ebb80f35f35b3367a70830dc66e2363015f6cf5346a65"
+digest = "sha256:e33d841c197ffd82d44d0f0cd901a05ff94e64c9bca7153626ae4d1d54ab31be"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_99-ask_human"
-digest = "sha256:9dbc28e912c008417f2751e80e7b25e26dc6117cf7309f6fcf9be0fe8fb2954d"
+digest = "sha256:b2bb8140f00d0d0d45aff21568649ea16f0c1d17541f4ede4a3a83bb3991d6d6"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_99-baseline"
-digest = "sha256:4d811124d714a21f23c4b80710637ee8f29f91ed598bbae214d5b8795ab1c793"
+digest = "sha256:4a3883ee4d23f11c29739decedd4371315f1f485a97d237b776aba357ab64d11"
 
 [[tasks]]
 name = "scale-ai/hil-bench-sql_99-full_info"
-digest = "sha256:3543f46e534544516f9dd0f47910df5ae61106226c544c2ed235a1c952dc9886"
+digest = "sha256:079b6826a6fae8c55da36a2e2884843e24e52cee5426c40642353c89eb01d0d0"
 
 [[tasks]]
 name = "scale-ai/hil-bench-swe_0-ask_human"

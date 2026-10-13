@@ -13,7 +13,7 @@ database_name = "financial"
 task_attempt_id = "6977cf5464c4667b98edc51d_69861dcc8ae3e04bc98cb4f8"
 tags = [ "sql", "baseline", "hil-bench",]
 [verifier]
-timeout_sec = 300.0
+timeout_sec = 1380.0
 
 [verifier.env]
 [agent]

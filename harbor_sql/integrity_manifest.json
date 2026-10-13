@@ -160,8 +160,8 @@
     },
     {
       "output": "hil-bench-sql_0-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_0/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -209,8 +209,8 @@
     },
     {
       "output": "hil-bench-sql_0-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_0/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -258,8 +258,8 @@
     },
     {
       "output": "hil-bench-sql_0-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_0/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -314,8 +314,8 @@
     },
     {
       "output": "hil-bench-sql_1-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_1/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -363,8 +363,8 @@
     },
     {
       "output": "hil-bench-sql_1-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_1/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -412,8 +412,8 @@
     },
     {
       "output": "hil-bench-sql_1-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_1/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -468,8 +468,8 @@
     },
     {
       "output": "hil-bench-sql_10-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_10/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -517,8 +517,8 @@
     },
     {
       "output": "hil-bench-sql_10-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_10/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -566,8 +566,8 @@
     },
     {
       "output": "hil-bench-sql_10-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_10/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -622,8 +622,8 @@
     },
     {
       "output": "hil-bench-sql_11-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_11/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -671,8 +671,8 @@
     },
     {
       "output": "hil-bench-sql_11-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_11/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -720,8 +720,8 @@
     },
     {
       "output": "hil-bench-sql_11-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_11/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -776,8 +776,8 @@
     },
     {
       "output": "hil-bench-sql_12-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_12/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -825,8 +825,8 @@
     },
     {
       "output": "hil-bench-sql_12-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_12/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -874,8 +874,8 @@
     },
     {
       "output": "hil-bench-sql_12-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_12/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -930,8 +930,8 @@
     },
     {
       "output": "hil-bench-sql_13-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_13/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -979,8 +979,8 @@
     },
     {
       "output": "hil-bench-sql_13-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_13/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1028,8 +1028,8 @@
     },
     {
       "output": "hil-bench-sql_13-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_13/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1084,8 +1084,8 @@
     },
     {
       "output": "hil-bench-sql_14-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_14/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1133,8 +1133,8 @@
     },
     {
       "output": "hil-bench-sql_14-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_14/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1182,8 +1182,8 @@
     },
     {
       "output": "hil-bench-sql_14-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_14/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1238,8 +1238,8 @@
     },
     {
       "output": "hil-bench-sql_15-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_15/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1287,8 +1287,8 @@
     },
     {
       "output": "hil-bench-sql_15-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_15/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1336,8 +1336,8 @@
     },
     {
       "output": "hil-bench-sql_15-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_15/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1392,8 +1392,8 @@
     },
     {
       "output": "hil-bench-sql_16-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_16/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1441,8 +1441,8 @@
     },
     {
       "output": "hil-bench-sql_16-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_16/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1490,8 +1490,8 @@
     },
     {
       "output": "hil-bench-sql_16-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_16/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1546,8 +1546,8 @@
     },
     {
       "output": "hil-bench-sql_17-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_17/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1595,8 +1595,8 @@
     },
     {
       "output": "hil-bench-sql_17-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_17/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1644,8 +1644,8 @@
     },
     {
       "output": "hil-bench-sql_17-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_17/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1700,8 +1700,8 @@
     },
     {
       "output": "hil-bench-sql_18-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_18/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1749,8 +1749,8 @@
     },
     {
       "output": "hil-bench-sql_18-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_18/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1798,8 +1798,8 @@
     },
     {
       "output": "hil-bench-sql_18-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_18/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1854,8 +1854,8 @@
     },
     {
       "output": "hil-bench-sql_19-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_19/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1903,8 +1903,8 @@
     },
     {
       "output": "hil-bench-sql_19-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_19/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -1952,8 +1952,8 @@
     },
     {
       "output": "hil-bench-sql_19-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_19/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2008,8 +2008,8 @@
     },
     {
       "output": "hil-bench-sql_2-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_2/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2057,8 +2057,8 @@
     },
     {
       "output": "hil-bench-sql_2-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_2/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2106,8 +2106,8 @@
     },
     {
       "output": "hil-bench-sql_2-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_2/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2162,8 +2162,8 @@
     },
     {
       "output": "hil-bench-sql_20-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_20/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2211,8 +2211,8 @@
     },
     {
       "output": "hil-bench-sql_20-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_20/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2260,8 +2260,8 @@
     },
     {
       "output": "hil-bench-sql_20-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_20/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2316,8 +2316,8 @@
     },
     {
       "output": "hil-bench-sql_21-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_21/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2365,8 +2365,8 @@
     },
     {
       "output": "hil-bench-sql_21-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_21/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2414,8 +2414,8 @@
     },
     {
       "output": "hil-bench-sql_21-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_21/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2470,8 +2470,8 @@
     },
     {
       "output": "hil-bench-sql_22-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_22/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2519,8 +2519,8 @@
     },
     {
       "output": "hil-bench-sql_22-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_22/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2568,8 +2568,8 @@
     },
     {
       "output": "hil-bench-sql_22-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_22/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2624,8 +2624,8 @@
     },
     {
       "output": "hil-bench-sql_23-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_23/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2673,8 +2673,8 @@
     },
     {
       "output": "hil-bench-sql_23-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_23/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2722,8 +2722,8 @@
     },
     {
       "output": "hil-bench-sql_23-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_23/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2778,8 +2778,8 @@
     },
     {
       "output": "hil-bench-sql_24-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_24/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2827,8 +2827,8 @@
     },
     {
       "output": "hil-bench-sql_24-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_24/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2876,8 +2876,8 @@
     },
     {
       "output": "hil-bench-sql_24-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_24/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2932,8 +2932,8 @@
     },
     {
       "output": "hil-bench-sql_25-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_25/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -2981,8 +2981,8 @@
     },
     {
       "output": "hil-bench-sql_25-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_25/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3030,8 +3030,8 @@
     },
     {
       "output": "hil-bench-sql_25-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_25/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3086,8 +3086,8 @@
     },
     {
       "output": "hil-bench-sql_26-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_26/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3135,8 +3135,8 @@
     },
     {
       "output": "hil-bench-sql_26-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_26/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3184,8 +3184,8 @@
     },
     {
       "output": "hil-bench-sql_26-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_26/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3240,8 +3240,8 @@
     },
     {
       "output": "hil-bench-sql_27-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_27/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3289,8 +3289,8 @@
     },
     {
       "output": "hil-bench-sql_27-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_27/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3338,8 +3338,8 @@
     },
     {
       "output": "hil-bench-sql_27-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_27/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3394,8 +3394,8 @@
     },
     {
       "output": "hil-bench-sql_28-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_28/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3443,8 +3443,8 @@
     },
     {
       "output": "hil-bench-sql_28-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_28/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3492,8 +3492,8 @@
     },
     {
       "output": "hil-bench-sql_28-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_28/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3548,8 +3548,8 @@
     },
     {
       "output": "hil-bench-sql_29-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_29/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3597,8 +3597,8 @@
     },
     {
       "output": "hil-bench-sql_29-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_29/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3646,8 +3646,8 @@
     },
     {
       "output": "hil-bench-sql_29-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_29/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3702,8 +3702,8 @@
     },
     {
       "output": "hil-bench-sql_3-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_3/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3751,8 +3751,8 @@
     },
     {
       "output": "hil-bench-sql_3-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_3/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3800,8 +3800,8 @@
     },
     {
       "output": "hil-bench-sql_3-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_3/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3856,8 +3856,8 @@
     },
     {
       "output": "hil-bench-sql_30-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_30/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3905,8 +3905,8 @@
     },
     {
       "output": "hil-bench-sql_30-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_30/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -3954,8 +3954,8 @@
     },
     {
       "output": "hil-bench-sql_30-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_30/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4010,8 +4010,8 @@
     },
     {
       "output": "hil-bench-sql_31-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_31/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4059,8 +4059,8 @@
     },
     {
       "output": "hil-bench-sql_31-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_31/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4108,8 +4108,8 @@
     },
     {
       "output": "hil-bench-sql_31-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_31/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4164,8 +4164,8 @@
     },
     {
       "output": "hil-bench-sql_32-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_32/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4213,8 +4213,8 @@
     },
     {
       "output": "hil-bench-sql_32-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_32/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4262,8 +4262,8 @@
     },
     {
       "output": "hil-bench-sql_32-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_32/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4318,8 +4318,8 @@
     },
     {
       "output": "hil-bench-sql_33-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_33/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4367,8 +4367,8 @@
     },
     {
       "output": "hil-bench-sql_33-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_33/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4416,8 +4416,8 @@
     },
     {
       "output": "hil-bench-sql_33-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_33/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4472,8 +4472,8 @@
     },
     {
       "output": "hil-bench-sql_34-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_34/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4521,8 +4521,8 @@
     },
     {
       "output": "hil-bench-sql_34-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_34/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4570,8 +4570,8 @@
     },
     {
       "output": "hil-bench-sql_34-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_34/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4626,8 +4626,8 @@
     },
     {
       "output": "hil-bench-sql_35-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_35/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4675,8 +4675,8 @@
     },
     {
       "output": "hil-bench-sql_35-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_35/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4724,8 +4724,8 @@
     },
     {
       "output": "hil-bench-sql_35-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_35/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4780,8 +4780,8 @@
     },
     {
       "output": "hil-bench-sql_36-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_36/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4829,8 +4829,8 @@
     },
     {
       "output": "hil-bench-sql_36-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_36/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4878,8 +4878,8 @@
     },
     {
       "output": "hil-bench-sql_36-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_36/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4934,8 +4934,8 @@
     },
     {
       "output": "hil-bench-sql_37-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_37/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -4983,8 +4983,8 @@
     },
     {
       "output": "hil-bench-sql_37-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_37/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5032,8 +5032,8 @@
     },
     {
       "output": "hil-bench-sql_37-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_37/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5088,8 +5088,8 @@
     },
     {
       "output": "hil-bench-sql_38-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_38/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5137,8 +5137,8 @@
     },
     {
       "output": "hil-bench-sql_38-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_38/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5186,8 +5186,8 @@
     },
     {
       "output": "hil-bench-sql_38-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_38/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5242,8 +5242,8 @@
     },
     {
       "output": "hil-bench-sql_39-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_39/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5291,8 +5291,8 @@
     },
     {
       "output": "hil-bench-sql_39-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_39/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5340,8 +5340,8 @@
     },
     {
       "output": "hil-bench-sql_39-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_39/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5396,8 +5396,8 @@
     },
     {
       "output": "hil-bench-sql_4-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_4/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5445,8 +5445,8 @@
     },
     {
       "output": "hil-bench-sql_4-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_4/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5494,8 +5494,8 @@
     },
     {
       "output": "hil-bench-sql_4-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_4/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5550,8 +5550,8 @@
     },
     {
       "output": "hil-bench-sql_40-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_40/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5599,8 +5599,8 @@
     },
     {
       "output": "hil-bench-sql_40-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_40/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5648,8 +5648,8 @@
     },
     {
       "output": "hil-bench-sql_40-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_40/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5704,8 +5704,8 @@
     },
     {
       "output": "hil-bench-sql_41-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_41/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5753,8 +5753,8 @@
     },
     {
       "output": "hil-bench-sql_41-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_41/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5802,8 +5802,8 @@
     },
     {
       "output": "hil-bench-sql_41-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_41/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5858,8 +5858,8 @@
     },
     {
       "output": "hil-bench-sql_42-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_42/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5907,8 +5907,8 @@
     },
     {
       "output": "hil-bench-sql_42-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_42/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -5956,8 +5956,8 @@
     },
     {
       "output": "hil-bench-sql_42-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_42/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6012,8 +6012,8 @@
     },
     {
       "output": "hil-bench-sql_43-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_43/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6061,8 +6061,8 @@
     },
     {
       "output": "hil-bench-sql_43-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_43/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6110,8 +6110,8 @@
     },
     {
       "output": "hil-bench-sql_43-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_43/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6166,8 +6166,8 @@
     },
     {
       "output": "hil-bench-sql_44-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_44/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6215,8 +6215,8 @@
     },
     {
       "output": "hil-bench-sql_44-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_44/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6264,8 +6264,8 @@
     },
     {
       "output": "hil-bench-sql_44-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_44/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6320,8 +6320,8 @@
     },
     {
       "output": "hil-bench-sql_45-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_45/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6369,8 +6369,8 @@
     },
     {
       "output": "hil-bench-sql_45-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_45/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6418,8 +6418,8 @@
     },
     {
       "output": "hil-bench-sql_45-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_45/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6474,8 +6474,8 @@
     },
     {
       "output": "hil-bench-sql_46-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_46/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6523,8 +6523,8 @@
     },
     {
       "output": "hil-bench-sql_46-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_46/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6572,8 +6572,8 @@
     },
     {
       "output": "hil-bench-sql_46-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_46/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6628,8 +6628,8 @@
     },
     {
       "output": "hil-bench-sql_47-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_47/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6677,8 +6677,8 @@
     },
     {
       "output": "hil-bench-sql_47-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_47/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6726,8 +6726,8 @@
     },
     {
       "output": "hil-bench-sql_47-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_47/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6782,8 +6782,8 @@
     },
     {
       "output": "hil-bench-sql_48-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_48/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6831,8 +6831,8 @@
     },
     {
       "output": "hil-bench-sql_48-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_48/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6880,8 +6880,8 @@
     },
     {
       "output": "hil-bench-sql_48-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_48/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6936,8 +6936,8 @@
     },
     {
       "output": "hil-bench-sql_49-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_49/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -6985,8 +6985,8 @@
     },
     {
       "output": "hil-bench-sql_49-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_49/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7034,8 +7034,8 @@
     },
     {
       "output": "hil-bench-sql_49-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_49/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7090,8 +7090,8 @@
     },
     {
       "output": "hil-bench-sql_5-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_5/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7139,8 +7139,8 @@
     },
     {
       "output": "hil-bench-sql_5-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_5/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7188,8 +7188,8 @@
     },
     {
       "output": "hil-bench-sql_5-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_5/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7244,8 +7244,8 @@
     },
     {
       "output": "hil-bench-sql_50-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_50/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7293,8 +7293,8 @@
     },
     {
       "output": "hil-bench-sql_50-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_50/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7342,8 +7342,8 @@
     },
     {
       "output": "hil-bench-sql_50-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_50/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7398,8 +7398,8 @@
     },
     {
       "output": "hil-bench-sql_51-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_51/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7447,8 +7447,8 @@
     },
     {
       "output": "hil-bench-sql_51-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_51/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7496,8 +7496,8 @@
     },
     {
       "output": "hil-bench-sql_51-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_51/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7552,8 +7552,8 @@
     },
     {
       "output": "hil-bench-sql_52-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_52/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7601,8 +7601,8 @@
     },
     {
       "output": "hil-bench-sql_52-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_52/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7650,8 +7650,8 @@
     },
     {
       "output": "hil-bench-sql_52-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_52/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7706,8 +7706,8 @@
     },
     {
       "output": "hil-bench-sql_53-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_53/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7755,8 +7755,8 @@
     },
     {
       "output": "hil-bench-sql_53-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_53/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7804,8 +7804,8 @@
     },
     {
       "output": "hil-bench-sql_53-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_53/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7860,8 +7860,8 @@
     },
     {
       "output": "hil-bench-sql_54-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_54/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7909,8 +7909,8 @@
     },
     {
       "output": "hil-bench-sql_54-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_54/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -7958,8 +7958,8 @@
     },
     {
       "output": "hil-bench-sql_54-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_54/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8014,8 +8014,8 @@
     },
     {
       "output": "hil-bench-sql_55-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_55/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8063,8 +8063,8 @@
     },
     {
       "output": "hil-bench-sql_55-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_55/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8112,8 +8112,8 @@
     },
     {
       "output": "hil-bench-sql_55-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_55/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8168,8 +8168,8 @@
     },
     {
       "output": "hil-bench-sql_56-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_56/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8217,8 +8217,8 @@
     },
     {
       "output": "hil-bench-sql_56-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_56/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8266,8 +8266,8 @@
     },
     {
       "output": "hil-bench-sql_56-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_56/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8322,8 +8322,8 @@
     },
     {
       "output": "hil-bench-sql_57-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_57/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8371,8 +8371,8 @@
     },
     {
       "output": "hil-bench-sql_57-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_57/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8420,8 +8420,8 @@
     },
     {
       "output": "hil-bench-sql_57-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_57/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8476,8 +8476,8 @@
     },
     {
       "output": "hil-bench-sql_58-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_58/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8525,8 +8525,8 @@
     },
     {
       "output": "hil-bench-sql_58-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_58/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8574,8 +8574,8 @@
     },
     {
       "output": "hil-bench-sql_58-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_58/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8630,8 +8630,8 @@
     },
     {
       "output": "hil-bench-sql_59-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_59/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8679,8 +8679,8 @@
     },
     {
       "output": "hil-bench-sql_59-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_59/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8728,8 +8728,8 @@
     },
     {
       "output": "hil-bench-sql_59-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_59/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8784,8 +8784,8 @@
     },
     {
       "output": "hil-bench-sql_6-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_6/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8833,8 +8833,8 @@
     },
     {
       "output": "hil-bench-sql_6-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_6/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8882,8 +8882,8 @@
     },
     {
       "output": "hil-bench-sql_6-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_6/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8938,8 +8938,8 @@
     },
     {
       "output": "hil-bench-sql_60-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_60/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -8987,8 +8987,8 @@
     },
     {
       "output": "hil-bench-sql_60-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_60/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9036,8 +9036,8 @@
     },
     {
       "output": "hil-bench-sql_60-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_60/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9092,8 +9092,8 @@
     },
     {
       "output": "hil-bench-sql_61-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_61/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9141,8 +9141,8 @@
     },
     {
       "output": "hil-bench-sql_61-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_61/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9190,8 +9190,8 @@
     },
     {
       "output": "hil-bench-sql_61-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_61/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9246,8 +9246,8 @@
     },
     {
       "output": "hil-bench-sql_62-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_62/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9295,8 +9295,8 @@
     },
     {
       "output": "hil-bench-sql_62-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_62/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9344,8 +9344,8 @@
     },
     {
       "output": "hil-bench-sql_62-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_62/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9400,8 +9400,8 @@
     },
     {
       "output": "hil-bench-sql_63-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_63/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9449,8 +9449,8 @@
     },
     {
       "output": "hil-bench-sql_63-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_63/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9498,8 +9498,8 @@
     },
     {
       "output": "hil-bench-sql_63-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_63/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9554,8 +9554,8 @@
     },
     {
       "output": "hil-bench-sql_64-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_64/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9603,8 +9603,8 @@
     },
     {
       "output": "hil-bench-sql_64-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_64/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9652,8 +9652,8 @@
     },
     {
       "output": "hil-bench-sql_64-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_64/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9708,8 +9708,8 @@
     },
     {
       "output": "hil-bench-sql_65-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_65/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9757,8 +9757,8 @@
     },
     {
       "output": "hil-bench-sql_65-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_65/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9806,8 +9806,8 @@
     },
     {
       "output": "hil-bench-sql_65-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_65/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9862,8 +9862,8 @@
     },
     {
       "output": "hil-bench-sql_66-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_66/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9911,8 +9911,8 @@
     },
     {
       "output": "hil-bench-sql_66-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_66/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -9960,8 +9960,8 @@
     },
     {
       "output": "hil-bench-sql_66-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_66/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10016,8 +10016,8 @@
     },
     {
       "output": "hil-bench-sql_67-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_67/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10065,8 +10065,8 @@
     },
     {
       "output": "hil-bench-sql_67-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_67/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10114,8 +10114,8 @@
     },
     {
       "output": "hil-bench-sql_67-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_67/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10170,8 +10170,8 @@
     },
     {
       "output": "hil-bench-sql_68-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_68/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10219,8 +10219,8 @@
     },
     {
       "output": "hil-bench-sql_68-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_68/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10268,8 +10268,8 @@
     },
     {
       "output": "hil-bench-sql_68-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_68/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10324,8 +10324,8 @@
     },
     {
       "output": "hil-bench-sql_69-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_69/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10373,8 +10373,8 @@
     },
     {
       "output": "hil-bench-sql_69-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_69/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10422,8 +10422,8 @@
     },
     {
       "output": "hil-bench-sql_69-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_69/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10478,8 +10478,8 @@
     },
     {
       "output": "hil-bench-sql_7-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_7/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10527,8 +10527,8 @@
     },
     {
       "output": "hil-bench-sql_7-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_7/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10576,8 +10576,8 @@
     },
     {
       "output": "hil-bench-sql_7-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_7/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10632,8 +10632,8 @@
     },
     {
       "output": "hil-bench-sql_70-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_70/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10681,8 +10681,8 @@
     },
     {
       "output": "hil-bench-sql_70-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_70/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10730,8 +10730,8 @@
     },
     {
       "output": "hil-bench-sql_70-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_70/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10786,8 +10786,8 @@
     },
     {
       "output": "hil-bench-sql_71-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_71/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10835,8 +10835,8 @@
     },
     {
       "output": "hil-bench-sql_71-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_71/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10884,8 +10884,8 @@
     },
     {
       "output": "hil-bench-sql_71-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_71/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10940,8 +10940,8 @@
     },
     {
       "output": "hil-bench-sql_72-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_72/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -10989,8 +10989,8 @@
     },
     {
       "output": "hil-bench-sql_72-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_72/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11038,8 +11038,8 @@
     },
     {
       "output": "hil-bench-sql_72-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_72/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11094,8 +11094,8 @@
     },
     {
       "output": "hil-bench-sql_73-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_73/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11143,8 +11143,8 @@
     },
     {
       "output": "hil-bench-sql_73-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_73/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11192,8 +11192,8 @@
     },
     {
       "output": "hil-bench-sql_73-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_73/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11248,8 +11248,8 @@
     },
     {
       "output": "hil-bench-sql_74-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_74/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11297,8 +11297,8 @@
     },
     {
       "output": "hil-bench-sql_74-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_74/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11346,8 +11346,8 @@
     },
     {
       "output": "hil-bench-sql_74-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_74/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11402,8 +11402,8 @@
     },
     {
       "output": "hil-bench-sql_75-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_75/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11451,8 +11451,8 @@
     },
     {
       "output": "hil-bench-sql_75-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_75/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11500,8 +11500,8 @@
     },
     {
       "output": "hil-bench-sql_75-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_75/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11556,8 +11556,8 @@
     },
     {
       "output": "hil-bench-sql_76-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_76/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11605,8 +11605,8 @@
     },
     {
       "output": "hil-bench-sql_76-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_76/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11654,8 +11654,8 @@
     },
     {
       "output": "hil-bench-sql_76-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_76/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11710,8 +11710,8 @@
     },
     {
       "output": "hil-bench-sql_77-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_77/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11759,8 +11759,8 @@
     },
     {
       "output": "hil-bench-sql_77-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_77/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11808,8 +11808,8 @@
     },
     {
       "output": "hil-bench-sql_77-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_77/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11864,8 +11864,8 @@
     },
     {
       "output": "hil-bench-sql_78-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_78/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11913,8 +11913,8 @@
     },
     {
       "output": "hil-bench-sql_78-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_78/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -11962,8 +11962,8 @@
     },
     {
       "output": "hil-bench-sql_78-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_78/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12018,8 +12018,8 @@
     },
     {
       "output": "hil-bench-sql_79-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_79/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12067,8 +12067,8 @@
     },
     {
       "output": "hil-bench-sql_79-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_79/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12116,8 +12116,8 @@
     },
     {
       "output": "hil-bench-sql_79-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_79/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12172,8 +12172,8 @@
     },
     {
       "output": "hil-bench-sql_8-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_8/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12221,8 +12221,8 @@
     },
     {
       "output": "hil-bench-sql_8-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_8/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12270,8 +12270,8 @@
     },
     {
       "output": "hil-bench-sql_8-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_8/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12326,8 +12326,8 @@
     },
     {
       "output": "hil-bench-sql_80-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_80/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12375,8 +12375,8 @@
     },
     {
       "output": "hil-bench-sql_80-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_80/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12424,8 +12424,8 @@
     },
     {
       "output": "hil-bench-sql_80-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_80/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12480,8 +12480,8 @@
     },
     {
       "output": "hil-bench-sql_81-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_81/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12529,8 +12529,8 @@
     },
     {
       "output": "hil-bench-sql_81-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_81/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12578,8 +12578,8 @@
     },
     {
       "output": "hil-bench-sql_81-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_81/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12634,8 +12634,8 @@
     },
     {
       "output": "hil-bench-sql_82-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_82/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12683,8 +12683,8 @@
     },
     {
       "output": "hil-bench-sql_82-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_82/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12732,8 +12732,8 @@
     },
     {
       "output": "hil-bench-sql_82-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_82/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12788,8 +12788,8 @@
     },
     {
       "output": "hil-bench-sql_83-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_83/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12837,8 +12837,8 @@
     },
     {
       "output": "hil-bench-sql_83-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_83/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12886,8 +12886,8 @@
     },
     {
       "output": "hil-bench-sql_83-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_83/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12942,8 +12942,8 @@
     },
     {
       "output": "hil-bench-sql_84-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_84/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -12991,8 +12991,8 @@
     },
     {
       "output": "hil-bench-sql_84-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_84/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13040,8 +13040,8 @@
     },
     {
       "output": "hil-bench-sql_84-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_84/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13096,8 +13096,8 @@
     },
     {
       "output": "hil-bench-sql_85-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_85/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13145,8 +13145,8 @@
     },
     {
       "output": "hil-bench-sql_85-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_85/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13194,8 +13194,8 @@
     },
     {
       "output": "hil-bench-sql_85-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_85/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13250,8 +13250,8 @@
     },
     {
       "output": "hil-bench-sql_86-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_86/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13299,8 +13299,8 @@
     },
     {
       "output": "hil-bench-sql_86-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_86/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13348,8 +13348,8 @@
     },
     {
       "output": "hil-bench-sql_86-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_86/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13404,8 +13404,8 @@
     },
     {
       "output": "hil-bench-sql_87-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_87/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13453,8 +13453,8 @@
     },
     {
       "output": "hil-bench-sql_87-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_87/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13502,8 +13502,8 @@
     },
     {
       "output": "hil-bench-sql_87-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_87/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13558,8 +13558,8 @@
     },
     {
       "output": "hil-bench-sql_88-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_88/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13607,8 +13607,8 @@
     },
     {
       "output": "hil-bench-sql_88-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_88/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13656,8 +13656,8 @@
     },
     {
       "output": "hil-bench-sql_88-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_88/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13712,8 +13712,8 @@
     },
     {
       "output": "hil-bench-sql_89-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_89/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13761,8 +13761,8 @@
     },
     {
       "output": "hil-bench-sql_89-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_89/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13810,8 +13810,8 @@
     },
     {
       "output": "hil-bench-sql_89-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_89/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13866,8 +13866,8 @@
     },
     {
       "output": "hil-bench-sql_9-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_9/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13915,8 +13915,8 @@
     },
     {
       "output": "hil-bench-sql_9-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_9/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -13964,8 +13964,8 @@
     },
     {
       "output": "hil-bench-sql_9-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_9/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14020,8 +14020,8 @@
     },
     {
       "output": "hil-bench-sql_90-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_90/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14069,8 +14069,8 @@
     },
     {
       "output": "hil-bench-sql_90-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_90/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14118,8 +14118,8 @@
     },
     {
       "output": "hil-bench-sql_90-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_90/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14174,8 +14174,8 @@
     },
     {
       "output": "hil-bench-sql_91-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_91/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14223,8 +14223,8 @@
     },
     {
       "output": "hil-bench-sql_91-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_91/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14272,8 +14272,8 @@
     },
     {
       "output": "hil-bench-sql_91-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_91/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14328,8 +14328,8 @@
     },
     {
       "output": "hil-bench-sql_92-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_92/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14377,8 +14377,8 @@
     },
     {
       "output": "hil-bench-sql_92-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_92/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14426,8 +14426,8 @@
     },
     {
       "output": "hil-bench-sql_92-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_92/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14482,8 +14482,8 @@
     },
     {
       "output": "hil-bench-sql_93-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_93/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14531,8 +14531,8 @@
     },
     {
       "output": "hil-bench-sql_93-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_93/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14580,8 +14580,8 @@
     },
     {
       "output": "hil-bench-sql_93-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_93/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14636,8 +14636,8 @@
     },
     {
       "output": "hil-bench-sql_94-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_94/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14685,8 +14685,8 @@
     },
     {
       "output": "hil-bench-sql_94-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_94/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14734,8 +14734,8 @@
     },
     {
       "output": "hil-bench-sql_94-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_94/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14790,8 +14790,8 @@
     },
     {
       "output": "hil-bench-sql_95-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_95/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14839,8 +14839,8 @@
     },
     {
       "output": "hil-bench-sql_95-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_95/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14888,8 +14888,8 @@
     },
     {
       "output": "hil-bench-sql_95-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_95/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14944,8 +14944,8 @@
     },
     {
       "output": "hil-bench-sql_96-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_96/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -14993,8 +14993,8 @@
     },
     {
       "output": "hil-bench-sql_96-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_96/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -15042,8 +15042,8 @@
     },
     {
       "output": "hil-bench-sql_96-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_96/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -15098,8 +15098,8 @@
     },
     {
       "output": "hil-bench-sql_97-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_97/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -15147,8 +15147,8 @@
     },
     {
       "output": "hil-bench-sql_97-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_97/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -15196,8 +15196,8 @@
     },
     {
       "output": "hil-bench-sql_97-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_97/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -15252,8 +15252,8 @@
     },
     {
       "output": "hil-bench-sql_98-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_98/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -15301,8 +15301,8 @@
     },
     {
       "output": "hil-bench-sql_98-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_98/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -15350,8 +15350,8 @@
     },
     {
       "output": "hil-bench-sql_98-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_98/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -15406,8 +15406,8 @@
     },
     {
       "output": "hil-bench-sql_99-ask_human/tests/test_verify.py",
-      "output_sha256": "b11ad099b64fb101b4caf530608b6da16a127ff4401e93ad9ef063d92153b4d5",
-      "rule": "add_canonical_reward_and_counts",
+      "output_sha256": "5ea34491ed83d552d53a7d1c136ba166cf13774f2363015cd134610949f2f9ae",
+      "rule": "set_timeout_add_canonical_reward_and_counts",
       "source": "sql_99/ask_human/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -15455,8 +15455,8 @@
     },
     {
       "output": "hil-bench-sql_99-baseline/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_99/baseline/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     },
@@ -15504,8 +15504,8 @@
     },
     {
       "output": "hil-bench-sql_99-full_info/tests/test_verify.py",
-      "output_sha256": "337c5268f825505a7f9652086d76b4b51e38b201dc8e6a49a767ecc3b3f76ecb",
-      "rule": "add_canonical_reward",
+      "output_sha256": "c622f4762d58bb725b192f8731bf925350c219740bb9ce3d93a1ebfe919eb5a2",
+      "rule": "set_timeout_and_add_canonical_reward",
       "source": "sql_99/full_info/tests/test_verify.py",
       "source_sha256": "f6f03b2a60bc736bd9e90e4e9e01ae3d7d3d3cd97408a349ce847119855ba172"
     }

@@ -13,7 +13,7 @@ database_name = "california_schools"
 task_attempt_id = "6977cf5464c4667b98edc4e7_698f527d9b02b03d680b260c"
 tags = [ "sql", "full_info", "hil-bench",]
 [verifier]
-timeout_sec = 300.0
+timeout_sec = 1380.0
 
 [verifier.env]
 [agent]
