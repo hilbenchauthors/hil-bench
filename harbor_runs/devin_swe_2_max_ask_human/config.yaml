@@ -12,9 +12,9 @@ agents:
     override_timeout_sec: 7200
 
 datasets:
-  - path: updated_harbor_sql
+  - path: harbor_sql
     task_names:
       - "*-ask_human"
-  - path: updated_harbor_swe
+  - path: harbor_swe
     task_names:
       - "*-ask_human"
