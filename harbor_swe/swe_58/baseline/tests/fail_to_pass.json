@@ -1,8 +1,0 @@
-[
-  "TestModificationMethods",
-  "TestReadOnlyErrorCodeToken",
-  "TestReadOnlyHTTPStatusCode",
-  "TestStoreIdentifier",
-  "TestReadOnlyPrecedenceOverValidation",
-  "TestUniformSentinelAcrossOperations"
-]
